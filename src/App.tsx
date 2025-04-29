@@ -10,7 +10,6 @@ import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import MaintenanceOverlay from './MaintainanceOverlay';
 
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import Spline from '@splinetool/react-spline';
 import TestimonialCarousel from './Components/TestimonialCarousel';
 import About from './About';
@@ -21,7 +20,6 @@ import FAQSection from './FAQ/FAQSection';
 import { faqData } from './FAQ/data/faqData';
 
 import CookieConsent from './CookieConesent';
-import { Analytics } from "@vercel/analytics/react";
 
 import PrivacyPolicy from './Policies/PrivacyPolicy';
 
@@ -497,9 +495,8 @@ function App() {
       duration={400}
       >
       <MaintenanceOverlay />
-      <SpeedInsights />
+
       <CookieConsent />
-      <Analytics/>
 
       {/* Particles Background */}
       <div className="absolute inset-0 z-50 pointer-events-none">
