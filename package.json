@@ -17,6 +17,7 @@
     "@splinetool/react-spline": "^4.0.0",
     "@tensorflow-models/handpose": "^0.1.0",
     "@tensorflow/tfjs": "^4.22.0",
+    "@vercel/speed-insights": "^1.2.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "firebase": "^11.6.0",
