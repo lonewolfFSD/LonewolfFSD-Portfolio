@@ -21,6 +21,7 @@ import FAQSection from './FAQ/FAQSection';
 import { faqData } from './FAQ/data/faqData';
 
 import CookieConsent from './CookieConesent';
+import { Analytics } from "@vercel/analytics/react"
 
 import PrivacyPolicy from './Policies/PrivacyPolicy';
 
@@ -498,6 +499,7 @@ function App() {
       <MaintenanceOverlay />
       <SpeedInsights />
       <CookieConsent />
+      <Analytics/>
 
       {/* Particles Background */}
       <div className="absolute inset-0 z-50 pointer-events-none">
