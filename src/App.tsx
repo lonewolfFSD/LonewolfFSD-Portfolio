@@ -470,7 +470,7 @@ function App() {
       <Route path="/about-me" element={<About />} /> {/* New route */}
       <Route path="/profile" element={<Profile isDark={isDark} />} />
       <Route path="/notifications" element={<NotificationPage />} />
-      <Route path="/not-found" element={<NotFound />} />
+      <Route path="*" element={<NotFound />} />
       <Route path="/admin" element={<AdminPanel isDark={isDark} user={user} />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route
