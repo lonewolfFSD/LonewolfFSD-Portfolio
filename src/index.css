@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply antialiased;
+  }
+
+  @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+.animate-slideOut {
+  animation: slideOut 0.3s ease-in-out;
+}
+
+/* Toast expands on hover */
+.expand-toast {
+  transition: all 0.3s ease;
+  transform: scale(0.95);
+  background-color: rgb(29, 0, 0, 0.95);
+  border: 1px solid rgb(255, 59, 59);
+  opacity: 1;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-top: 0px;
+  border-radius: 10px;
+  height: 70px;
+  margin-bottom: 12px;
+  z-index: 10; /* Default z-index */
+  margin-left: 0px;
+}
+
+.expand-toast:hover {
+  transform: scale(0.96);
+  opacity: 1;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.circular-gallery {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.circular-gallery:active {
+  cursor: grabbing;
+}
+
+.parallax {
+  position: relative;
+  overflow: hidden;
+}
+
+.scroller {
+  display: flex;
+  white-space: nowrap;
+  text-align: center;
+  font-family: sans-serif;
+  font-size: 2.25rem;
+  font-weight: bold;
+  letter-spacing: -0.02em;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.scroller span {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .scroller {
+    font-size: 5rem;
+    line-height: 5rem;
+  }
+}
+
+.shiny-text {
+  color: #b5b5b5a4; /* Adjust this color to change intensity/style */
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  display: inline-block;
+  animation: shine 5s linear infinite;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 100%;
+  }
+  100% {
+    background-position: -100%;
+  }
+}
+
+.shiny-text.disabled {
+  animation: none;
+}
+
+.animated-gradient-text {
+  position: relative;
+  font-family: Poppins;
+  margin: 0; /* Removed margin: 0 auto to allow left alignment */
+  display: flex;
+  max-width: fit-content;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start; /* Changed to flex-start for left alignment */
+  font-weight: bold;
+  backdrop-filter: blur(10px);
+  transition: box-shadow 0.5s ease-out;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.gradient-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: 300% 100%;
+  animation: gradient linear infinite;
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.gradient-overlay::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: inherit;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #060606;
+  z-index: -1;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.text-content {
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradient linear infinite;
+  text-align: left; /* Left-aligned */
+}
+
+
