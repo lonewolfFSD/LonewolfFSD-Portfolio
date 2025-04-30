@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, CheckCheck, Trash2, Flag } from 'lucide-react';
+import { X, CheckCheck, Trash2, Flag, Bell, Clock } from 'lucide-react';
 import { Notification } from '../types/Notification';
 import { formatTimeAgo } from '../utils/formatTime';
 import ReactMarkdown from 'react-markdown';
@@ -12,6 +12,13 @@ interface NotificationModalProps {
   onDelete: (id: string) => void;
   onReport: (id: string) => void;
 }
+
+export const notificationTypes = [
+  { id: 'info', label: 'Informative', icon: Bell, color: 'bg-blue-500', textColor: 'text-blue-500' },
+  { id: 'success', label: 'Standard', icon: Bell, color: 'bg-emerald-500', textColor: 'text-emerald-500' },
+  { id: 'warning', label: 'Critical', icon: Bell, color: 'bg-amber-500', textColor: 'text-amber-500' },
+  { id: 'error', label: 'Imperative', icon: Bell, color: 'bg-red-500', textColor: 'text-red-500' },
+];
 
 const NotificationModal: React.FC<NotificationModalProps> = ({
   notification,
@@ -79,6 +86,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
     setPreviewImage(null);
   };
 
+
+
   // Custom components for Markdown rendering
   const markdownComponents = {
     p: ({ node, ...props }) => <p className="text-gray-700 leading-relaxed mb-4" {...props} />,
@@ -133,15 +142,24 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
             <div className="mb-6">
               <h2 className="text-3xl font-bold text-black mb-2">{notification.title}</h2>
               <div className="text-sm text-gray-500 mb-4">
+
+                  <Clock strokeWidth={3} className='inline-flex mr-1.5 w-3.5 -mt-0.5' />
                 {formatTimeAgo(notification.timestamp)}
                 {notification.type && (
-                  <span className={`ml-3 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                    notification.type === 'info' ? 'bg-blue-500 text-white' :
-                    notification.type === 'success' ? 'bg-emerald-500 text-white' :
-                    notification.type === 'warning' ? 'bg-amber-500 text-white' :
-                    notification.type === 'error' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-800'
-                  }`}>
-                    {notification.type.charAt(0).toUpperCase() + notification.type.slice(1)}
+                  <span
+                    className={`ml-3 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      notification.type === 'info'
+                        ? 'bg-blue-500 text-white'
+                        : notification.type === 'success'
+                        ? 'bg-emerald-500 text-white'
+                        : notification.type === 'warning'
+                        ? 'bg-amber-500 text-white'
+                        : notification.type === 'error'
+                        ? 'bg-red-500 text-white'
+                        : 'bg-gray-200 text-gray-800'
+                    }`}
+                  >
+                    {notificationTypes.find((t) => t.id === notification.type)?.label || notification.type}
                   </span>
                 )}
               </div>
@@ -151,6 +169,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
               >
                 {notification.message}
               </ReactMarkdown>
+              <br />
+              <br />
               <br />
             </div>
             

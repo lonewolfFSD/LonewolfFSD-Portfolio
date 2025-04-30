@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, BellRing } from 'lucide-react';
 import NotificationCard from './NotificationCard';
+import removeMarkdown from 'remove-markdown';
 import { Notification } from '../types/Notification';
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
 import { auth } from '../../firebase'; // Import your Firebase auth instance
@@ -35,6 +36,18 @@ const NotificationList: React.FC<NotificationListProps> = ({
     if (filter === 'read') return notification.read;
     return true;
   });
+
+  function cleanNotificationText(text: string): string {
+    // Remove Markdown
+    let cleaned = removeMarkdown(text);
+  
+    // Replace HTML entities like &nbsp; and others if needed
+    cleaned = cleaned.replace(/&nbsp;/g, ' '); // or '' if you want to fully remove it
+    cleaned = cleaned.replace(/&[a-z]+;/gi, ''); // removes other entities too, like &amp;, &lt;, etc.
+  
+    // Trim extra whitespace
+    return cleaned.trim();
+  }
   
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -101,7 +114,10 @@ const NotificationList: React.FC<NotificationListProps> = ({
           filteredNotifications.map(notification => (
             <NotificationCard
               key={notification.id}
-              notification={notification}
+              notification={{
+                ...notification,
+                message: removeMarkdown(notification.message).replace(/&nbsp;/g, ' ').replace(/&[a-z]+;/gi, ''),
+              }}              
               onClick={onNotificationClick}
             />
           ))
