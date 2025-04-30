@@ -927,7 +927,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
 
 
         <motion.div
-          className="w-full max-w-5xl md:py-16 md:px-12 md:rounded-xl backdrop-blur-lg md:border md:border-black bg-white relative z-10"
+          className="w-full max-w-5xl -mt-14 md:-mt-10 px-2 md:py-16 md:px-12 md:rounded-xl backdrop-blur-lg md:border md:border-black bg-white relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}

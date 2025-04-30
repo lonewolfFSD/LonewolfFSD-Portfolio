@@ -56,7 +56,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
         
         <div className="flex space-x-2 pb-1">
         <button
-          className={`px-4 md:px-4 py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
+          className={`px-4 md:px-4 cursor-custom-pointer py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
             ${filter === 'all' 
               ? 'bg-black text-white font-medium' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
@@ -69,7 +69,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
         </button>
 
         <button
-          className={`px-4 md:px-4 py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
+          className={`px-4 md:px-4 cursor-custom-pointer py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
             ${filter === 'unread' 
               ? 'bg-black text-white font-medium' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
@@ -82,7 +82,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
         </button>
 
         <button
-          className={`px-4 md:px-4 py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
+          className={`px-4 md:px-4 cursor-custom-pointer py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
             ${filter === 'read' 
               ? 'bg-black text-white font-medium' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}

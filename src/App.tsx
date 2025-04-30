@@ -696,7 +696,7 @@ function App() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 mt-10 lg:mt-20 z-50">
+      <main className="container mx-auto px-6 mt-6 lg:mt-16 z-50">
         <Spline scene="https://prod.spline.design/pb7UhbKVN30j962d/scene.splinecode" className="hidden lg:block" />
         <div className="max-w-4xl lg:mt-[-45%] xl:mt-[-49%]">
           {/* Animated Paragraph */}
@@ -712,11 +712,16 @@ function App() {
           {/* Animated Heading */}
           <motion.h1
             className="text-5xl md:text-7xl lg:text-8xl font-extrabold lg:font-bold leading-tight mb-8 pointer-events-none"
+            style={{ fontFamily: 'Poppins' }} // default (mobile)
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            Building digital experiences with focus on{' '}
+            <span
+              className="" // override font for md and up
+            >
+              Building digital experiences with focus on
+            </span>{' '}
             <span className="opacity-50">innovation</span>
           </motion.h1>
 
