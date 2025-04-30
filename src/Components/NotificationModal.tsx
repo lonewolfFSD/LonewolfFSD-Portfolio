@@ -118,7 +118,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between fixed w-full bg-white z-10">
+        <div className="border-b border-gray-200 mt-7 md:mt-0 px-6 py-4 flex items-center justify-between fixed w-full bg-white z-10">
           <h3 className="text-lg font-semibold text-black">Notification</h3>
           <button 
             className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
@@ -128,10 +128,10 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
           </button>
         </div>
         
-        <div className="pt-20 px-6 pb-6 overflow-y-auto" style={{ maxHeight: '100vh' }}>
+        <div className="pt-32 md:pt-24 px-6 pb-12 md:pb-6 overflow-y-auto" style={{ maxHeight: '100vh' }}>
           <div className="max-w-[72rem] mx-auto">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-black mb-2">{notification.title}</h2>
+              <h2 className="text-3xl font-bold text-black mb-2">{notification.title}</h2>
               <div className="text-sm text-gray-500 mb-4">
                 {formatTimeAgo(notification.timestamp)}
                 {notification.type && (
@@ -167,41 +167,49 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
           </div>
         </div>
         
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 fixed bottom-0 w-full flex justify-end">
+        <div className="px-6 py-4 bg-gray-50 border-t  border-gray-200 fixed bottom-0 w-full flex md:justify-end">
           {showDeleteConfirm ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">Are you sure you want to delete this notification?</span>
+            <div className="flex md:flex-row flex-col md:items-center gap-4">
+              <span className="text-sm text-gray-700 font-medium">Are you sure you want to delete this notification?</span>
+              <hr className='md:hidden' />
+              <span className='flex gap-2'>
               <button
                 onClick={handleDelete}
-                className="px-3 py-1.5 rounded bg-black text-white text-sm"
+                className="px-5 py-1.5 rounded bg-black text-white text-sm"
               >
                 Yes, delete
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-3 py-1.5 rounded bg-gray-200 text-gray-700 text-sm"
+                className="px-5 py-1.5 rounded bg-gray-200 text-gray-700 text-sm"
               >
                 Cancel
               </button>
+              </span>
+              <br />
             </div>
           ) : showReportConfirm ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">Report this notification as inappropriate?</span>
+            <div className="flex md:flex-row flex-col md:items-center gap-4">
+              <span className="text-sm text-gray-700 font-medium">Report this notification as inappropriate?</span>
+              <hr className='md:hidden' />
+              <span className='flex gap-2'>
               <button
                 onClick={handleReport}
-                className="px-3 py-1.5 rounded bg-black text-white text-sm"
+                className="px-5 py-1.5 rounded bg-black text-white text-sm"
               >
                 Yes, report
               </button>
               <button
                 onClick={() => setShowReportConfirm(false)}
-                className="px-3 py-1.5 rounded bg-gray-200 text-gray-700 text-sm"
+                className="px-5 py-1.5 rounded bg-gray-200 text-gray-700 text-sm"
               >
                 Cancel
               </button>
+              </span>
+              <br />
             </div>
           ) : (
-            <div className='flex gap-3'>
+            <div className='flex gap-3 md:mb-0 mb-7'>
               <button
                 onClick={() => {
                   if (notification.id && !notification.read) {
@@ -225,7 +233,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                 className="inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors duration-200"
               >
                 <Trash2 className="h-4 w-4" />
-                Delete
+                <span className='hidden md:block'>Delete</span>
               </button>
               
               <button
@@ -233,7 +241,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                 className="inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-md bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors duration-200"
               >
                 <Flag className="h-4 w-4" />
-                Report
+                <span className='hidden md:block'>Report</span>
               </button>
             </div>
           )}
