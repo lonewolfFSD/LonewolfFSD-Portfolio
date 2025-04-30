@@ -40,9 +40,11 @@ const NotificationList: React.FC<NotificationListProps> = ({
 
   return (
     <div className="bg-white shadow-sm rounded-lg w-full max-w-4xl">
-      <div className="border-b border-gray-200 p-4">
+      <div className="border-b border-gray-200 px-5 pb-4 md:pb-3 md:p-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-black">
+          <h2 className="text-[21px] md:text-xl font-semibold text-black" style={{
+            fontFamily: 'Poppins'
+          }}>
             {user?.displayName ? `${user.displayName}'s Notifications` : 'Notifications'}
           </h2>
           {unreadCount > 0 && (
@@ -53,44 +55,44 @@ const NotificationList: React.FC<NotificationListProps> = ({
         </div>
         
         <div className="flex space-x-2 pb-1">
-          <button
-            className={`px-3 py-1.5 text-sm rounded-md transition-all duration-200
-              ${filter === 'all' 
-                ? 'bg-black text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => setFilter('all')}
-          >
-            <span className="flex items-center gap-1.5">
-              <Bell className="h-4 w-4" />
-              All
-            </span>
-          </button>
-          
-          <button
-            className={`px-3 py-1.5 text-sm rounded-md transition-all duration-200
-              ${filter === 'unread' 
-                ? 'bg-black text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => setFilter('unread')}
-          >
-            <span className="flex items-center gap-1.5">
-              <BellRing className="h-4 w-4" />
-              Unread
-            </span>
-          </button>
-          
-          <button
-            className={`px-3 py-1.5 text-sm rounded-md transition-all duration-200
-              ${filter === 'read' 
-                ? 'bg-black text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => setFilter('read')}
-          >
-            <span className="flex items-center gap-1.5">
-              <BellOff className="h-4 w-4" />
-              Read
-            </span>
-          </button>
+        <button
+          className={`px-4 md:px-4 py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
+            ${filter === 'all' 
+              ? 'bg-black text-white font-medium' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          onClick={() => setFilter('all')}
+        >
+          <span className="flex items-center gap-1.5">
+            <Bell className={`h-4 w-4 ${filter === 'all' ? 'text-white fill-white' : 'text-gray-500'}`} />
+            All
+          </span>
+        </button>
+
+        <button
+          className={`px-4 md:px-4 py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
+            ${filter === 'unread' 
+              ? 'bg-black text-white font-medium' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          onClick={() => setFilter('unread')}
+        >
+          <span className="flex items-center gap-1.5">
+            <BellRing className={`h-4 w-4 ${filter === 'unread' ? 'text-white fill-white' : 'text-gray-500'}`} />
+            Unread
+          </span>
+        </button>
+
+        <button
+          className={`px-4 md:px-4 py-2 md:py-1.5 text-sm rounded-md transition-all duration-200
+            ${filter === 'read' 
+              ? 'bg-black text-white font-medium' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          onClick={() => setFilter('read')}
+        >
+          <span className="flex items-center gap-1.5">
+            <BellOff className={`h-4 w-4 ${filter === 'read' ? 'text-white fill-white' : 'text-gray-500'}`} />
+            Read
+          </span>
+        </button>
         </div>
       </div>
       
@@ -105,7 +107,16 @@ const NotificationList: React.FC<NotificationListProps> = ({
           ))
         ) : (
           <div className="p-8 text-center text-gray-500">
-            <Bell className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            {filter === 'all' && (
+              <Bell className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            )}
+            {filter === 'unread' && (
+              <BellRing className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            )}
+            {filter === 'read' && (
+              <BellOff className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            )}
+
             <p className="text-lg font-medium mb-1">No notifications</p>
             <p className="text-sm">
               {filter === 'all' 

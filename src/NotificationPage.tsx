@@ -52,7 +52,7 @@ const NotificationPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-black flex flex-col items-center justify-start p-6">
+    <div className="min-h-screen md:bg-gray-50 text-black flex flex-col items-center justify-start md:p-6">
       <motion.h1
         className="text-4xl font-bold text-center mb-8 tracking-wide text-gray-800"
         initial={{ opacity: 0, y: -50 }}
