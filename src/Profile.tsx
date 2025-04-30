@@ -73,51 +73,58 @@ const DeleteAccountModal = ({ isOpen, onClose, onDelete }) => {
   };
 
   return (
+    
+    
     <AnimatePresence>
-  {isOpen && (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    {isOpen && (
       <motion.div
-        className="bg-white w-screen h-screen flex flex-col items-center justify-center px-4 py-6 sm:rounded-2xl sm:max-w-lg sm:grid sm:grid-cols-3 sm:w-full sm:py-10 sm:px-12 sm:shadow-lg"
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <h2 className="text-2xl font-bold text-center sm:text-left sm:col-span-3 -mb-1" style={{ fontFamily: "Poppins" }}>
-          Are you absolutely sure?
-        </h2>
-        <p className="mt-4 text-center sm:text-left text-gray-600 sm:col-span-3 max-w-md">
-          This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-        </p>
-        {error && (
-          <div className="sm:col-span-3 bg-red-50 border border-red-100 text-red-500 p-4 rounded-xl mt-4 max-w-md w-full">
-            {error}
+        <motion.div
+          className="bg-white md:rounded-2xl w-full md:max-w-lg px-4 md:px-10 h-full md:h-auto py-10 md:py-12 shadow-lg flex flex-col justify-center md:items-left md:text-left  text-center"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <h2 className="text-2xl font-bold " style={{ fontFamily: "Poppins" }}>
+            Are you absolutely sure?
+          </h2>
+          <p className="mt-3 text-gray-600">
+            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+          </p>
+  
+          {error && (
+            <div className="bg-red-50 border border-red-100 text-red-500 p-4 rounded-xl mt-4">
+              {error}
+            </div>
+          )}
+  
+          <div className="mt-6 w-full max-w-md flex flex-col gap-3 items-center self-center md:grid md:grid-cols-2 md:items-stretch md:self-auto">
+            <button
+              onClick={handleDelete}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-6 bg-red-500 font-semibold text-white rounded-md hover:bg-red-600"
+            >
+              <Trash2 size={17} strokeWidth={3} /> Delete
+            </button>
+
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 px-6 rounded-md border border-black text-black hover:bg-black hover:text-white transition"
+            >
+              Cancel
+            </button>
           </div>
-        )}
-        <div className="mt-6 flex flex-col sm:flex-row sm:justify-between sm:col-span-2 gap-3 sm:space-x-1 max-w-md w-full">
-          <button
-            onClick={handleDelete}
-            className="w-full flex justify-center gap-2 py-2.5 px-12 bg-red-500 font-semibold text-white rounded-md hover:bg-red-600"
-          >
-            <Trash2 size={17} strokeWidth={3} className="mt-[3px]" /> Delete
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full underline text-gray-800 hover:font-semibold"
-          >
-            Cancel
-          </button>
-        </div>
+
+        </motion.div>
       </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+    )}
+  </AnimatePresence>
+  
   );
 };
 
