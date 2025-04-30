@@ -428,7 +428,7 @@ function App() {
   // Profile dropdown options
   const profileOptions = [
     { label: 'Profile', icon: User, action: () => navigate('/profile') },
-    { label: 'Admin Panel', icon: Settings, action: () => navigate('/admin'), adminOnly: true },
+    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
     { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
@@ -471,7 +471,7 @@ function App() {
       <Route path="/profile" element={<Profile isDark={isDark} />} />
       <Route path="/notifications" element={<NotificationPage />} />
       <Route path="*" element={<NotFound />} />
-      <Route path="/admin" element={<AdminPanel isDark={isDark} user={user} />} />
+      <Route path="/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29" element={<AdminPanel isDark={isDark} user={user} />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route
           path="/"

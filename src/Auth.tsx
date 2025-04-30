@@ -30,7 +30,7 @@ import {
   RecaptchaVerifier,
 } from "firebase/auth";
 import { auth, googleProvider, githubProvider, db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import Helmet from "react-helmet";
 
@@ -161,6 +161,21 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
       if (isLogin) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+
+        // Set displayName in Firebase Authentication
+        if (name) {
+          await updateProfile(user, { displayName: name });
+        }
+
+        // Save user data to Firestore
+        await setDoc(doc(db, 'users', user.uid), {
+          email: user.email,
+          name: user.displayName || email.split('@')[0], // Sync displayName or fallback to email prefix
+          status: 'active',
+          role: 'user',
+          lastActive: new Date().toISOString(),
+          biometric2FAEnabled: false,
+        });
 
         // Check for biometric 2FA
         const isBiometricEnabled = await checkBiometricEnabled(user.uid);

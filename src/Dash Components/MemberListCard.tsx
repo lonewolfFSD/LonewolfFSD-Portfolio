@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { MoreHorizontal, Search, ChevronLeft, ChevronRight, UserX, Trash2, Copy, Trash } from 'lucide-react';
+import { MoreHorizontal, Search, ChevronLeft, ChevronRight, UserX, Trash2, Copy, Trash, Plus, UserPlus } from 'lucide-react';
 import { Member } from '../types/index';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 interface MembersListCardProps {
@@ -11,9 +11,12 @@ interface MembersListCardProps {
 const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newMember, setNewMember] = useState({ uid: '', name: '', email: '', role: 'user' });
+  const [formError, setFormError] = useState('');
   const itemsPerPage = 5;
 
-  // Filter members based on search query, with fallback for undefined properties
+  // Filter members based on search query
   const filteredMembers = members.filter(member => {
     const name = member.name || (member.email?.split('@')[0] || 'Unknown');
     const email = member.email || 'No email';
@@ -30,6 +33,7 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
     currentPage * itemsPerPage
   );
 
+  // Suspend account
   const suspendAccount = async (uid: string) => {
     if (window.confirm(`Suspend ${filteredMembers.find(m => m.id === uid)?.email || 'Unknown'}?`)) {
       await updateDoc(doc(db, 'users', uid), { status: 'suspended' });
@@ -37,13 +41,20 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
     }
   };
 
+  // Delete account
   const deleteAccount = async (uid: string) => {
     if (window.confirm(`Delete ${filteredMembers.find(m => m.id === uid)?.email || 'Unknown'} for good?`)) {
-      await deleteDoc(doc(db, 'users', uid));
-      console.log('Account deleted');
+      try {
+        await deleteDoc(doc(db, 'users', uid));
+        console.log('Account deleted successfully');
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        alert('Failed to delete account. Check console for details.');
+      }
     }
   };
 
+  // Copy UID to clipboard
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       alert('UID copied to clipboard!');
@@ -52,14 +63,62 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
     });
   };
 
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewMember(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Add new member
+  const addMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!newMember.uid || !newMember.email || !newMember.name) {
+      setFormError('UID, name, and email are required.');
+      return;
+    }
+
+    try {
+      // Check if UID already exists
+      const userDoc = await getDoc(doc(db, 'users', newMember.uid));
+      if (userDoc.exists()) {
+        setFormError('This UID is already in use.');
+        return;
+      }
+
+      await setDoc(doc(db, 'users', newMember.uid), {
+        name: newMember.name,
+        email: newMember.email,
+        role: newMember.role,
+        status: 'active',
+        lastActive: new Date().toISOString(),
+      });
+      console.log('Member added successfully');
+      setNewMember({ uid: '', name: '', email: '', role: 'user' });
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.error('Error adding member:', error);
+      setFormError('Failed to add member. Check console for details.');
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
       <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">All Members</h3>
-          <button className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors">
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+            >
+              <Plus size={18} />
+            </button>
+            <button className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors">
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+          </div>
         </div>
         <div className="mt-4 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
@@ -75,7 +134,83 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
           />
         </div>
       </div>
-      
+
+      {/* Add Member Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-hidden flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-zinc-800 rounded-lg p-6 w-full max-w-lg">
+            <h3 className="text-lg font-semibold mb-4">Add New Member</h3>
+            <form onSubmit={addMember}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">UID</label>
+                <input
+                  type="text"
+                  name="uid"
+                  value={newMember.uid}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 bg-zinc-100 dark:bg-zinc-700 p-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                  placeholder="Enter unique UID"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={newMember.name}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 bg-zinc-100 dark:bg-zinc-700 p-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                  placeholder="Enter name"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newMember.email}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 bg-zinc-100 dark:bg-zinc-700 p-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                  placeholder="Enter email"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Role</label>
+                <select
+                  name="role"
+                  value={newMember.role}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 bg-zinc-100 dark:bg-zinc-700 p-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                  <option value="moderator">Moderator</option>
+                </select>
+              </div>
+              {formError && (
+                <p className="text-sm text-red-500 mb-4">{formError}</p>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 flex gap-2 py-2.5 text-[14px] bg-zinc-800 dark:bg-zinc-700 text-white rounded-md hover:bg-zinc-700 dark:hover:bg-zinc-600"
+                >
+                  <UserPlus size={18} strokeWidth={3} className='mt-[1px]' />
+                  Add Member
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -153,7 +288,7 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
           </tbody>
         </table>
       </div>
-      
+
       {totalPages > 1 && (
         <div className="px-6 py-4 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800">
           <div className="text-sm text-zinc-500 dark:text-zinc-400">
