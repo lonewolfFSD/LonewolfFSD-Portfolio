@@ -819,17 +819,17 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
             </motion.div>
           )}
           <a href="https://form.jotform.com/251094777041054">
-          <motion.button
-            className={`px-6 cursor-custom-pointer hover:px-8 transition-all py-2 rounded-full font-semibold ${
-              isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-900"
-            } flex items-center gap-2`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-          >
-            Let's Connect
-          </motion.button>
-          </a>
+                        <motion.button
+                          className={`px-6 cursor-custom-pointer hidden md:block hover:px-8 transition-all py-2 rounded-full font-semibold ${
+                            isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'
+                          } flex items-center gap-2`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.8, duration: 0.5 }}
+                        >
+                          Let's Connect
+                        </motion.button>
+                      </a>
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`p-2 cursor-custom-pointer rounded-full border ${
@@ -844,47 +844,49 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
         </motion.div>
 
         {isMenuOpen && (
-          <motion.div
-            className={`absolute border  border-black/20 top-full right-6 w-64 mt-2 rounded-2xl shadow-lg z-10 overflow-hidden transition-all transform origin-top-right ${
-              isDark ? "bg-gray-800" : "bg-white"
-            }`}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0, duration: 0.4 }}
-          >
-            <nav className="p-3">
-              {[
-                { label: "About Me", href: "#about" },
-                { label: "My Blogs", href: "/blogs" },
-                { label: "The RepoHub", href: "https://github.com/lonewolfFSD?tab=repositories" },
-                { label: "Wanna Collaborate?", href: "/lets-collaborate" },
-              ].map((item, index) => (
-                <Link
-                  key={index}
-                  to={item.href}
-                  className={`block px-6 py-3 cursor-custom-pointer rounded-lg transition-all duration-300 ease-in-out hover:ml-1 hover:font-semibold ${
-                    isDark ? "hover:bg-gray-750" : "hover:bg-gray-100"
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <div className="border-t mx-6 my-2 opacity-10" />
-              <div className="px-6 py-3 flex gap-4">
-                <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
-                  <Github className="w-5 h-5" />
-                </a>
-                <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
-                  <Instagram className="w-5 h-5" />
-                </a>
-                <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
-                  <Twitter className="w-5 h-5" />
-                </a>
-              </div>
-            </nav>
-          </motion.div>
-        )}
+                        <motion.div
+                          className={`absolute top-full right-0 mt-6 w-64 border border-black/20 rounded-2xl shadow-lg z-20 overflow-hidden transition-all ${
+                            isDark ? 'bg-gray-800' : 'bg-white'
+                          }`}
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0, duration: 0.4 }}
+                        >
+                          <nav className="p-3">
+                            {[
+                              { label: 'About Me', href: '/about-me' },
+                              { label: 'LonewolfFSD Blogs', href: '/blogs' },
+                              { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                              { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
+                            ].map((item, index) => (
+                              <Link
+                                key={index}
+                                to={item.href}
+                                className={`block cursor-custom-pointer px-6 py-2.5 md:py-3 text-[16px] md:text-[15.5px] font-medium rounded-lg transition-all duration-300 ease-in-out hover:ml-1 hover:font-semibold ${
+                                  isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'
+                                }`}
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+        
+                            <div className="border-t mx-6 my-2=1.5 opacity-10" />
+        
+                            <div className="px-6 py-3 flex gap-4">
+                              <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
+                                <Github className="w-5 h-5 cursor-custom-pointer" />
+                              </a>
+                              <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
+                                <Instagram className="w-5 h-5 cursor-custom-pointer" />
+                              </a>
+                              <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
+                                <Twitter className="w-5 h-5 cursor-custom-pointer" />
+                              </a>
+                            </div>
+                          </nav>
+                        </motion.div>
+                      )}
       </motion.header>
 
             <div className="absolute inset-0 z-50 pointer-events-none">
