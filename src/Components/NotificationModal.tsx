@@ -187,7 +187,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
           </div>
         </div>
         
-        <div className="px-6 py-4 bg-gray-50 border-t  border-gray-200 fixed bottom-0 w-full flex justify-end">
+        <div className="px-6 py-4 bg-gray-50 border-t  border-gray-200 fixed bottom-0 w-full flex md:justify-end">
           {showDeleteConfirm ? (
             <div className="flex md:flex-row flex-col md:items-center gap-4">
               <span className="text-sm text-gray-700 font-medium">Are you sure you want to delete this notification?</span>
