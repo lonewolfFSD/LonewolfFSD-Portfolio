@@ -43,6 +43,7 @@ import {
   CheckCircle,
   ExternalLink,
   Pencil,
+  Bell,
 } from "lucide-react";
 import {
   auth,
@@ -701,6 +702,8 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
     }
   };
 
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+
   const profileOptions = [
     { label: "Profile", icon: User, action: () => navigate("/profile") },
     { label: "Log Out", icon: LogOut, action: () => signOut(auth).then(() => navigate("/")) },
@@ -721,120 +724,138 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
         onDelete={confirmDelete}
       />
 
+      {/* Header */}
       <motion.header
-        className="container mx-auto px-6 py-8 flex justify-between items-center relative z-10"
+        className="container mx-auto px-6 py-8 flex justify-between items-center relative"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+        {/* Animated Logo */}
         <motion.div
           className="text-xl font-medium flex"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <a href="/">
-            <img
-              src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg"
-              className="rounded-full cursor-custom-pointer"
-              style={{ width: "60px", height: "auto", marginBottom: "-5px" }}
-              alt="Logo"
-            />
-          </a>
+          <a href=""><img src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg" className='cursor-custom-pointer rounded-full' style={{
+            width: '60px', height: 'auto', marginBottom: '-5px'
+          }}/></a>
         </motion.div>
 
+        {/* Animated Action Buttons */}
         <motion.div
           className="flex items-center gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
+          {user && (
+  <Link to="/notifications">
+    <motion.button
+      className={`p-2 rounded-full relative cursor-custom-pointer ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'} transition-colors`}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.9 }}
+    >
+      <Bell fill='currentColor' className="w-5 h-5 opacity-80" />
+      {notifications.filter(n => !n.read).length > 0 && (
+        <span
+          className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center transform translate-x-2 -translate-y-1"
+          style={{ minWidth: '1rem' }}
+        >
+          {notifications.filter(n => !n.read).length}
+        </span>
+      )}
+    </motion.button>
+  </Link>
+)}
+
+<motion.button
+  onClick={() => {
+    if (user) {
+      setIsProfileDropdownOpen(!isProfileDropdownOpen); // Toggle dropdown for logged-in users
+    } else {
+      navigate("/auth"); // Navigate to auth for guests
+    }
+  }}
+  className={`${
+    avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
+  } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
+    isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
+  } transition-colors`}
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ delay: 0.6, duration: 0.5 }}
+>
+  {avatarURL || auth.currentUser?.photoURL ? (
+    <img
+      src={avatarURL || auth.currentUser?.photoURL}
+      alt="Profile"
+      className="w-9 h-9 rounded-full object-cover cursor-custom-pointer"
+    />
+  ) : (
+    <User className="w-5 h-5 cursor-custom-pointer" />
+  )}
+</motion.button>
+
+                  {/* Dropdown for logged-in users */}
+                  {user && isProfileDropdownOpen && (
+                              <motion.div
+                                className={`absolute top-full right-20 md:right-60 md:w-52 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
+                                  isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+                                }`}
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                              >
+                                <div className="p-4">
+                                  <div className="ml-1 flex">
+                                    {avatarURL || auth.currentUser?.photoURL ? (
+                                      <img
+                                        src={avatarURL || auth.currentUser?.photoURL}
+                                        alt="Profile"
+                                        className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
+                                      />
+                                    ) : (
+                                      <User className="w-5 h-5" />
+                                    )}
+                                    <div className="flex flex-col mb-3.5">
+                                      <p className="text-sm font-semibold ml-2">{user.displayName}</p>
+                                      <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
+                                    </div>
+                                  </div>
+                                  {profileOptions
+                                   
+                                    .map((option, index) => (
+                                      <button
+                                        key={index}
+                                        onClick={() => {
+                                          option.action();
+                                          setIsProfileDropdownOpen(false);
+                                        }}
+                                        className={`w-full cursor-custom-pointer text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'}`}
+                                      >
+                                        <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
+                                        {option.label}
+                                      </button>
+                                    ))}
+                                </div>
+                              </motion.div>
+                            )}
+          <a href="https://form.jotform.com/251094777041054">
           <motion.button
-            onClick={() => {
-              if (user) {
-                setIsProfileDropdownOpen(!isProfileDropdownOpen);
-              } else {
-                navigate("/auth");
-              }
-            }}
-            className={`p-2 cursor-custom-pointer rounded-full ${
-              isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
-            } transition-colors`}
+            className={`px-6 hover:px-8 hidden md:block cursor-custom-pointer transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
           >
-            {avatarURL || auth.currentUser?.photoURL ? (
-              <img
-                src={avatarURL || auth.currentUser?.photoURL}
-                alt="Profile"
-                className="w-9 h-9 rounded-full object-cover"
-              />
-            ) : (
-              <User className="w-5 h-5" />
-            )}
+            Let's Connect
           </motion.button>
-          {user && isProfileDropdownOpen && (
-            <motion.div
-              className={`absolute top-full right-60 w-52 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
-                isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-              }`}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="p-4 ">
-                <div className="ml-1  flex">
-                  {avatarURL || auth.currentUser?.photoURL ? (
-                    <img
-                      src={avatarURL || auth.currentUser?.photoURL}
-                      alt="Profile"
-                      className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
-                    />
-                  ) : (
-                    <User className="w-5 h-5" />
-                  )}
-                  <div className="flex flex-col mb-3.5">
-                    <p className="text-sm font-semibold ml-2">{user.displayName}</p>
-                    <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
-                  </div>
-                </div>
-                {profileOptions.map((option, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      option.action();
-                      setIsProfileDropdownOpen(false);
-                    }}
-                    className={`w-full cursor-custom-pointer text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${
-                      isDark ? "hover:bg-gray-750" : "hover:bg-gray-100"
-                    }`}
-                  >
-                    <option.icon className="w-4 h-4  opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-          <a href="https://form.jotform.com/251094777041054">
-                        <motion.button
-                          className={`px-6 cursor-custom-pointer hidden md:block hover:px-8 transition-all py-2 rounded-full font-semibold ${
-                            isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'
-                          } flex items-center gap-2`}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.8, duration: 0.5 }}
-                        >
-                          Let's Connect
-                        </motion.button>
-                      </a>
+          </a>
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`p-2 cursor-custom-pointer rounded-full border ${
-              isDark ? "border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-gray-100"
-            } transition-colors relative z-50`}
+            className={`p-2 cursor-custom-pointer rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-10`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
@@ -843,50 +864,49 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
           </motion.button>
         </motion.div>
 
+        {/* Animated Dropdown Menu */}
         {isMenuOpen && (
-                        <motion.div
-                          className={`absolute top-full right-0 mt-6 w-64 border border-black/20 rounded-2xl shadow-lg z-20 overflow-hidden transition-all ${
-                            isDark ? 'bg-gray-800' : 'bg-white'
-                          }`}
-                          initial={{ opacity: 0, y: -20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0, duration: 0.4 }}
-                        >
-                          <nav className="p-3">
-                            {[
-                              { label: 'About Me', href: '/about-me' },
-                              { label: 'LonewolfFSD Blogs', href: '/blogs' },
-                              { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
-                              { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
-                            ].map((item, index) => (
-                              <Link
-                                key={index}
-                                to={item.href}
-                                className={`block cursor-custom-pointer px-6 py-2.5 md:py-3 text-[16px] md:text-[15.5px] font-medium rounded-lg transition-all duration-300 ease-in-out hover:ml-1 hover:font-semibold ${
-                                  isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'
-                                }`}
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                {item.label}
-                              </Link>
-                            ))}
-        
-                            <div className="border-t mx-6 my-2=1.5 opacity-10" />
-        
-                            <div className="px-6 py-3 flex gap-4">
-                              <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                                <Github className="w-5 h-5 cursor-custom-pointer" />
-                              </a>
-                              <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                                <Instagram className="w-5 h-5 cursor-custom-pointer" />
-                              </a>
-                              <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                                <Twitter className="w-5 h-5 cursor-custom-pointer" />
-                              </a>
-                            </div>
-                          </nav>
-                        </motion.div>
-                      )}
+          <motion.div
+            className={`absolute top-full  right-6 w-64 mt-[-20px] border border-black/20 rounded-2xl shadow-lg z-10 overflow-hidden transition-all transform origin-top-right ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0, duration: 0.4 }}
+          >
+            <nav className="p-3">
+              {[
+                { label: 'About Me', href: '/about-me' },
+                { label: 'LonewolfFSD Blogs', href: '/blogs' },
+                { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
+              ].map((item, index) => (
+                <Link
+                  key={index}
+                  to={item.href}
+                  className={`block px-6 py-2.5 md:py-3 text-[16px] md:text-[15.5px] font-medium cursor-custom-pointer rounded-lg transition-all duration-300 ease-in-out hover:ml-1 hover:font-semibold ${
+                    isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              <div className="border-t mx-6 my-1.5 opacity-10" />
+
+              <div className="px-6 py-3 flex gap-4">
+                <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
+                  <Github className="w-5 h-5" />
+                </a>
+                <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
+                  <Instagram className="w-5 h-5" />
+                </a>
+                <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
+                  <Twitter className="w-5 h-5" />
+                </a>
+              </div>
+            </nav>
+          </motion.div>
+        )}
       </motion.header>
 
             <div className="absolute inset-0 z-50 pointer-events-none">
