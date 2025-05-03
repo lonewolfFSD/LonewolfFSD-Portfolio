@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { doc, setDoc, getDoc, getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAuth, setPersistence, signInAnonymously, linkWithCredential, browserLocalPersistence, GoogleAuthProvider, GithubAuthProvider, updateProfile, sendPasswordResetEmail, sendEmailVerification, fetchSignInMethodsForEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, signOut, deleteUser, multiFactor, TotpMultiFactorGenerator } from "firebase/auth";
+import { getAuth, setPersistence, signInAnonymously, linkWithCredential, OAuthProvider, browserLocalPersistence, GoogleAuthProvider, GithubAuthProvider, updateProfile, sendPasswordResetEmail, sendEmailVerification, fetchSignInMethodsForEmail, reauthenticateWithCredential, EmailAuthProvider, updatePassword, signOut, deleteUser, multiFactor, TotpMultiFactorGenerator } from "firebase/auth";
 import { getRemoteConfig } from 'firebase/remote-config';
 
 // Your web app's Firebase configuration
@@ -28,4 +28,4 @@ const googleProvider = new GoogleAuthProvider();
 const db = getFirestore(app);
 const githubProvider = new GithubAuthProvider();
 
-export { auth, db, remoteConfig, doc, storage, signInAnonymously, linkWithCredential, setDoc, getDoc, googleProvider, githubProvider, sendEmailVerification, updateProfile, sendPasswordResetEmail, fetchSignInMethodsForEmail, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider, updatePassword, multiFactor, TotpMultiFactorGenerator };
+export { auth, db, remoteConfig, doc, storage, OAuthProvider, signInAnonymously, linkWithCredential, setDoc, getDoc, googleProvider, githubProvider, sendEmailVerification, updateProfile, sendPasswordResetEmail, fetchSignInMethodsForEmail, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider, updatePassword, multiFactor, TotpMultiFactorGenerator };

@@ -25,6 +25,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  OAuthProvider,
   sendEmailVerification,
   updateProfile,
   RecaptchaVerifier,
@@ -224,6 +225,42 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
       }
     }
   };
+
+  const handleMicrosoftLogin = async () => {
+    setError("");
+    setErrorType("");
+    setIsLoading(true);
+    const provider = new OAuthProvider("microsoft.com");
+  
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const credential = OAuthProvider.credentialFromResult(result);
+      const accessToken = credential?.accessToken;
+      console.log(user, accessToken);
+      navigate("/");
+    } catch (err: any) {
+      setIsLoading(false);
+      switch (err.code) {
+        case "auth/user-cancelled":
+          setError("You cancelled the Microsoft sign-in. Please try again.");
+          setErrorType("user-cancelled");
+          break;
+        case "auth/user-disabled":
+          setError("Your account has been suspended.");
+          setErrorType("ban");
+          break;
+        case "auth/account-exists-with-different-credential":
+          setError("Account already exists with different credentials.");
+          setErrorType("generic");
+          break;
+        default:
+          setError(err.message || "Microsoft sign-in failed.");
+          setErrorType("generic");
+      }
+    }
+  };
+  
 
   const handleGoogleSignIn = async () => {
     setError("");
@@ -513,7 +550,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <motion.button
             onClick={handleGoogleSignIn}
             disabled={isLoading || isBiometricPrompt}
@@ -523,7 +560,13 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
-            <Chrome className="w-5 h-5" /> Google
+            <svg className="mr-2 h-5 w-5" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="#4285F4" d="M533.5 278.4c0-18.3-1.5-36-4.3-53.1H272v100.6h146.9c-6.4 34.5-25.6 63.8-54.7 83.2v68.9h88.7c52-47.9 80.6-118.5 80.6-199.6z"/>
+                  <path fill="#34A853" d="M272 544.3c73.9 0 135.9-24.5 181.2-66.5l-88.7-68.9c-24.6 16.5-56.2 26.2-92.5 26.2-71.1 0-131.3-48-152.7-112.3H27.8v70.6C72.6 482.1 165.3 544.3 272 544.3z"/>
+                  <path fill="#FBBC05" d="M119.3 322.8c-10.4-30.6-10.4-63.6 0-94.2V158H27.8c-38.4 76.9-38.4 166.3 0 243.2l91.5-70.4z"/>
+                  <path fill="#EA4335" d="M272 107.7c39.8-.6 78.2 14.1 107.2 41.1l80.3-80.3C421.9 24.3 348.3-1.1 272 0 165.3 0 72.6 62.2 27.8 158l91.5 70.6C140.7 155.7 200.9 107.7 272 107.7z"/>
+                </svg>
+                Continue with Google
           </motion.button>
 
           <motion.button
@@ -535,7 +578,25 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
-            <Github className="w-5 h-5" /> GitHub
+            <Github className="w-5 h-5" /> Continue with GitHub
+          </motion.button>
+
+          <motion.button
+            onClick={handleMicrosoftLogin}
+            disabled={isLoading || isBiometricPrompt}
+            className={`py-4 cursor-custom-pointer font-semibold rounded-xl flex items-center justify-center gap-2 border border-gray-200 ${
+              isLoading || isBiometricPrompt ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+            } transition-colors`}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                    <path fill="#F25022" d="M2 2h9v9H2z" />
+                    <path fill="#7FBA00" d="M13 2h9v9h-9z" />
+                    <path fill="#00A4EF" d="M2 13h9v9H2z" />
+                    <path fill="#FFB900" d="M13 13h9v9h-9z" />
+                  </svg>
+                  Continue with Microsoft
           </motion.button>
         </div>
 
