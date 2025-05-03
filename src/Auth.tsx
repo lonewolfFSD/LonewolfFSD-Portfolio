@@ -364,7 +364,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
 
 
       <motion.div
-        className="w-full max-w-lg px-6 py-18 lg:p-14 lg:rounded-3xl lg:border lg:border-black bg-white relative"
+        className="w-full max-w-lg px-6 py-20 lg:p-14 lg:rounded-3xl lg:border lg:border-black bg-white relative"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
