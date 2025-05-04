@@ -768,6 +768,7 @@ function App() {
     {/* Dropdown Menu */}
     <div className="relative w-52 md:w-64 mb-8">
       <select
+        aria-label="Choose a skill topic"
         className={`${isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-gray-100 hover:bg-gray-200'} 
           w-full cursor-custom-pointer px-8 py-3 rounded-xl text-left cursor-pointer shadow-md outline-none transition duration-200 appearance-none`}
         value={selectedCategory}
