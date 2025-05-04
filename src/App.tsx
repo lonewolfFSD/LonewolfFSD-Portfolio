@@ -539,6 +539,7 @@ function App() {
           {user && (
   <Link to="/notifications">
     <motion.button
+      aria-label="notifications"
       className={`p-2 rounded-full relative cursor-custom-pointer ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'} transition-colors`}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.9 }}
@@ -564,6 +565,7 @@ function App() {
       navigate("/auth"); // Navigate to auth for guests
     }
   }}
+  aria-label="profile"
   className={`${
     avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
   } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
@@ -631,6 +633,7 @@ function App() {
                             )}
           <a href="https://form.jotform.com/251094777041054">
           <motion.button
+            aria-label="contact"
             className={`px-6 hover:px-8 hidden md:block cursor-custom-pointer transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -640,6 +643,7 @@ function App() {
           </motion.button>
           </a>
           <motion.button
+            aria-label="Open menu"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`p-2 cursor-custom-pointer rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-10`}
             initial={{ opacity: 0 }}
