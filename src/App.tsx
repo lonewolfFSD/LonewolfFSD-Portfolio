@@ -524,7 +524,7 @@ function App() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <a href=""><img src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg" className='cursor-custom-pointer rounded-full' style={{
+          <a href=""><img alt="logo" src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg" className='cursor-custom-pointer rounded-full' style={{
             width: '60px', height: 'auto', marginBottom: '-5px'
           }}/></a>
         </motion.div>
@@ -852,7 +852,7 @@ function App() {
           </div>
         <footer className="p-8 mt-28 lg:mt-0 border-t flex flex-col md:flex-row items-center justify-between text-sm">
           {/* Left: Brand Name */}
-          <a href=""><img src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg" className='mb-5 cursor-custom-pointer md:mb-0 md:mt-[-10px] w-[56px] md:w-[46px]' style={{
+          <a href=""><img alt="logo" src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg" className='mb-5 cursor-custom-pointer md:mb-0 md:mt-[-10px] w-[56px] md:w-[46px]' style={{
              height: 'auto'
           }}/></a>
 
