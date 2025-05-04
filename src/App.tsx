@@ -684,13 +684,13 @@ function App() {
               <div className="border-t mx-6 my-1.5 opacity-10" />
 
               <div className="px-6 py-3 flex gap-4">
-                <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
+                <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity" aria-label="LonewolfFSD on GitHub">>
                   <Github className="w-5 h-5" />
                 </a>
-                <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
+                <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity" aria-label="LonewolfFSD on Instagram">>
                   <Instagram className="w-5 h-5" />
                 </a>
-                <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity">
+                <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 cursor-custom-pointer hover:opacity-100 transition-opacity" aria-label="LonewolfFSD on X">
                   <Twitter className="w-5 h-5" />
                 </a>
               </div>
