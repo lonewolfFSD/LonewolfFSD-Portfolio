@@ -744,6 +744,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
       
       <Helmet>
         <title>{user.displayName}'s Profile</title>
+        <link rel="canonical" href="https://lonewolffsd.in/profile" />
       </Helmet>
 
       <DeleteAccountModal

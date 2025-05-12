@@ -123,6 +123,8 @@ function App() {
     >
       <Helmet>
         <title>LonewolfFSD Blogs</title>
+        <link rel="canonical" href="https://lonewolffsd.in/blogs" />
+
       </Helmet>
       {/* Header */}
       <motion.header

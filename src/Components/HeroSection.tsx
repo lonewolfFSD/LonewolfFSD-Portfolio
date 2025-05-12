@@ -59,6 +59,7 @@ const HeroSection: React.FC = () => {
         <title>
           Wanna Collaborate?
         </title>
+        <link rel="canonical" href="https://lonewolffsd.in/lets-collaborate" />
         
       </Helmet>
       

@@ -91,6 +91,7 @@ const About: React.FC = () => {
       className="min-h-screen bg-white text-black relative"
     ><Helmet>
       <title>About LonewolfFSD</title>
+      <link rel="canonical" href="https://lonewolffsd.in/about" />
     </Helmet>
       <div className="absolute inset-0 z-50 pointer-events-none">
         <div className="relative h-[800px] w-full overflow-hidden">
