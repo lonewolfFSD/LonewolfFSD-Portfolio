@@ -10,6 +10,8 @@ import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import MaintenanceOverlay from './MaintainanceOverlay';
 
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 import Spline from '@splinetool/react-spline';
 import TestimonialCarousel from './Components/TestimonialCarousel';
 import About from './About';
@@ -497,6 +499,8 @@ function App() {
       <MaintenanceOverlay />
 
       <CookieConsent />
+
+      <SpeedInsights/>
 
       {/* Particles Background */}
       <div className="absolute inset-0 z-50 pointer-events-none">
