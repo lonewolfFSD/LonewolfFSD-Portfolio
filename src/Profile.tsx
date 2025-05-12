@@ -1649,10 +1649,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
                   >
                     Upload Avatar
                   </motion.button>
-                  <hr className="my-4 py-1" />
-                  <p className="text-xl font-bold" style={{
-                    fontFamily: 'Poppins'
-                  }}>Didn't like it?</p>
+                  <hr className="my-2 md:hidden" />
                   <motion.button
                     onClick={() => {
                       setSelectedFile(null);
