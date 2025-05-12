@@ -1639,7 +1639,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
                 </div>
               )}
               {selectedFile && (
-                <div className="flex gap-3 mt-6 grid grid-cols-2">
+                <div className="flex gap-3 mt-6 grid grid-cols-1 md:grid-cols-2">
                   <motion.button
                     onClick={handleUpload}
                     className="w-full cursor-custom-pointer py-2.5 text-sm rounded-xl bg-black text-white hover:bg-black/90"
@@ -1649,6 +1649,10 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
                   >
                     Upload Avatar
                   </motion.button>
+                  <hr className="my-4 py-1" />
+                  <p className="text-xl font-bold" style={{
+                    fontFamily: 'Poppins'
+                  }}>Didn't like it?</p>
                   <motion.button
                     onClick={() => {
                       setSelectedFile(null);
