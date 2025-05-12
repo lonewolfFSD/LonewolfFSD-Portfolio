@@ -8,6 +8,10 @@ import { useAvatar } from "./AvatarContext.tsx";
 import { QRCodeSVG } from "qrcode.react";
 import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 
+import Cropper from "react-easy-crop";
+import { Area } from "react-easy-crop/types";
+import { RotateCcw, RotateCw } from "lucide-react";
+
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 import { ScaleLoader } from "react-spinners";
@@ -171,6 +175,11 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
   const [nsfwModel, setNsfwModel] = useState(null); // State for NSFW model
   const [passwordError, setPasswordError] = useState<string>("");
   const [biometricError, setBiometricError] = useState<string>(""); // New state for modal
+
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   // Load avatar from Firestore on mount
   useEffect(() => {
@@ -370,37 +379,93 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
     if (!file) {
       setSelectedFile(null);
       setPreviewURL("");
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setRotation(0);
+      setCroppedAreaPixels(null);
       return;
     }
     const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 5 * 1024 * 1024;
     console.log("File type:", file.type, "Size:", file.size);
     if (!validTypes.includes(file.type)) {
-      setError("Please upload a JPEG or PNG image.");
+      setError("Please upload a JPEG, PNG, WEBP, or JPG image.");
       return;
     }
     if (file.size > maxSize) {
-      setError("Image size must be under 2MB.");
+      setError("Image size must be under 5MB.");
       return;
     }
     try {
-      const isNSFW = await isImageNSFW(file); // Now valid with async
+      const isNSFW = await isImageNSFW(file);
       if (isNSFW) {
-        setError("Inappropiate content detected. Please upload a different image.");
-        setPreviewURL(null);
+        setError("Inappropriate content detected. Please upload a different image.");
+        setPreviewURL("");
         setSelectedFile(null);
         return;
       }
-  
+
       const url = URL.createObjectURL(file);
       setPreviewURL(url);
       setSelectedFile(file);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setRotation(0);
+      setCroppedAreaPixels(null);
     } catch (err) {
       setError("Failed to validate image.");
-      setPreviewURL(null);
+      setPreviewURL("");
       setSelectedFile(null);
     }
   };
+
+  const getCroppedImg = async (imageSrc: string, pixelCrop: Area, rotation: number): Promise<File> => {
+  const image = new Image();
+  image.src = imageSrc;
+  await new Promise((resolve) => (image.onload = resolve));
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const maxSize = Math.max(image.width, image.height);
+  const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
+
+  canvas.width = safeArea;
+  canvas.height = safeArea;
+
+  if (!ctx) throw new Error("Canvas context not available");
+
+  ctx.translate(safeArea / 2, safeArea / 2);
+  ctx.rotate((rotation * Math.PI) / 180);
+  ctx.translate(-safeArea / 2, -safeArea / 2);
+
+  ctx.drawImage(
+    image,
+    safeArea / 2 - image.width * 0.5,
+    safeArea / 2 - image.height * 0.5
+  );
+
+  const data = ctx.getImageData(0, 0, safeArea, safeArea);
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.putImageData(
+    data,
+    Math.round(0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x),
+    Math.round(0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y)
+  );
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(new File([blob], "cropped-image.jpg", { type: "image/jpeg" }));
+      } else {
+        throw new Error("Failed to create blob");
+      }
+    }, "image/jpeg");
+  });
+};
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -425,43 +490,57 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
   
 
   const handleUpload = async () => {
-    if (!selectedFile || !auth.currentUser) {
-      setError("No file selected or not signed in.");
+  if (!selectedFile || !auth.currentUser || !croppedAreaPixels) {
+    setError("No file selected, not signed in, or image not cropped.");
+    return;
+  }
+  try {
+    setUploadProgress(0);
+    console.log("Uploading for UID:", auth.currentUser.uid);
+
+    // Generate cropped image
+    const croppedFile = await getCroppedImg(previewURL, croppedAreaPixels, rotation);
+
+    // Validate cropped image for NSFW
+    const isNSFW = await isImageNSFW(croppedFile);
+    if (isNSFW) {
+      setError("Inappropriate content detected in cropped image.");
       return;
     }
-    try {
-      setUploadProgress(0);
-      console.log("Uploading for UID:", auth.currentUser.uid);
-      console.log("File:", selectedFile.name, selectedFile.type, selectedFile.size);
-      // Convert file to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(selectedFile);
-      reader.onload = async () => {
-        const base64 = reader.result as string;
-        console.log("Base64 length:", base64.length);
-        const userDoc = doc(db, "users", auth.currentUser!.uid, "profile", "avatar");
-        await setDoc(userDoc, { avatar: base64 }, { merge: true });
-        setAvatarURL(base64); // Update local state
-        setSuccess("Avatar updated! You're rocking a new vibe! 🌟");
-        setIsAvatarModalOpen(false);
-        setSelectedFile(null);
-        setPreviewURL("");
-        setUploadProgress(100);
-      };
-      reader.onerror = () => {
-        setError("Failed to read file.");
-      };
-      reader.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const progress = (e.loaded / e.total) * 100;
-          setUploadProgress(progress);
-        }
-      };
-    } catch (err) {
-      console.error("Upload error:", err.code, err.message);
-      setError(`Failed to upload avatar: ${err.code || err.message}`);
-    }
-  };
+
+    // Convert cropped file to base64
+    const reader = new FileReader();
+    reader.readAsDataURL(croppedFile);
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      console.log("Base64 length:", base64.length);
+      const userDoc = doc(db, "users", auth.currentUser!.uid, "profile", "avatar");
+      await setDoc(userDoc, { avatar: base64 }, { merge: true });
+      setAvatarURL(base64);
+      setSuccess("Avatar updated! You're rocking a new vibe! 🌟");
+      setIsAvatarModalOpen(false);
+      setSelectedFile(null);
+      setPreviewURL("");
+      setUploadProgress(100);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setRotation(0);
+      setCroppedAreaPixels(null);
+    };
+    reader.onerror = () => {
+      setError("Failed to read file.");
+    };
+    reader.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const progress = (e.loaded / e.total) * 100;
+        setUploadProgress(progress);
+      }
+    };
+  } catch (err) {
+    console.error("Upload error:", err.code, err.message);
+    setError(`Failed to upload avatar: ${err.code || err.message}`);
+  }
+};
 
   // Privacy & Security
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
@@ -1249,8 +1328,8 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
             >
               Delete Account
             </motion.button>
-          </div>
 
+          </div>
           <h3
             className="text-lg md:text-[17px] mt-12 font-semibold text-black mb-4 flex text-black"
             style={{ fontFamily: "Poppins" }}
@@ -1387,120 +1466,211 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
 
       {/* Avatar Upload Modal */}
       <AnimatePresence>
-      {isAvatarModalOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          onClick={() => setIsAvatarModalOpen(false)}
-        >
+        {isAvatarModalOpen && (
           <motion.div
-            initial={{ scale: 0.95, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.95, y: 20 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white h-full md:h-auto md:rounded-2xl md:p-12 p-6 pb-14 w-full max-w-2xl relative flex flex-col justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setIsAvatarModalOpen(false)}
           >
-
-            <button
-              onClick={() => setIsAvatarModalOpen(false)}
-              className="absolute top-4 cursor-custom-pointer right-4 text-gray-500 hover:text-black"
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white h-full md:h-auto md:rounded-2xl md:p-12 p-6 pb-14 w-full max-w-2xl relative flex flex-col justify-center"
             >
-              <X className="w-5 h-5" />
-            </button>
-            <h3 className="text-2xl font-bold mb-4 text-black" style={{ fontFamily: "Poppins" }}>
-              Upload Your Avatar
-            </h3>
-            {error && <p className="text-red-500 text-sm mt-4 px-4 py-2 bg-red-100 mb-4 rounded-lg border border-red-400 flex gap-1.5"><AlertTriangle size={16} className="mt-0.5"/> {error}</p>}
-            {success && <p className="text-green-500 text-sm mt-4 px-4 py-2 bg-green-100 mb-4 rounded-lg border border-red-400 flex gap-1.5"><CheckCircle size={16} className="mt-0.5"/> {success}</p>}
-            {previewURL ? (
-              <div className="relative mx-auto">
-                <h2 className="text-lg font-semibold mb-3 ">Preview Avatar</h2>
-                <img
-                  src={previewURL}
-                  alt="Preview"
-                  className="w-80 h-80 rounded-full rounded-full mx-auto mb-4 object-cover"
-                />
-              </div>
-            ) : (
-              <div
-                className={`border-2 border-dashed rounded-xl p-10 text-center ${
-                  isDragging ? "border-black/80 bg-black-30" : "border-gray-200"
-                }`}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
+              <button
+                onClick={() => setIsAvatarModalOpen(false)}
+                className="absolute top-4 cursor-custom-pointer right-4 text-gray-500 hover:text-black"
               >
-                <Upload className="w-10 h-10 mx-auto mb-4 text-gray-400" />
-                <p className="text-sm text-gray-500 mb-4">
-                  Drag and drop or click to upload (JPEG/JPG/PNG/WEBP, max 2MB)
-                </p>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  ref={fileInputRef}
-                />
-                <motion.button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-6 cursor-custom-pointer font-semibold text-sm py-2.5 bg-black text-white rounded-lg hover:bg-black/90"
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.95 }}
-                  disabled={isDragging}
-                >
-                  {isDragging ? "Drop Here" : "Choose File"}
-                </motion.button>
-              </div>
-            )}
-            <div className="flex items-start gap-2 text-sm text-red-500 mt-4 font-semibold -mb-6 bg-red-100 py-2 px-4 rounded-lg border border-red-400">
-              <AlertTriangle strokeWidth={3} size={16} className="mt-0.5 shrink-0" />
-              <p className="flex-1">
-                Do not upload any <span className="font-bold">NSFW (Not Safe For Work)</span> content as your avatar.
-              </p>
-            </div>
-
-            {uploadProgress > 0 && uploadProgress < 100 && (
-              <div className="mt-4">
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-rose-500 transition-all"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
+                <X className="w-5 h-5" />
+              </button>
+              <h3 className="text-2xl font-bold mb-4 text-black" style={{ fontFamily: "Poppins" }}>
+                Upload Your Avatar
+              </h3>
+              {error && <p className="text-red-500 text-sm mt-4 px-4 py-2 bg-red-100 mb-4 rounded-lg border border-red-400 flex gap-1.5"><AlertTriangle size={16} className="mt-0.5"/> {error}</p>}
+              {success && <p className="text-green-500 text-sm mt-4 px-4 py-2 bg-green-100 mb-4 rounded-lg border border-red-400 flex gap-1.5"><CheckCircle size={16} className="mt-0.5"/> {success}</p>}
+              {previewURL ? (
+                <div className="flex flex-col items-center">
+                  <div className="relative w-full h-60 md:h-80 mb-4">
+                    <Cropper
+                      image={previewURL}
+                      crop={crop}
+                      zoom={zoom}
+                      rotation={rotation}
+                      aspect={1}
+                      cropShape="round"
+                      showGrid={true}
+                      onCropChange={setCrop}
+                      onZoomChange={setZoom}
+                      onRotationChange={setRotation}
+                      onCropComplete={(_, croppedAreaPixels) => setCroppedAreaPixels(croppedAreaPixels)}
+                    />
+                  </div>
+                  <div className="w-full max-w-md mb-4">
+                    <div className="w-full max-w-md mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <label htmlFor="zoom-slider" className="text-sm mt-4 text-gray-500 font-medium">
+                          Zoom
+                        </label>
+                        <span className="text-sm text-gray-600 font-semibold">{zoom.toFixed(1)}x</span>
+                      </div>
+                      <div className="relative">
+                        <input
+                          id="zoom-slider"
+                          type="range"
+                          min={1}
+                          max={3}
+                          step={0.1}
+                          value={zoom}
+                          onChange={(e) => setZoom(parseFloat(e.target.value))}
+                          className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer
+                                    [&::-webkit-slider-thumb]:appearance-none
+                                    [&::-webkit-slider-thumb]:w-5
+                                    [&::-webkit-slider-thumb]:h-5
+                                    [&::-webkit-slider-thumb]:bg-black
+                                    [&::-webkit-slider-thumb]:rounded-full
+                                    [&::-webkit-slider-thumb]:shadow-md
+                                    [&::-webkit-slider-thumb]:hover:bg-gray-800
+                                    [&::-webkit-slider-thumb]:focus:outline-none
+                                    [&::-webkit-slider-thumb]:focus:ring-2
+                                    [&::-webkit-slider-thumb]:focus:ring-black
+                                    [&::-moz-range-thumb]:w-5
+                                    [&::-moz-range-thumb]:h-5
+                                    [&::-moz-range-thumb]:bg-black
+                                    [&::-moz-range-thumb]:rounded-full
+                                    [&::-moz-range-thumb]:shadow-md
+                                    [&::-moz-range-thumb]:hover:bg-gray-800
+                                    [&::-moz-range-thumb]:focus:outline-none
+                                    [&::-moz-range-thumb]:focus:ring-2
+                                    [&::-moz-range-thumb]:focus:ring-black
+                                    [&::-webkit-slider-runnable-track]:bg-gray-300
+                                    [&::-webkit-slider-runnable-track]:rounded-full
+                                    [&::-moz-range-track]:bg-gray-300
+                                    [&::-moz-range-track]:rounded-full"
+                          aria-label={`Zoom level, currently ${zoom.toFixed(1)}x`}
+                          aria-valuemin={1}
+                          aria-valuemax={3}
+                          aria-valuenow={zoom}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>1x</span>
+                          <span>3x</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-3 justify-center">
+                        {[1, 1.5, 2, 3].map((level) => (
+                          <motion.button
+                            key={level}
+                            onClick={() => setZoom(level)}
+                            className={`px-3 py-1 text-sm rounded-lg font-semibold transition-colors
+                                        ${zoom === level ? "bg-black text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            aria-label={`Set zoom to ${level}x`}
+                          >
+                            {level}x
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mb-4">
+                    <motion.button
+                      onClick={() => setRotation((prev) => prev - 90)}
+                      className="p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <RotateCcw className="w-5 h-5" />
+                    </motion.button>
+                    <motion.button
+                      onClick={() => setRotation((prev) => prev + 90)}
+                      className="p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <RotateCw className="w-5 h-5" />
+                    </motion.button>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{Math.round(uploadProgress)}%</p>
-              </div>
-            )}
-            {selectedFile && (
-              <div className="flex gap-3 mt-12 grid grid-cols-2">
-                <motion.button
-                  onClick={handleUpload}
-                  className="w-full cursor-custom-pointer py-2.5 text-sm rounded-xl bg-black text-white hover:bg-black/90"
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.95 }}
+              ) : (
+                <div
+                  className={`border-2 border-dashed rounded-xl p-10 text-center ${
+                    isDragging ? "border-black/80 bg-black-30" : "border-gray-200"
+                  }`}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
                 >
-                  Upload Avatar
-                </motion.button>
-                <motion.button
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPreviewURL(null);
-                    fileInputRef.current.value = null;
-                  }}
-                  className="w-full cursor-custom-pointer py-2.5 text-sm rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Choose Another
-                </motion.button>
-              </div>
-            )}
-            
+                  <Upload className="w-10 h-10 mx-auto mb-4 text-gray-400" />
+                  <p className="text-sm text-gray-500 mb-4">
+                    Drag and drop or click to upload (JPEG/JPG/PNG/WEBP, max 5MB)
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    ref={fileInputRef}
+                  />
+                  <motion.button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-6 cursor-custom-pointer font-semibold text-sm py-2.5 bg-black text-white rounded-lg hover:bg-black/90"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.95 }}
+                    disabled={isDragging}
+                  >
+                    {isDragging ? "Drop Here" : "Choose File"}
+                  </motion.button>
+                </div>
+              )}
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="mt-4">
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-rose-500 transition-all"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{Math.round(uploadProgress)}%</p>
+                </div>
+              )}
+              {selectedFile && (
+                <div className="flex gap-3 mt-6 grid grid-cols-2">
+                  <motion.button
+                    onClick={handleUpload}
+                    className="w-full cursor-custom-pointer py-2.5 text-sm rounded-xl bg-black text-white hover:bg-black/90"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.95 }}
+                    disabled={!croppedAreaPixels}
+                  >
+                    Upload Avatar
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setPreviewURL("");
+                      setCrop({ x: 0, y: 0 });
+                      setZoom(1);
+                      setRotation(0);
+                      setCroppedAreaPixels(null);
+                      fileInputRef.current!.value = "";
+                    }}
+                    className="w-full cursor-custom-pointer py-2.5 text-sm rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Choose Another
+                  </motion.button>
+                </div>
+              )}
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
       {/* Biometric Verification Modal */}
       <AnimatePresence>
         {isBiometricModalOpen && (

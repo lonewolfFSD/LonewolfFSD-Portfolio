@@ -438,7 +438,7 @@ function App() {
   useEffect(() => {
     // Delay the first toast by 1 second
     setTimeout(() => {
-      if (!navigator.onLine) showOfflineToast("Failed to connect.", {
+      if (!navigator.onLine) showOfflineToast("No connection found", {
         position: "bottom-left",
         toastId: "toast-1",
       });
