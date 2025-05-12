@@ -35,7 +35,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({
             {contactLink && (
               <div className="pt-2">
                 <a 
-                  href="#contact" 
+                  href="https://support.lonewolffsd.in" 
                   className="inline-block cursor-custom-pointer text-black font-semibold border-b border-black pb-0.5 transition-colors"
                 >
                   {contactLink}

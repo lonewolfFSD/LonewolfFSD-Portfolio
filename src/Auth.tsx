@@ -169,11 +169,11 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
         }
 
         // Save user data to Firestore
-        await setDoc(doc(db, 'users', user.uid), {
-          email: user.email,
-          name: user.displayName || email.split('@')[0], // Sync displayName or fallback to email prefix
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          email: userCredential.user.email,
+          name: userCredential.user.displayName || email.split('@')[0],
           status: 'active',
-          role: 'user',
+          role: 'user', // Add this line
           lastActive: new Date().toISOString(),
           biometric2FAEnabled: false,
         });
@@ -238,6 +238,16 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
       const credential = OAuthProvider.credentialFromResult(result);
       const accessToken = credential?.accessToken;
       console.log(user, accessToken);
+
+      // Save user data to Firestore with role
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        name: user.displayName || user.email.split('@')[0],
+        status: 'active',
+        role: 'user', // Assign "user" role
+        lastActive: new Date().toISOString(),
+        biometric2FAEnabled: false,
+      }, { merge: true }); // Merge to preserve existing data
       navigate("/");
     } catch (err: any) {
       setIsLoading(false);
@@ -263,33 +273,43 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
   
 
   const handleGoogleSignIn = async () => {
-    setError("");
-    setErrorType("");
-    setIsLoading(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      navigate("/");
-    } catch (err: any) {
-      setIsLoading(false);
-      switch (err.code) {
-        case "auth/user-cancelled":
-          setError("You cancelled the Google sign-in. Please try again.");
-          setErrorType("user-cancelled");
-          break;
-        case "auth/user-disabled":
-          setError("Your account has been suspended.");
-          setErrorType("ban");
-          break;
-        case "auth/account-exists-with-different-credential":
-          setError("Account already exists with different credentials");
-          setErrorType("generic");
-          break;
-        default:
-          setError(err.message || "Google sign-in failed.");
-          setErrorType("generic");
-      }
+  setError("");
+  setErrorType("");
+  setIsLoading(true);
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    // Save user data to Firestore with role
+    await setDoc(doc(db, 'users', user.uid), {
+      email: user.email,
+      name: user.displayName || user.email.split('@')[0],
+      status: 'active',
+      role: 'user', // Assign "user" role
+      lastActive: new Date().toISOString(),
+      biometric2FAEnabled: false,
+    }, { merge: true }); // Merge to preserve existing data
+    navigate("/");
+  } catch (err: any) {
+    setIsLoading(false);
+    switch (err.code) {
+      case "auth/user-cancelled":
+        setError("You cancelled the Google sign-in. Please try again.");
+        setErrorType("user-cancelled");
+        break;
+      case "auth/user-disabled":
+        setError("Your account has been suspended.");
+        setErrorType("ban");
+        break;
+      case "auth/account-exists-with-different-credential":
+        setError("Account already exists with different credentials");
+        setErrorType("generic");
+        break;
+      default:
+        setError(err.message || "Google sign-in failed.");
+        setErrorType("generic");
     }
-  };
+  }
+};
 
   const handleGithubSignIn = async () => {
     setError("");
@@ -297,7 +317,18 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
     setIsLoading(true);
     try {
       await signInWithPopup(auth, githubProvider);
-      navigate("/");
+        const user = result.user;
+
+        // Save user data to Firestore with role
+        await setDoc(doc(db, 'users', user.uid), {
+          email: user.email,
+          name: user.displayName || user.email.split('@')[0],
+          status: 'active',
+          role: 'user', // Assign "user" role
+          lastActive: new Date().toISOString(),
+          biometric2FAEnabled: false,
+        }, { merge: true }); // Merge to preserve existing data
+        navigate("/");
     } catch (err: any) {
       setIsLoading(false);
       switch (err.code) {
@@ -531,7 +562,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
             ) : isLoading ? (
               <span className="flex items-center justify-center">
                 <Loader2 strokeWidth={3} className="w-4 h-4 ml-1.5 mt-0.5 animate-spin" />
-                {isLogin ? "Signing in..." : "Creating account..."}
+                {isLogin ? "" : ""}
               </span>
             ) : (
               <span className="flex items-center justify-center">

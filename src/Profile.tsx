@@ -8,6 +8,8 @@ import { useAvatar } from "./AvatarContext.tsx";
 import { QRCodeSVG } from "qrcode.react";
 import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+
 import { ScaleLoader } from "react-spinners";
 
 import { DotPatternWithGlowEffectDemo } from "./DotPattern.tsx";
@@ -420,6 +422,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
   const handleDragLeave = () => {
     setIsDragging(false);
   };
+  
 
   const handleUpload = async () => {
     if (!selectedFile || !auth.currentUser) {
@@ -527,6 +530,24 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+      const q = query(
+        collection(db, 'notifications'),
+        where('recipient', '==', user.uid)
+      );
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const notifs = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Notification[];
+        setNotifications(notifs);
+      });
+
+      return () => unsubscribe();
+    }, [user]);
 
   useEffect(() => {
     if (isAuthLoading) return;
