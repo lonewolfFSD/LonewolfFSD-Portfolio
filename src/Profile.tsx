@@ -292,7 +292,11 @@ useEffect(() => {
             displayName: data.displayName,
             email: data.email,
             photoURL: data.avatar,
-            uid, // Ensure uid is included
+            uid,
+            metadata: {
+              lastSignInTime: data.lastSignInTime || "Unknown",
+              creationTime: null, // Explicitly set to null to avoid errors
+            },
           };
           setUser(userData);
           setAvatarURL(data.avatar);
@@ -868,6 +872,18 @@ useEffect(() => {
     setModalOpen(true);
   };
 
+    const [isCopied, setIsCopied] = useState(false);
+
+  const onShareClick = async () => {
+    try {
+      await handleShare();
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error("Share failed:", err);
+    }
+  };
+
   const handleShare = async () => {
     try {
       const publicProfileRef = doc(db, "publicProfiles", user.uid);
@@ -876,8 +892,7 @@ useEffect(() => {
         displayName: user.displayName,
         email: user.email,
         region: region,
-        lastSignInTime: user.metadata.lastSignInTime, // Add this
-        creationTime: user.metadata.creationTime, // Add this
+        lastSignInTime: user.metadata.lastSignInTime,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
       const shareLink = `${window.location.origin}/public-profile/${user.uid}`;
@@ -1124,33 +1139,50 @@ useEffect(() => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h2
-            className="text-[30px] font-bold mb-6 text-left text-black tracking-tight"
-            style={{ fontFamily: "Poppins" }}
-          >
-            {user.displayName}'s Profile 
-            <motion.button
-              onClick={handleShare}
-              className="p-[10px] group ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span className="flex items-center gap-[2px] group-hover:gap-1 transition-all duration-300 group-hover:px-3 group-hover:py-0">
-                <Link2
-                  size={19}
-                  className="transition-transform duration-300 ml-0.5 group-hover:ml-0"
-                  style={{ transform: 'rotate(-45deg)' }}
-                />
-                <span
-                  className="overflow-hidden max-w-0 group-hover:max-w-[120px] opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out"
-                  style={{ fontFamily: 'Inter' }}
-                >
-                  <p className="text-[15px] font-semibold whitespace-nowrap">Share Profile</p>
-                </span>
+<h2
+      className="text-[30px] font-bold mb-6 text-left text-black tracking-tight"
+      style={{ fontFamily: "Poppins" }}
+    >
+      {user.displayName}'s Profile
+      <motion.button
+        onClick={onShareClick}
+        className="p-2 ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer inline-flex items-center justify-center group"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <span className="flex items-center md:gap-[2px] md:group-hover:gap-1 transition-all duration-300 md:group-hover:px-3 md:group-hover:py-0">
+          {isCopied ? (
+            <>
+              <Check
+                size={19}
+                className="transition-transform duration-300 md:ml-[1px] md:group-hover:ml-0"
+                style={{ transform: "rotate(0deg)" }}
+              />
+              <span
+                className="hidden md:inline overflow-hidden max-w-0 md:group-hover:max-w-[120px] opacity-0 md:group-hover:opacity-100 transition-all duration-300 ease-in-out"
+                style={{ fontFamily: "Inter" }}
+              >
+                <p className="text-[14px] font-semibold whitespace-nowrap">Link Copied</p>
               </span>
-            </motion.button>
-
-          </h2>
+            </>
+          ) : (
+            <>
+              <Link2
+                size={19}
+                className="transition-transform duration-300 md:ml-[1px] md:group-hover:ml-0"
+                style={{ transform: "rotate(-45deg)" }}
+              />
+              <span
+                className="hidden md:inline overflow-hidden max-w-0 md:group-hover:max-w-[120px] opacity-0 md:group-hover:opacity-100 transition-all duration-300 ease-in-out"
+                style={{ fontFamily: "Inter" }}
+              >
+                <p className="text-[14px] font-semibold whitespace-nowrap">Share Profile</p>
+              </span>
+            </>
+          )}
+        </span>
+      </motion.button>
+    </h2>
 
           {/* Profile Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
@@ -1263,15 +1295,19 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3">
-                    <div className="pt-1"><Calendar className="text-gray-700 w-5 h-5" /></div>
-                    <div>
-                      <p className="text-xs text-gray-500">Account Created</p>
-                      <p className="text-black font-medium text-sm break-words">
-                        {publicMode ? new Date(user.metadata.creationTime).toLocaleDateString() : new Date(user.metadata.creationTime).toLocaleDateString()}
-                      </p>
+                  {!publicMode && (
+                    <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3">
+                      <div className="pt-1"><Calendar className="text-gray-700 w-5 h-5" /></div>
+                      <div>
+                        <p className="text-xs text-gray-500">Account Created</p>
+                        <p className="text-black font-medium text-sm break-words">
+                          {user?.metadata?.creationTime
+                            ? new Date(user.metadata.creationTime).toLocaleDateString()
+                            : "Unknown"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 ${publicMode ? 'hidden' : 'block'}`}>
                     <div className="pt-1"><UserCog className="text-gray-700 w-5 h-5" /></div>
