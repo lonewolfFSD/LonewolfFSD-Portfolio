@@ -1146,11 +1146,11 @@ useEffect(() => {
       {user.displayName}'s Profile
       <motion.button
         onClick={onShareClick}
-        className={`p-2 ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer inline-flex items-center justify-center group"
+        className={`p-2 ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer inline-flex items-center justify-center group ${publicMode ? 'hidden' : 'hidden'}`}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.95 }}
       >
-        <span className="flex items-center md:gap-[2px] md:group-hover:gap-1 transition-all duration-300 md:group-hover:px-3 md:group-hover:py-0 ${publicMode ? 'hidden' : 'hidden'}`}>
+        <span className="flex items-center md:gap-[2px] md:group-hover:gap-1 transition-all duration-300 md:group-hover:px-3 md:group-hover:py-0">
           {isCopied ? (
             <>
               <Check
