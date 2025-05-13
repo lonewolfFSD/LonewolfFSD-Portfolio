@@ -1,20 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MoreHorizontal, Search, ChevronLeft, ChevronRight, UserX, Trash2, Copy, Trash, Plus, UserPlus } from 'lucide-react';
 import { Member } from '../types/index';
-import { doc, updateDoc, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { getAuth } from 'firebase/auth';
 
 interface MembersListCardProps {
   members: Member[];
+  onMemberUpdate?: () => void;
 }
 
-const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
+const MembersListCard: React.FC<MembersListCardProps> = ({ members, onMemberUpdate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newMember, setNewMember] = useState({ uid: '', name: '', email: '', role: 'user' });
   const [formError, setFormError] = useState('');
+  const [userRole, setUserRole] = useState<string | null>(null);
   const itemsPerPage = 5;
+
+  // Fetch current user's role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setUserRole(userDoc.data().role || 'user');
+          } else {
+            setUserRole('user');
+          }
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          setUserRole('user');
+        }
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   // Filter members based on search query
   const filteredMembers = members.filter(member => {
@@ -35,22 +60,55 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
 
   // Suspend account
   const suspendAccount = async (uid: string) => {
-    if (window.confirm(`Suspend ${filteredMembers.find(m => m.id === uid)?.email || 'Unknown'}?`)) {
-      await updateDoc(doc(db, 'users', uid), { status: 'suspended' });
-      console.log('Account suspended');
+    const member = filteredMembers.find(m => m.id === uid);
+    const email = member?.email || 'Unknown';
+    if (!window.confirm(`Suspend ${email}? This will mark their account as suspended.`)) {
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', uid);
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        alert(`Error: No user found with UID ${uid}.`);
+        return;
+      }
+
+      await updateDoc(userRef, { status: 'suspended' });
+      alert(`${email} has been suspended successfully.`);
+      if (typeof onMemberUpdate === 'function') {
+        onMemberUpdate();
+      }
+    } catch (error) {
+      console.error('Error suspending account:', error);
+      alert(`Failed to suspend ${email}. ${error.message.includes('permission-denied') ? 'You must be an admin to perform this action.' : error.message}`);
     }
   };
 
   // Delete account
   const deleteAccount = async (uid: string) => {
-    if (window.confirm(`Delete ${filteredMembers.find(m => m.id === uid)?.email || 'Unknown'} for good?`)) {
-      try {
-        await deleteDoc(doc(db, 'users', uid));
-        console.log('Account deleted successfully');
-      } catch (error) {
-        console.error('Error deleting account:', error);
-        alert('Failed to delete account. Check console for details.');
+    const member = filteredMembers.find(m => m.id === uid);
+    const email = member?.email || 'Unknown';
+    if (!window.confirm(`Permanently delete ${email}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', uid);
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        alert(`Error: No user found with UID ${uid}.`);
+        return;
       }
+
+      await deleteDoc(userRef);
+      alert(`${email} has been deleted successfully.`);
+      if (typeof onMemberUpdate === 'function') {
+        onMemberUpdate();
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      alert(`Failed to delete ${email}. ${error.message.includes('permission-denied') ? 'You must be an admin to perform this action.' : error.message}`);
     }
   };
 
@@ -60,6 +118,7 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
       alert('UID copied to clipboard!');
     }).catch(err => {
       console.error('Failed to copy: ', err);
+      alert('Failed to copy UID.');
     });
   };
 
@@ -80,28 +139,33 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
     }
 
     try {
-      // Check if UID already exists
-      const userDoc = await getDoc(doc(db, 'users', newMember.uid));
+      const userRef = doc(db, 'users', newMember.uid);
+      const userDoc = await getDoc(userRef);
       if (userDoc.exists()) {
         setFormError('This UID is already in use.');
         return;
       }
 
-      await setDoc(doc(db, 'users', newMember.uid), {
+      await setDoc(userRef, {
         name: newMember.name,
         email: newMember.email,
         role: newMember.role,
         status: 'active',
         lastActive: new Date().toISOString(),
       });
-      console.log('Member added successfully');
+      alert('Member added successfully!');
       setNewMember({ uid: '', name: '', email: '', role: 'user' });
       setIsAddModalOpen(false);
+      if (typeof onMemberUpdate === 'function') {
+        onMemberUpdate();
+      }
     } catch (error) {
       console.error('Error adding member:', error);
-      setFormError('Failed to add member. Check console for details.');
+      setFormError(`Failed to add member: ${error.message.includes('permission-denied') ? 'You must be an admin to add members.' : error.message}`);
     }
   };
+
+  const isAdmin = userRole === 'admin';
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
@@ -111,7 +175,9 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
           <div className="flex gap-2">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+              disabled={!isAdmin}
+              className={`p-2 rounded-md transition-colors ${isAdmin ? 'hover:bg-zinc-100 dark:hover:bg-zinc-800' : 'opacity-50 cursor-not-allowed'}`}
+              title={isAdmin ? 'Add new member' : 'Admin access required'}
             >
               <Plus size={18} />
             </button>
@@ -220,7 +286,6 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
               <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Role</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Last Active</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">UID</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -257,25 +322,12 @@ const MembersListCard: React.FC<MembersListCardProps> = ({ members }) => {
                     {member.id}
                     <button
                       onClick={() => copyToClipboard(member.id)}
-                      className="ml-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                      className="ml-2.5 mb-1.5 text-zinc-500 cursor-custom-pointer hover:bg-zinc-400/10 p-1.5 rounded-md dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                      title="Copy UID"
                     >
                       <Copy className="h-4 w-4" />
                     </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => suspendAccount(member.id)}
-                      className="text-yellow-500 mr-1.5"
-                    >
-                      <UserX size={28} className='hover:bg-yellow-400/10 rounded-md p-1'/>
-                    </button>
-                    <button
-                      onClick={() => deleteAccount(member.id)}
-                      className="text-red-500"
-                    >
-                      <Trash size={28} className='hover:bg-red-400/10 rounded-md p-1'/>
-                    </button>
-                  </td>
+                  </td>          
                 </tr>
               ))
             ) : (

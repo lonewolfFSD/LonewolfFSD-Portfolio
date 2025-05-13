@@ -3,7 +3,7 @@ import { db, storage } from "../firebase"; // Ensure storage is imported
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAvatar } from "./AvatarContext.tsx";
 import { QRCodeSVG } from "qrcode.react";
 import * as nsfwjs from "nsfwjs"; // Import nsfwjs
@@ -136,10 +136,13 @@ const DeleteAccountModal = ({ isOpen, onClose, onDelete }) => {
 
 interface ProfileProps {
   isDark: boolean;
+  publicMode?: boolean; // New prop
+  uid?: string; // Optional UID for public profiles
 }
 
-const Profile: React.FC<ProfileProps> = ({ isDark }) => {
+const Profile: React.FC<ProfileProps> = ({ isDark, publicMode = false }) => {
   const navigate = useNavigate();
+  const { uid } = useParams<{ uid: string }>();
   const [user, setUser] = useState(auth.currentUser);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [location, setLocation] = useState<string>("Fetching...");
@@ -182,34 +185,34 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   // Load avatar from Firestore on mount
-  useEffect(() => {
-    const loadAvatar = async () => {
-      if (!user) {
-        console.log("No user for avatar load");
-        return;
-      }
-      try {
-        console.log("Loading avatar for UID:", user.uid);
-        const userDoc = doc(db, "users", user.uid, "profile", "avatar");
-        const docSnap = await getDoc(userDoc);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.avatar) {
-            console.log("Avatar found:", data.avatar.substring(0, 50) + "...");
-            setAvatarURL(data.avatar);
-          } else {
-            console.log("No avatar data in Firestore");
-          }
+useEffect(() => {
+  const loadAvatar = async () => {
+    if (!user || !user.uid) {
+      console.log("No user or UID for avatar load");
+      return;
+    }
+    try {
+      console.log("Loading avatar for UID:", user.uid);
+      const userDoc = doc(db, "users", user.uid, "profile", "avatar");
+      const docSnap = await getDoc(userDoc);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.avatar) {
+          console.log("Avatar found:", data.avatar.substring(0, 50) + "...");
+          setAvatarURL(data.avatar);
         } else {
-          console.log("No avatar document");
+          console.log("No avatar data in Firestore");
         }
-      } catch (err) {
-        console.error("Load avatar error:", err.code, err.message);
-        setError("Failed to load avatar. Check permissions.");
+      } else {
+        console.log("No avatar document");
       }
-    };
-    loadAvatar();
-  }, [user]);
+    } catch (err) {
+      console.error("Load avatar error:", err);
+      setError("Failed to load avatar. Check permissions.");
+    }
+  };
+  loadAvatar();
+}, [user]);
 
   // Load NSFWJS model when modal opens
   useEffect(() => {
@@ -276,6 +279,71 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
       URL.revokeObjectURL(objectURL);
     }
   };
+
+useEffect(() => {
+  if (publicMode && uid) {
+    const loadPublicProfile = async () => {
+      try {
+        const publicProfileRef = doc(db, "publicProfiles", uid);
+        const docSnap = await getDoc(publicProfileRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const userData = {
+            displayName: data.displayName,
+            email: data.email,
+            photoURL: data.avatar,
+            uid, // Ensure uid is included
+          };
+          setUser(userData);
+          setAvatarURL(data.avatar);
+          setRegion(data.region);
+
+          // Load avatar from users collection
+          const userDoc = doc(db, "users", uid, "profile", "avatar");
+          const avatarSnap = await getDoc(userDoc);
+          if (avatarSnap.exists()) {
+            const avatarData = avatarSnap.data();
+            if (avatarData.avatar) {
+              setAvatarURL(avatarData.avatar);
+            }
+          }
+        } else {
+          setError("Public profile not found.");
+        }
+      } catch (err) {
+        console.error("Public profile error:", err);
+        setError("Failed to load public profile.");
+      }
+    };
+    loadPublicProfile();
+  } else {
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      if (currentUser) {
+        try {
+          await currentUser.getIdToken(true);
+          await checkBiometricState(currentUser.uid);
+          setUser(currentUser);
+
+          // Load avatar for authenticated user
+          const userDoc = doc(db, "users", currentUser.uid, "profile", "avatar");
+          const docSnap = await getDoc(userDoc);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.avatar) {
+              setAvatarURL(data.avatar);
+            }
+          }
+        } catch (err) {
+          console.error("Auth error:", err);
+        }
+      } else {
+        setUser(null);
+      }
+      setIsAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }
+}, [publicMode, uid]);
   
   // Check Firestore for biometric state
   const checkBiometricState = async (uid) => {
@@ -610,23 +678,26 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
+useEffect(() => {
+  if (!user || !user.uid) {
+    console.log("No user or UID for notifications");
+    return;
+  }
 
-      const q = query(
-        collection(db, 'notifications'),
-        where('recipient', '==', user.uid)
-      );
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const notifs = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Notification[];
-        setNotifications(notifs);
-      });
+  const q = query(
+    collection(db, 'notifications'),
+    where('recipient', '==', user.uid)
+  );
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const notifs = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Notification[];
+    setNotifications(notifs);
+  });
 
-      return () => unsubscribe();
-    }, [user]);
+  return () => unsubscribe();
+}, [user]);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -797,6 +868,26 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
     setModalOpen(true);
   };
 
+  const handleShare = async () => {
+    try {
+      const publicProfileRef = doc(db, "publicProfiles", user.uid);
+      await setDoc(publicProfileRef, {
+        avatar: avatarURL || user.photoURL,
+        displayName: user.displayName,
+        email: user.email,
+        region: region,
+        lastSignInTime: user.metadata.lastSignInTime, // Add this
+        creationTime: user.metadata.creationTime, // Add this
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+      const shareLink = `${window.location.origin}/public-profile/${user.uid}`;
+      navigator.clipboard.writeText(shareLink);
+      setSuccess("Shareable link copied to clipboard!");
+    } catch (err) {
+      setError("Failed to generate shareable link.");
+    }
+  };
+
   const confirmDelete = async () => {
     try {
       const currentUser = auth.currentUser;
@@ -822,7 +913,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
     <div className="min-h-screen bg-white flex flex-col">
       
       <Helmet>
-        <title>{user.displayName}'s Profile</title>
+        <title>{user?.displayName || "User"}'s Profile</title>
         <link rel="canonical" href="https://lonewolffsd.in/profile" />
       </Helmet>
 
@@ -1028,7 +1119,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
 
 
         <motion.div
-          className="w-full max-w-5xl -mt-14 md:-mt-10 px-2 md:py-16 md:px-12 md:rounded-xl backdrop-blur-lg md:border md:border-black bg-white relative z-10"
+          className={`w-full max-w-5xl -mt-14 ${publicMode ? 'md:-mt-36' : 'md:-mt-10'} px-2 md:py-16 md:px-12 md:rounded-xl backdrop-blur-lg md:border md:border-black bg-white relative z-10`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -1037,7 +1128,28 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
             className="text-[30px] font-bold mb-6 text-left text-black tracking-tight"
             style={{ fontFamily: "Poppins" }}
           >
-            {user.displayName}'s Profile
+            {user.displayName}'s Profile 
+            <motion.button
+              onClick={handleShare}
+              className="p-[10px] group ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="flex items-center gap-[2px] group-hover:gap-1 transition-all duration-300 group-hover:px-3 group-hover:py-0">
+                <Link2
+                  size={19}
+                  className="transition-transform duration-300 ml-0.5 group-hover:ml-0"
+                  style={{ transform: 'rotate(-45deg)' }}
+                />
+                <span
+                  className="overflow-hidden max-w-0 group-hover:max-w-[120px] opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out"
+                  style={{ fontFamily: 'Inter' }}
+                >
+                  <p className="text-[15px] font-semibold whitespace-nowrap">Share Profile</p>
+                </span>
+              </span>
+            </motion.button>
+
           </h2>
 
           {/* Profile Details */}
@@ -1045,7 +1157,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
           <div className="relative  flex justify-left col-span-2">
               <div className="relative group">
                 <motion.img
-                title="Change Avatar"
+                title={publicMode ? undefined : "Change Avatar"}
                 src={
                   avatarURL ||
                   user?.photoURL ||
@@ -1056,21 +1168,23 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4 }}
-                onClick={() => setIsAvatarModalOpen(true)}
+                onClick={publicMode ? undefined : () => setIsAvatarModalOpen(true)}
               />
 
-              {/* Pencil Icon */}
-              <div
-                className="absolute top-3 cursor-custom-pointer left-3 text-black border border-black bg-white/80 rounded-full p-2 shadow-md group-hover:opacity-100 opacity-0"
-              >
-                <Pencil size={16} />
-              </div>
+              {/* Pencil Icon - Hidden in public mode */}
+              {!publicMode && (
+                <div
+                  className="absolute top-3 cursor-custom-pointer left-3 text-black border border-black bg-white/80 rounded-full p-2 shadow-md group-hover:opacity-100 opacity-0"
+                >
+                  <Pencil size={16} />
+                </div>
+              )}
               </div>
           </div>
 
-            <h3 className="text-2xl md:text-lg font-bold text-black md:mt-3 mt-8" style={{ fontFamily: 'Poppins'}}>Personal Details</h3>
+            <h3 className={`text-2xl md:text-lg font-bold text-black md:mt-3 mt-8 ${publicMode ? 'col-span-2' : 'col-span-1'}`} style={{ fontFamily: 'Poppins'}}>Personal Details</h3>
 
-            <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
+            <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 ${publicMode ? 'col-span-1' : 'col-span-2'}`}>
               <div className="pt-1"><User className="text-gray-700 w-5 h-5" /></div>
               <div>
                 <p className="text-xs text-gray-500">Name</p>
@@ -1098,7 +1212,7 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
               <div className="pt-1"><Calendar className="text-gray-700 w-5 h-5" /></div>
               <div>
                 <p className="text-xs text-gray-500">Last Login</p>
-                <p className="text-black font-medium text-sm break-words">{user.metadata.lastSignInTime || "Unknown"}</p>
+                <p className="text-black font-medium text-sm break-words">{publicMode ? user.metadata?.lastSignInTime || "Unknown" : user.metadata?.lastSignInTime || "Unknown"}</p>
               </div>
             </div>
 
@@ -1110,247 +1224,265 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
               </div>
             </div>
 
-            <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3col-span-2 md:col-span-1">
-              <div className="pt-1"><LocateFixed className="text-gray-700 w-5 h-5" /></div>
-              <div>
-                <p className="text-xs text-gray-500 ml-3">Location</p>
-                <p className="text-black font-medium text-sm break-words ml-3 md:ml-3">{location}</p>
-              </div>
-            </div>
+            {/* Sensitive info - Hidden in public mode */}
 
-            <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
-              <div className="pt-1"><Clock className="text-gray-700 w-5 h-5" /></div>
-              <div>
-                <p className="text-xs text-gray-500">Current Time</p>
-                <p className="text-black font-medium text-sm break-words">{currentTime}</p>
-              </div>
-            </div>
+                <div className={`flex items-start border border-gray-200 ${publicMode ? 'hidden' : 'block'} rounded-xl px-4 py-3.5 space-x-3col-span-2 md:col-span-1`}>
+                    <div className="pt-1"><LocateFixed className="text-gray-700 w-5 h-5" /></div>
+                    <div>
+                      <p className="text-xs text-gray-500 ml-3">Location</p>
+                      <p className="text-black font-medium text-sm break-words ml-3 md:ml-3">{location}</p>
+                    </div>
+                  </div>
 
-            <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
-              <div className="pt-1">
-                {deviceName === "iPhone" ? (
-                  <Phone className="text-gray-700 w-5 h-5" />
-                ) : deviceName === "Windows PC" ? (
-                  <Monitor className="text-gray-700 w-5 h-5" />
-                ) : deviceName === "Linux PC" ? (
-                  <Monitor className="text-gray-700 w-5 h-5" />
-                ) : deviceName.includes("Android") ? (
-                  <Phone className="text-gray-700 w-5 h-5" />
-                ) : (
-                  <User className="text-gray-700 w-5 h-5" />
-                )}
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Device</p>
-                <p className="text-black font-medium text-sm break-words">{deviceName}</p>
-              </div>
-            </div>
+                  <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
+                    <div className="pt-1"><Clock className="text-gray-700 w-5 h-5" /></div>
+                    <div>
+                      <p className="text-xs text-gray-500">Current Time</p>
+                      <p className="text-black font-medium text-sm break-words">{currentTime}</p>
+                    </div>
+                  </div>
 
-            <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3">
-              <div className="pt-1"><Calendar className="text-gray-700 w-5 h-5" /></div>
-              <div>
-                <p className="text-xs text-gray-500">Account Created</p>
-                <p className="text-black font-medium text-sm break-words">
-                  {new Date(user.metadata.creationTime).toLocaleDateString() || "Unknown"}
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
-              <div className="pt-1"><UserCog className="text-gray-700 w-5 h-5" /></div>
-              <div>
-                <p className="text-xs text-gray-500">FSD ID</p>
-                <p className="text-black font-medium text-sm break-all">{user.uid}</p>
-              </div>
-            </div>
+                  <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
+                    <div className="pt-1">
+                      {deviceName === "iPhone" ? (
+                        <Phone className="text-gray-700 w-5 h-5" />
+                      ) : deviceName === "Windows PC" ? (
+                        <Monitor className="text-gray-700 w-5 h-5" />
+                      ) : deviceName === "Linux PC" ? (
+                        <Monitor className="text-gray-700 w-5 h-5" />
+                      ) : deviceName.includes("Android") ? (
+                        <Phone className="text-gray-700 w-5 h-5" />
+                      ) : (
+                        <User className="text-gray-700 w-5 h-5" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Device</p>
+                      <p className="text-black font-medium text-sm break-words">{deviceName}</p>
+                    </div>
+                  </div>
 
-            {/* Privacy & Security Section */}
-            <h1 className="text-2xl md:text-lg font-bold mt-8 col-span-2" style={{ fontFamily:'Poppins'}}>Privacy & Security</h1>
-            
-            <h3 className="text-lg md:text-sm font-semibold text-black mb-1 mt-3 col-span-2">Two-Factor Authentication (2FA)</h3>
-            {biometricError && <p className="text-red-500 text-sm mb-4"><span className="bg-red-100 text-sm border border-red-400 rounded-lg px-6 py-2.5 flex gap-2"><AlertCircle size={18} className="mt-[1px]" />{biometricError}</span></p>}
-              {success && <p className="text-green-500 text-sm mb-4"><span className="bg-green-100 text-sm border border-green-400 rounded-lg px-6 py-2.5 flex gap-2"><CheckCircle size={18} className="mt-[1px]" />{success}</span></p>}
-            <div className="flex items-center justify-between col-span-2">
-              <div className="flex items-center space-x-4 ">
-                <div className="p-3 bg-black/5 rounded-lg">
-                  <Fingerprint className="w-6 h-6 text-black" />
-                </div>
-                <div>
-                  <h3 className="font-medium mt-2 md:mt-0">Biometric Authentication</h3>
-                  <p className="text-sm text-gray-500">
-                    {isBiometric2FAEnabled ? "Enabled" : "Not enabled"}
-                  </p>
-                </div>
-              </div>
-              <motion.button
-                onClick={initiateBiometricSetup}
-                disabled={isBiometric2FAEnabled}
-                className={`px-5 py-2 rounded-lg cursor-custom font-semibold text-[12px] transition-colors ${
-                  isBiometric2FAEnabled
-                  ? "bg-green-50 border border-2 border-green-300 text-green-600 hover:bg-green-100"
-                  : "bg-black text-white hover:bg-black/90"
-                }`}
-                style={{ fontFamily: "Poppins" }}
-                >
-                {isBiometric2FAEnabled ? "Biometric 2FA Enabled" : "Enable Biometric 2FA"}
-              </motion.button>
+                  <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3">
+                    <div className="pt-1"><Calendar className="text-gray-700 w-5 h-5" /></div>
+                    <div>
+                      <p className="text-xs text-gray-500">Account Created</p>
+                      <p className="text-black font-medium text-sm break-words">
+                        {publicMode ? new Date(user.metadata.creationTime).toLocaleDateString() : new Date(user.metadata.creationTime).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 ${publicMode ? 'hidden' : 'block'}`}>
+                    <div className="pt-1"><UserCog className="text-gray-700 w-5 h-5" /></div>
+                    <div>
+                      <p className="text-xs text-gray-500">FSD ID</p>
+                      <p className="text-black font-medium text-sm break-all">{user.uid}</p>
+                    </div>
+                  </div>
+
+                                {!publicMode && user?.uid === auth.currentUser?.uid && (
+                <>
+
+                  {/* Privacy & Security Section */}
+                  <h1 className="text-2xl md:text-lg font-bold mt-8 col-span-2" style={{ fontFamily:'Poppins'}}>Privacy & Security</h1>
+                  
+                  <h3 className="text-lg md:text-sm font-semibold text-black mb-1 mt-3 col-span-2">Two-Factor Authentication (2FA)</h3>
+                  {biometricError && <p className="text-red-500 text-sm mb-4"><span className="bg-red-100 text-sm border border-red-400 rounded-lg px-6 py-2.5 flex gap-2"><AlertCircle size={18} className="mt-[1px]" />{biometricError}</span></p>}
+                    {success && <p className="text-green-500 text-sm mb-4"><span className="bg-green-100 text-sm border border-green-400 rounded-lg px-6 py-2.5 flex gap-2"><CheckCircle size={18} className="mt-[1px]" />{success}</span></p>}
+                  <div className="flex items-center justify-between col-span-2">
+                    <div className="flex items-center space-x-4 ">
+                      <div className="p-3 bg-black/5 rounded-lg">
+                        <Fingerprint className="w-6 h-6 text-black" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium mt-2 md:mt-0">Biometric Authentication</h3>
+                        <p className="text-sm text-gray-500">
+                          {isBiometric2FAEnabled ? "Enabled" : "Not enabled"}
+                        </p>
+                      </div>
+                    </div>
+                    <motion.button
+                      onClick={initiateBiometricSetup}
+                      disabled={isBiometric2FAEnabled}
+                      className={`px-5 py-2 rounded-lg cursor-custom font-semibold text-[12px] transition-colors ${
+                        isBiometric2FAEnabled
+                        ? "bg-green-50 border border-2 border-green-300 text-green-600 hover:bg-green-100"
+                        : "bg-black text-white hover:bg-black/90"
+                      }`}
+                      style={{ fontFamily: "Poppins" }}
+                      >
+                      {isBiometric2FAEnabled ? "Biometric 2FA Enabled" : "Enable Biometric 2FA"}
+                    </motion.button>
+                  </div>
+                  <span className="bg-yellow-50  col-span-2 text-sm border border-yellow-400 rounded-lg text-yellow-600 px-5 py-3 flex items-start space-x-2">
+                    <AlertCircle className="hidden md:block md:w-6 md:h-6 md:-mt-0.5" />
+                    <span className="font-semibold">
+                      <span style={{ fontFamily: 'Poppins' }}>Biometric 2FA</span> is enabled for your security. Disabling it without a proper reason may put your account at risk. 
+                      
+                      <span style={{ fontFamily: 'Poppins' }}> LonewolfFSD</span> does not allow disabling 2FA unless there's a valid justification.
+                      <br /><br />
+                      <a href="/request-disable-2fa" className="underline text-yellow-600 flex gap-0.5">Click here to request and state your reason. <ExternalLink size={12} className="" /></a>
+                    </span>
+                  </span>
+
+                  <hr className="col-span-2 my-3" />
+                  <h3 className="text-xl md:text-md font-semibold text-black ">Connections & Activities</h3>
+                  <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
+                    <div className="pt-1"><Link2 className="text-gray-700 w-5 h-5" /></div>
+                    <div>
+                      <p className="text-xs text-gray-500">Connected Accounts</p>
+                      <p className="text-black font-medium text-sm break-words">
+                        {connectedAccounts.length > 0 ? connectedAccounts.join(", ") : "None"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
+                    <div className="pt-1"><History className="text-gray-700 w-5 h-5" /></div>
+                    <div>
+                      <p className="text-xs text-gray-500">Recent Login Activity</p>
+                      <ul className="text-black font-medium text-xs mt-1.5 space-y-1 break-words">
+                        {recentLogins.map((login, index) => (
+                          <li key={index}>{login}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  </>
+            )}
+
             </div>
-            <span className="bg-yellow-50  col-span-2 text-sm border border-yellow-400 rounded-lg text-yellow-600 px-5 py-3 flex items-start space-x-2">
-              <AlertCircle className="hidden md:block md:w-6 md:h-6 md:-mt-0.5" />
-              <span className="font-semibold">
-                <span style={{ fontFamily: 'Poppins' }}>Biometric 2FA</span> is enabled for your security. Disabling it without a proper reason may put your account at risk. 
+                  
+
+                {/* Change Password Section */}
+                {!publicMode && user?.uid === auth.currentUser?.uid && (
+                <>
+                <div className="mt-8">
+                  <h3 className="text-xl md:text-md font-semibold text-black mb-3">Change Password</h3>
+                  <>
+                    {error && <p className="text-red-500 text-sm mb-4"><span className="bg-red-100 text-sm border border-red-400 rounded-lg px-6 py-2.5 flex gap-2"><AlertCircle size={18} className="mt-[1px]" />{error}</span></p>}
+                    {success && <p className="text-green-500 text-sm mb-4"><span className="bg-green-100 text-sm border border-green-400 rounded-lg px-6 py-2.5 flex gap-2"><CheckCircle size={18} className="mt-[1px]" />{success}</span></p>}
+                    <form onSubmit={handleChangePassword} className="space-y-2 gap-x-3 grid grid-cols-2">
+                      {!isPasswordProvider && (
+                        <p className="text-sm flex text-red-500 bg-red-100 col-span-2 px-4 py-2.5 rounded-lg border border-red-500">
+                          <AlertTriangle size={18} className="mr-2" /> Password changes are not available for accounts using Google or GitHub login.
+                        </p>
+                      )}
+                      <div className="col-span-2">
+                        <label className="text-xs text-gray-500">Current Password</label>
+                        <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 space-x-3">
+                          <Lock className="text-gray-700 w-4 h-4" />
+                          <input
+                            type="password"
+                            placeholder="Enter your current password"
+                            value={password}
+                            disabled={!isPasswordProvider}
+                            onChange={(e) => {
+                              setPassword(e.target.value);
+                              setPasswordError(e.target.value ? "" : "Current password is required.");
+                            }}
+                            className="w-full outline-none text-sm text-black"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">New Password</label>
+                        <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 space-x-3">
+                          <Lock className="text-gray-700 w-4 h-4" />
+                          <input
+                            type="password"
+                            value={newPassword}
+                            placeholder="Enter your new password"
+                            disabled={!isPasswordProvider}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full outline-none text-sm text-black"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">Confirm New Password</label>
+                        <div className="flex items-center border border-gray-200 rounded-xl mb-5 px-4 py-3 space-x-3">
+                          <Lock className="text-gray-700 w-4 h-4" />
+                          <input
+                            type="password"
+                            value={confirmPassword}
+                            placeholder="Re-enter your new password"
+                            disabled={!isPasswordProvider}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="w-full outline-none text-sm text-black"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <motion.button
+                        type="submit"
+                        className={`w-full py-3.5 font-semibold rounded-xl col-span-2 md:col-span-1 ${
+                          !isPasswordProvider ? "bg-black/20 text-white/90 cursor-not-allowed" : "bg-black text-white hover:bg-black/90 cursor-custom-pointer"
+                        } transition-colors`}
+                        whileHover={{ scale: 1.01 }}
+                        disabled={!isPasswordProvider}
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        {!isPasswordProvider ? "Update Disabled" : "Update Password"}
+                      </motion.button>
+                    </form>
+                  </>
                 
-                <span style={{ fontFamily: 'Poppins' }}> LonewolfFSD</span> does not allow disabling 2FA unless there's a valid justification.
-                <br /><br />
-                <a href="/request-disable-2fa" className="underline text-yellow-600 flex gap-0.5">Click here to request and state your reason. <ExternalLink size={12} className="" /></a>
-              </span>
-            </span>
+                </div>
+                
 
-            <hr className="col-span-2 my-3" />
-            <h3 className="text-xl md:text-md font-semibold text-black ">Connections & Activities</h3>
-            <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
-              <div className="pt-1"><Link2 className="text-gray-700 w-5 h-5" /></div>
-              <div>
-                <p className="text-xs text-gray-500">Connected Accounts</p>
-                <p className="text-black font-medium text-sm break-words">
-                  {connectedAccounts.length > 0 ? connectedAccounts.join(", ") : "None"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
-              <div className="pt-1"><History className="text-gray-700 w-5 h-5" /></div>
-              <div>
-                <p className="text-xs text-gray-500">Recent Login Activity</p>
-                <ul className="text-black font-medium text-xs mt-1.5 space-y-1 break-words">
-                  {recentLogins.map((login, index) => (
-                    <li key={index}>{login}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Change Password Section */}
-          <div className="mt-8">
-            <h3 className="text-xl md:text-md font-semibold text-black mb-3">Change Password</h3>
-            <>
-              {error && <p className="text-red-500 text-sm mb-4"><span className="bg-red-100 text-sm border border-red-400 rounded-lg px-6 py-2.5 flex gap-2"><AlertCircle size={18} className="mt-[1px]" />{error}</span></p>}
-              {success && <p className="text-green-500 text-sm mb-4"><span className="bg-green-100 text-sm border border-green-400 rounded-lg px-6 py-2.5 flex gap-2"><CheckCircle size={18} className="mt-[1px]" />{success}</span></p>}
-              <form onSubmit={handleChangePassword} className="space-y-2 gap-x-3 grid grid-cols-2">
-                {!isPasswordProvider && (
-                  <p className="text-sm flex text-red-500 bg-red-100 col-span-2 px-4 py-2.5 rounded-lg border border-red-500">
-                    <AlertTriangle size={18} className="mr-2" /> Password changes are not available for accounts using Google or GitHub login.
+                <hr className="mt-20 mb-14 border-red-400" />
+                <h1 className="text-3xl font-bold text-red-600" style={{ fontFamily: "Poppins" }}>
+                  DANGER ZONE
+                </h1>
+                <div className="mt-8 grid grid-cols-2">
+                  <h3
+                    className="text-lg md:text-[17px] font-semibold text-black mb-4 whitespace-nowrap md:whitespace-nowrap flex text-red-600"
+                    style={{ fontFamily: "Poppins" }}
+                  >
+                    <Trash2 strokeWidth={3} className="md:w-4 md:h-4 md:mt-1 md:mr-2" /> Delete Account for {user.displayName}
+                  </h3>
+                  <p className="text-md text-gray-500 mb-4 col-span-2">
+                    Permanently delete your account. This action cannot be undone.
                   </p>
-                )}
-                <div className="col-span-2">
-                  <label className="text-xs text-gray-500">Current Password</label>
-                  <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 space-x-3">
-                    <Lock className="text-gray-700 w-4 h-4" />
-                    <input
-                      type="password"
-                      placeholder="Enter your current password"
-                      value={password}
-                      disabled={!isPasswordProvider}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setPasswordError(e.target.value ? "" : "Current password is required.");
-                      }}
-                      className="w-full outline-none text-sm text-black"
-                      required
-                    />
-                  </div>
+                  <motion.button
+                    onClick={handleDeleteAccount}
+                    className="w-full py-3.5 cursor-custom-pointer font-semibold rounded-xl flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 transition-colors col-span-2 md:col-span-1"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    Delete Account
+                  </motion.button>
+
                 </div>
-                <div>
-                  <label className="text-xs text-gray-500">New Password</label>
-                  <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 space-x-3">
-                    <Lock className="text-gray-700 w-4 h-4" />
-                    <input
-                      type="password"
-                      value={newPassword}
-                      placeholder="Enter your new password"
-                      disabled={!isPasswordProvider}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full outline-none text-sm text-black"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500">Confirm New Password</label>
-                  <div className="flex items-center border border-gray-200 rounded-xl mb-5 px-4 py-3 space-x-3">
-                    <Lock className="text-gray-700 w-4 h-4" />
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      placeholder="Re-enter your new password"
-                      disabled={!isPasswordProvider}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full outline-none text-sm text-black"
-                      required
-                    />
-                  </div>
-                </div>
-                <motion.button
-                  type="submit"
-                  className={`w-full py-3.5 font-semibold rounded-xl col-span-2 md:col-span-1 ${
-                    !isPasswordProvider ? "bg-black/20 text-white/90 cursor-not-allowed" : "bg-black text-white hover:bg-black/90 cursor-custom-pointer"
-                  } transition-colors`}
-                  whileHover={{ scale: 1.01 }}
-                  disabled={!isPasswordProvider}
-                  whileTap={{ scale: 0.99 }}
+                <h3
+                  className="text-lg md:text-[17px] mt-12 font-semibold text-black mb-4 flex text-black"
+                  style={{ fontFamily: "Poppins" }}
                 >
-                  {!isPasswordProvider ? "Update Disabled" : "Update Password"}
-                </motion.button>
-              </form>
-            </>
-          </div>
+                  <LogOut strokeWidth={3} className="w-4 h-4 mt-1 mr-2" /> Logout From {deviceName}
+                </h3>
+                <p className="text-md md:text-sm text-gray-500 -mb-3">
+                  Sign out from your current session on this device.
+                </p>
+                <div className="grid grid-cols-2">
+                  <motion.button
+                    onClick={handleSignOut}
+                    className="w-full py-3.5 -mt-0 cursor-custom-pointer font-semibold rounded-xl flex items-center justify-center gap-2 bg-black text-white hover:bg-black/90 transition-colors mt-8 col-span-2 md:col-span-1"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    Log Out
+                  </motion.button>
+                </div>
+                </>
+                )}
+              
+              </motion.div>
 
-          <hr className="mt-20 mb-14 border-red-400" />
-          <h1 className="text-3xl font-bold text-red-600" style={{ fontFamily: "Poppins" }}>
-            DANGER ZONE
-          </h1>
-          <div className="mt-8 grid grid-cols-2">
-            <h3
-              className="text-lg md:text-[17px] font-semibold text-black mb-4 whitespace-nowrap md:whitespace-nowrap flex text-red-600"
-              style={{ fontFamily: "Poppins" }}
-            >
-              <Trash2 strokeWidth={3} className="md:w-4 md:h-4 md:mt-1 md:mr-2" /> Delete Account for {user.displayName}
-            </h3>
-            <p className="text-md text-gray-500 mb-4 col-span-2">
-              Permanently delete your account. This action cannot be undone.
-            </p>
-            <motion.button
-              onClick={handleDeleteAccount}
-              className="w-full py-3.5 cursor-custom-pointer font-semibold rounded-xl flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 transition-colors col-span-2 md:col-span-1"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-            >
-              Delete Account
-            </motion.button>
-
-          </div>
-          <h3
-            className="text-lg md:text-[17px] mt-12 font-semibold text-black mb-4 flex text-black"
-            style={{ fontFamily: "Poppins" }}
-          >
-            <LogOut strokeWidth={3} className="w-4 h-4 mt-1 mr-2" /> Logout From {deviceName}
-          </h3>
-          <p className="text-md md:text-sm text-gray-500 -mb-3">
-            Sign out from your current session on this device.
-          </p>
-          <div className="grid grid-cols-2">
-            <motion.button
-              onClick={handleSignOut}
-              className="w-full py-3.5 -mt-0 cursor-custom-pointer font-semibold rounded-xl flex items-center justify-center gap-2 bg-black text-white hover:bg-black/90 transition-colors mt-8 col-span-2 md:col-span-1"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-            >
-              Log Out
-            </motion.button>
-          </div>
-        </motion.div>
-      </div>
+            </div>
 
       {/* 2FA Modal */}
       <AnimatePresence>
@@ -1719,3 +1851,5 @@ const Profile: React.FC<ProfileProps> = ({ isDark }) => {
 };
 
 export default Profile;
+
+
