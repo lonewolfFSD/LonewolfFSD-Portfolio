@@ -903,6 +903,27 @@ useEffect(() => {
     }
   };
 
+  const accountLogos: Record<string, string> = {
+    Google: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png",
+    Microsoft: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Microsoft_icon.svg/768px-Microsoft_icon.svg.png",
+    GitHub: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+  };
+
+  const connectedAccountInfo: Record<string, { name: string; logo: string }> = {
+    "microsoft.com": {
+      name: "Microsoft",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Microsoft_icon.svg/768px-Microsoft_icon.svg.png",
+    },
+    "Google": {
+      name: "Google",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png",
+    },
+    "GitHub": {
+      name: "GitHub",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg",
+    }
+  };
+
   const confirmDelete = async () => {
     try {
       const currentUser = auth.currentUser;
@@ -1365,12 +1386,31 @@ useEffect(() => {
                   <hr className="col-span-2 my-3" />
                   <h3 className="text-xl md:text-md font-semibold text-black ">Connections & Activities</h3>
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
-                    <div className="pt-1"><Link2 className="text-gray-700 w-5 h-5" /></div>
+                    <div className="pt-1">
+                      <Link2 className="text-gray-700 w-5 h-5" />
+                    </div>
                     <div>
-                      <p className="text-xs text-gray-500">Connected Accounts</p>
-                      <p className="text-black font-medium text-sm break-words">
-                        {connectedAccounts.length > 0 ? connectedAccounts.join(", ") : "None"}
-                      </p>
+                      <p className="text-xs text-gray-500">Connected Account</p>
+                      {connectedAccounts.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {connectedAccounts.map((domain) => {
+                            const account = connectedAccountInfo[domain];
+                            return account ? (
+                              <div
+                                key={domain}
+                                className="flex gap-1 items-center space-x-1 bg-gray-100 px-2 py-1 rounded-md"
+                              >
+                                <img src={account.logo} alt={account.name} className="w-3 h-3" />
+                                <span className="text-sm text-gray-800">{account.name}</span>
+                              </div>
+                            ) : (
+                              <span key={domain} className="text-sm text-gray-600">{domain}</span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-black font-medium text-sm">None</p>
+                      )}
                     </div>
                   </div>
 
@@ -1402,7 +1442,7 @@ useEffect(() => {
                     <form onSubmit={handleChangePassword} className="space-y-2 gap-x-3 grid grid-cols-2">
                       {!isPasswordProvider && (
                         <p className="text-sm flex text-red-500 bg-red-100 col-span-2 px-4 py-2.5 rounded-lg border border-red-500">
-                          <AlertTriangle size={18} className="mr-2" /> Password changes are not available for accounts using Google or GitHub login.
+                          <AlertTriangle size={18} className="mr-2" /> Password changes are not available for accounts using Google, GitHub or Microsoft login.
                         </p>
                       )}
                       <div className="col-span-2">
