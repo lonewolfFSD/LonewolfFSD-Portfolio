@@ -395,12 +395,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
 
 
       <motion.div
-        className="w-full max-w-lg px-6 py-20 lg:p-14 lg:rounded-3xl lg:border lg:border-black bg-white relative"
+        className="w-full max-w-lg px-6 py-20 lg:p-14 lg:rounded-3xl bg-white relative"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className={`flex justify-center mb-6 ${isLogin ? 'mt-32' : 'mt-60'} md:mt-0`}>
+        <div className={`flex justify-center mb-6 ${isLogin ? 'mt-32 md:mt-0' : 'mt-60 md:mt-36'}`}>
           <motion.img
             src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg"
             alt="Profile"
