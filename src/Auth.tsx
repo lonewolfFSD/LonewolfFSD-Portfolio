@@ -400,7 +400,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className={`flex justify-center mb-6 ${isLogin ? 'mt-32 md:mt-0' : 'mt-60 md:mt-36'}`}>
+        <div className={`flex justify-center mb-6 ${isLogin ? 'mt-32 md:mt-0' : 'mt-72 md:mt-36'}`}>
           <motion.img
             src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg"
             alt="Profile"
