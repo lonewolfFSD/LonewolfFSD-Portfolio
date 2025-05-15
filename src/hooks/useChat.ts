@@ -116,7 +116,7 @@ export const useChat = () => {
       // Add initial AI message when opening for the first time
       messagesState = [
         {
-          text: "Hello! I'm Lyra. Anything I can help you with?",
+          text: "Hello! I'm Lyra. Anything I can guide you with?",
           sender: 'ai',
           timestamp: new Date(),
           isTyping: false,
