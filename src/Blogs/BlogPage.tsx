@@ -318,7 +318,7 @@ function App() {
         
       {/* Featured Post Hero Section */}
       <motion.div
-        className="sm:max-w-2xl md:max-w-3xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+        className="sm:max-w-2xl md:max-w-3xl lg:max-w-7xl mx-auto -mt-10 md:mt-0  px-5 sm:px-6 lg:px-8 py-16"
         variants={fadeIn}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
