@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { db } from '../firebase'; // Adjust path to your Firebase config
 import { doc, getDoc, collection, getDocs, setDoc, addDoc } from 'firebase/firestore';
-import { Search, Mail, Phone, Briefcase, Calendar, FileText, HelpCircle, Earth, CreditCard, Code2, Paperclip, Lightbulb, Package, Package2, PackageOpen, PackageCheck, AlertTriangle, StarHalf, Sparkle, Sparkles } from 'lucide-react';
+import { Search, Mail, Phone, Briefcase, Calendar, FileText, HelpCircle, Earth, CreditCard, Code2, Paperclip, Lightbulb, Package, Package2, PackageOpen, PackageCheck, AlertTriangle, StarHalf, Sparkle, Sparkles, AlertCircle } from 'lucide-react';
 import Helmet from 'react-helmet';
 
 // Define interfaces for your data
@@ -172,7 +172,7 @@ const UserDataPage: React.FC = () => {
       },
       modal: {
         ondismiss: () => {
-          setToast({ message: 'Payment cancelled.', type: 'error' });
+          setToast({ message: 'Payment cancelled', type: 'error' });
         },
       },
       prefill: {
@@ -212,7 +212,7 @@ const UserDataPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-8 font-inter">
       <Helmet>
-        <title>Client Dashboard | LonewolfFSD</title>
+        <title>LonewolfFSD Client Portal</title>
       </Helmet>
       <div className="max-w-7xl mx-auto relative">
         {/* Toast Notification */}
@@ -221,11 +221,11 @@ const UserDataPage: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
-              toast.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            className={`fixed flex gap-2.5 top-4 right-4 py-4 px-6 w-full max-w-sm rounded-lg shadow-lg z-10 ${
+              toast.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800 border border-2 border-red-800'
             }`}
           >
-            {toast.message}
+            <AlertCircle /> <span className='font-medium'>{toast.message}</span>
           </motion.div>
         )}
 
@@ -237,9 +237,9 @@ const UserDataPage: React.FC = () => {
           className="mb-10"
         >
           <br /><br />
-          <h1 className="text-5xl font-bold text-gray-900 mb-6 flex items-center gap-3" style={{ fontFamily: 'Poppins'}}>
+          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 flex items-center gap-3" style={{ fontFamily: 'Poppins'}}>
             
-            LonewolfFSD Client Dashboard
+            LonewolfFSD Client Portal
           </h1>
             <p className='font-semibold mb-1' style={{ fontFamily: 'Poppins'}}>FSD ID</p>
           <form
@@ -275,10 +275,17 @@ const UserDataPage: React.FC = () => {
     <motion.button
       type="submit"
       disabled={loading}
+      onClick={() => {
+        if (navigator.vibrate) navigator.vibrate(50); // 💥 small buzz
+        // your other logic
+      }}
+      style={{
+        fontFamily: 'Poppins',
+        letterSpacing: '0.5px'
+      }}
       className={`w-full md:w-auto px-14 md:px-10 py-3 rounded-lg text-white font-semibold flex items-center justify-center mt-1 md:mt-0 gap-2 ${
         loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-black/90'
       } transition-colors`}
-      whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.95 }}
     >
       {loading ? 'Loading...' : 'Fetch Details'}
@@ -332,42 +339,51 @@ const UserDataPage: React.FC = () => {
           >
             {/* Client Details */}
             <div className="bg-white shadow-xl rounded-2xl border border-black border-2 p-8 transform transition-all hover:shadow-2xl">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                 <FileText className="h-7 w-7 text-gray-700" />
                 Client Details
               </h2>
-              <div className="space-y-5">
+              <hr className='py-4' />
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-600">Name:</span>
+                  <span className="font-medium text-gray-600 text-[15px] md:text-md">Name:</span>
                   <span className="text-gray-900">{displayUserData.name}</span>
                 </div>
+                <hr />
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-600">Email:</span>
+                  <span className="font-medium text-gray-600 text-[15px] md:text-md">Email:</span>
                   <span className="text-gray-900">{displayUserData.email}</span>
                 </div>
+                <hr />
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-600">Company Name:</span>
+                  <span className="font-medium text-gray-600 text-[15px] md:text-md">Company Name:</span>
                   <span className="text-gray-900">{displayUserData.companyName}</span>
                 </div>
+                <hr />
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-600">Phone Number:</span>
+                  <span className="font-medium text-gray-600 text-[15px] md:text-md">Phone Number:</span>
                   <span className="text-gray-900">{displayUserData.phoneNo}</span>
                 </div>
+                <hr />
                 {userData &&
                   Object.entries(userData).map(([key, value]) => {
                     if (['name', 'email', 'companyName', 'phoneNo', 'startDate', 'currentProject'].includes(key))
                       return null;
+
                     return (
-                      <div key={key} className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">
-                          {key.charAt(0).toUpperCase() + key.slice(1)}:
-                        </span>
-                        <span className="text-gray-900">
-                          {typeof value === 'string' || typeof value === 'number'
-                            ? value
-                            : JSON.stringify(value)}
-                        </span>
-                      </div>
+                      <React.Fragment key={key}>
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-gray-600">
+                            {key.charAt(0).toUpperCase() + key.slice(1)}:
+                          </span>
+                          <span className="text-gray-900">
+                            {typeof value === 'string' || typeof value === 'number'
+                              ? value
+                              : JSON.stringify(value)}
+                          </span>
+                        </div>
+                        <hr className="border-gray-300" />
+                      </React.Fragment>
                     );
                   })}
               </div>
@@ -375,26 +391,27 @@ const UserDataPage: React.FC = () => {
 
             {/* Current Project Details */}
             <div className="bg-white shadow-xl rounded-xl p-8 transform border border-black border-2 transition-all hover:shadow-2xl">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                 <PackageOpen className="h-7 w-7 text-gray-700" />
                 Current Project Details
               </h2>
               {displayUserData.currentProject === 'N/A' ? (
-                <p className="text-gray-600">No current project assigned.</p>
+                <p className="text-gray-600 text-[15px] md:text-md">No current project assigned.</p>
               ) : (
                 projects
                   .filter(project => project.name === displayUserData.currentProject)
                   .map(project => (
-                    <div key={project.id} className="space-y-5">
+                    <div key={project.id} className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Project Name:</span>
-                        <span className="text-gray-900">{project.name}</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Project Name:</span>
+                        <span className="text-gray-900 text-[15px] md:text-md">{project.name}</span>
                       </div>
+                      <hr />
                       <div className="flex items-center justify-between w-full">
-                      <span className="font-medium text-gray-600 mr-4">Progress:</span>
+                      <span className="font-medium text-gray-600 mr-4 text-[15px] md:text-md">Progress:</span>
                       
                       <div className="flex justify-end gap-3 w-full">
-                        <div className="w-full max-w-xs bg-gray-200 rounded-full h-[7px] overflow-hidden">
+                        <div className="w-full max-w-xs bg-gray-200 rounded-full h-[7px] mt-1 overflow-hidden">
                           <motion.div
                             className="bg-black h-[7px] rounded-full"
                             initial={{ width: 0 }}
@@ -403,18 +420,20 @@ const UserDataPage: React.FC = () => {
                           />
                         </div>
                         
-                        <span className="text-sm -mt-1.5 font-semibold text-gray-700 whitespace-nowrap">
+                        <span className="text-sm -mt-0.5 font-semibold text-gray-700 whitespace-nowrap">
                           {project.progress}%
                         </span>
                       </div>
                     </div>
+                      <hr />
 
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Price:</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Price:</span>
                         <span className="text-gray-900">₹{project.price.toLocaleString()}</span>
                       </div>
+                      <hr />
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Payment Status:</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Payment Status:</span>
                         <div className="flex items-center gap-2">
                           {project.paymentStatus === 'Paid' && <PackageCheck className="h-5 w-5 text-green-600" />}
                           {project.paymentStatus === 'Partially Paid' && <StarHalf className="h-5 w-5 text-yellow-600" />}
@@ -426,24 +445,26 @@ const UserDataPage: React.FC = () => {
                                 : project.paymentStatus === 'Unpaid'
                                 ? 'text-red-600'
                                 : 'text-yellow-600'
-                            } font-semibold`}
+                            } font-semibold text-[15px] md:text-md`}
                           >
                             {project.paymentStatus}
                           </span>
                         </div>
                       </div>
+                      <hr />
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Start Date:</span>
-                        <span className="text-gray-900">{project.startDate || 'N/A'}</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Start Date:</span>
+                        <span className="text-gray-900 text-[15px] md:text-md">{project.startDate || 'N/A'}</span>
                       </div>
+                      <hr />
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Deadline:</span>
-                        <span className="text-gray-900">{project.deadline || 'N/A'}</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Deadline:</span>
+                        <span className="text-gray-900 text-[15px] md:text-md">{project.deadline || 'N/A'}</span>
                       </div>
                       {project.description && (
                         <div className="flex justify-between items-center">
-                          <span className="font-medium text-gray-600">Description:</span>
-                          <span className="text-gray-900">{project.description}</span>
+                          <span className="font-medium text-gray-600 text-[15px] md:text-md">Description:</span>
+                          <span className="text-gray-900 text-[15px] md:text-md">{project.description}</span>
                         </div>
                       )}
                       {project.paymentLogs && project.paymentLogs.length > 0 && (
@@ -453,7 +474,7 @@ const UserDataPage: React.FC = () => {
                             {project.paymentLogs.map(log => (
                               <div
                                 key={log.id}
-                                className="flex justify-between items-center text-sm text-gray-600"
+                                className="flex justify-between items-center text-sm text-gray-600 "
                               >
                                 <span>
                                   {log.date} - ₹{log.amount.toLocaleString()} ({log.status})
@@ -488,9 +509,11 @@ const UserDataPage: React.FC = () => {
                             <li>Secures your project slot</li>
                           </ul>
 
+                          <br />
+
                           <motion.button
                             onClick={() => handlePayAdvance(project)}
-                            className="mt-2 px-5 py-2 bg-black text-white rounded-lg flex items-center gap-2 font-semibold"
+                            className="mt-2 px-5 py-2.5 text-[15px] md:text-md bg-black text-white rounded-lg flex items-center gap-2 font-semibold"
                             whileTap={{ scale: 0.99 }}
                           >
                             <CreditCard className="h-5 w-5" />
@@ -542,30 +565,30 @@ const UserDataPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="bg-white shadow-xl rounded-2xl p-8 border border-black border-2"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2.5">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2.5">
               <Package2 className="h-8 w-8 text-gray-700" style={{transform: 'rotate(0deg)' }}/>
               All Projects
             </h2>
+            <hr className='mb-10'/>
             {projects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6">
                 {projects.map(project => (
                   <motion.div
                     key={project.id}
-                    className="p-8 bg-gray-50 border border-black rounded-lg transition-shadow"
+                    className="lg:py-8 lg:px-8 lg:border lg:border-black rounded-2xl transition-shadow"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
                     <span className='flex'>
-                      <Sparkles size={22} className='mt-1 mr-2'/>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Poppins'}}>{project.name}</h3>
+                      <FileText size={22} className='mt-1 mr-2'/>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Poppins'}}>{project.name}</h3>
                     </span>
-                    <hr />
                     <br />
                     <div className="space-y-3 text-md">
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Progress:</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Progress:</span>
                         <div className="flex justify-end gap-3 w-full">
-                        <div className="w-full max-w-xs bg-gray-200 rounded-full h-[7px] overflow-hidden">
+                        <div className="w-full max-w-[200px] md:max-w-xs bg-gray-200 mt-1.5 rounded-full h-[6px] overflow-hidden">
                           <motion.div
                             className="bg-black h-[7px] rounded-full"
                             initial={{ width: 0 }}
@@ -574,17 +597,19 @@ const UserDataPage: React.FC = () => {
                           />
                         </div>
                         
-                        <span className="text-sm -mt-1.5 font-semibold text-gray-700 whitespace-nowrap">
+                        <span className="text-sm -mt-0.5 font-semibold text-gray-700 whitespace-nowrap">
                           {project.progress}%
                         </span>
                       </div>
                       </div>
+                      <hr />
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Price:</span>
-                        <span className="text-gray-900">₹{project.price.toLocaleString()}</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Price:</span>
+                        <span className="text-gray-900 text-[15px] md:text-md">₹{project.price.toLocaleString()}</span>
                       </div>
+                      <hr />
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Payment Status:</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Payment Status:</span>
                         <span
                           className={`${
                             project.paymentStatus === 'Paid'
@@ -592,23 +617,25 @@ const UserDataPage: React.FC = () => {
                               : project.paymentStatus === 'Unpaid'
                               ? 'text-red-600'
                               : 'text-yellow-600'
-                          } font-semibold`}
+                          } font-semibold text-[15px] md:text-md`}
                         >
                           {project.paymentStatus}
                         </span>
                       </div>
+                      <hr />
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Start Date:</span>
-                        <span className="text-gray-900">{project.startDate || 'N/A'}</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Start Date:</span>
+                        <span className="text-gray-900 text-[15px] md:text-md">{project.startDate || 'N/A'}</span>
                       </div>
+                      <hr />
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-600">Deadline:</span>
-                        <span className="text-gray-900">{project.deadline || 'N/A'}</span>
+                        <span className="font-medium text-gray-600 text-[15px] md:text-md">Deadline:</span>
+                        <span className="text-gray-900 text-[15px] md:text-md">{project.deadline || 'N/A'}</span>
                       </div>
                       {project.description && (
                         <div className="flex justify-between items-center">
-                          <span className="font-medium text-gray-600">Description:</span>
-                          <span className="text-gray-900">{project.description}</span>
+                          <span className="font-medium text-gray-600 text-[15px] md:text-md">Description:</span>
+                          <span className="text-gray-900 text-[15px] md:text-md">{project.description}</span>
                         </div>
                       )}
                       {project.paymentLogs && project.paymentLogs.length > 0 && (
@@ -651,19 +678,21 @@ const UserDataPage: React.FC = () => {
                             <li>Better support & communication</li>
                             <li>Secures your project slot</li>
                           </ul>
-
+                          
                           <motion.button
                             onClick={() => handlePayAdvance(project)}
-                            className="mt-2 px-5 py-2 bg-black text-white rounded-lg flex items-center gap-2 font-semibold"
+                            className="mt-2 px-5 py-2.5 text-[15px] md:text-md bg-black text-white rounded-lg flex items-center gap-2 font-semibold"
                             style={{ marginTop: '20px'}}
                             whileTap={{ scale: 0.99 }}
                           >
                             <CreditCard className="h-5 w-5" />
                             Pay Advance (₹{project.price.toLocaleString()})
                           </motion.button>
+                          <br />
+                          <hr className='py-2 lg:hidden' />
                         </>
                       ) : (
-                        <>
+                        <> 
                           <h2 className="text-lg font-semibold mb-2 text-green-700">
                             Payment received. Thanks for trusting the process 🙌
                           </h2>
@@ -697,7 +726,7 @@ const UserDataPage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-600">No projects available.</p>
+              <p className="text-gray-600 text-[15px] md:text-md">No projects available.</p>
             )}
           </motion.div>
         )}
@@ -708,31 +737,35 @@ const UserDataPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="bg-white shadow-xl rounded-2xl p-8 border border-black border-2"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
               <HelpCircle className="h-7 w-7 text-gray-700" />
               Client Helpdesk
             </h2>
             <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <Mail className="h-5 w-5 text-gray-700" />
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 -mt-12 text-gray-700" />
                 <div>
-                  <p className="font-medium text-gray-600">Email</p>
-                  <a href="mailto:support@lonewolffsd.in" className="text-gray-800 font-semibold underline hover:underline">
+                  <p className="font-medium text-gray-600 text-[15px] md:text-md">Email</p>
+                  <a href="mailto:support@lonewolffsd.in" className="text-gray-800 text-[15px] md:text-md font-semibold underline hover:underline">
                     support@lonewolffsd.in
+                  </a>
+                  <br className='' />
+                  <a href="mailto:hello@lonewolffsd.in" className="text-gray-800 text-[15px] md:text-md font-semibold underline hover:underline">
+                    hello@lonewolffsd.in
                   </a>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <Earth className="h-5 w-5 text-gray-700" />
+              <div className="flex items-center gap-3">
+                <Earth className="h-5 w-5 -mt-5 text-gray-700" />
                 <div>
-                  <p className="font-medium text-gray-600">Website</p>
+                  <p className="font-medium text-gray-600 text-[15px] md:text-md">Website</p>
                   <a
-                    href="https://helpdesk.lonewolffsd.in"
+                    href="https://support.lonewolffsd.in"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-800 font-semibold underline"
+                    className="text-gray-800 text-[15px] md:text-md font-semibold underline"
                   >
-                    https://helpdesk.lonewolffsd.in
+                    https://support.lonewolffsd.in
                   </a>
                 </div>
               </div>
