@@ -129,6 +129,8 @@ function App() {
     return () => unsubscribe();
   }, [user]);
 
+  
+
   const skills = [
     {
       name: 'JavaScript',
@@ -463,7 +465,7 @@ function App() {
       <Route path="/check-email" element={<CheckYourEmail isDark={isDark} />} />
       <Route path="/forgot-password" element={<ForgotPassword isDark={isDark} />} /> {/* New route */}
       <Route path="/blogs/lyralabs/lyra-ai" element={<LyraBlog />} /> {/* New route */}
-      <Route path="/user-data" element={<UserDataPage />} />
+      <Route path="/client-portal" element={<UserDataPage />} />
       <Route path="/blogs/will-ai-take-our-jobs" element={<AIBlog />} /> {/* New route */}
       <Route path="/blogs/best-lang-to-learn-in-2025" element={<Lang />} /> {/* New route */}
       <Route path="/lets-collaborate" element={<HeroSection />} /> {/* New route */}

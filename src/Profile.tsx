@@ -6,11 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAvatar } from "./AvatarContext.tsx";
 import { QRCodeSVG } from "qrcode.react";
+import { getAuth } from 'firebase/auth';
 import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 
 import Cropper from "react-easy-crop";
 import { Area } from "react-easy-crop/types";
-import { RotateCcw, RotateCw } from "lucide-react";
+import { BadgeCheck, RotateCcw, RotateCw } from "lucide-react";
 
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
@@ -703,6 +704,29 @@ useEffect(() => {
   return () => unsubscribe();
 }, [user]);
 
+  const [userRole, setUserRole] = useState<string | null>(null);
+  // Fetch current user's role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setUserRole(userDoc.data().role || 'user');
+          } else {
+            setUserRole('user');
+          }
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          setUserRole('user');
+        }
+      }
+    };
+    fetchUserRole();
+  }, []);
+
   useEffect(() => {
     if (isAuthLoading) return;
     if (!user) {
@@ -1235,9 +1259,9 @@ useEffect(() => {
               </div>
           </div>
 
-            <h3 className={`text-2xl md:text-lg font-bold text-black md:mt-3 mt-8 ${publicMode ? 'col-span-2' : 'col-span-1'}`} style={{ fontFamily: 'Poppins'}}>Personal Details</h3>
+            <h3 className={`text-2xl md:text-lg font-bold text-black md:mt-3 mt-8 ${publicMode ? 'col-span-2' : 'col-span-2'}`} style={{ fontFamily: 'Poppins'}}>Personal Details</h3>
 
-            <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 ${publicMode ? 'col-span-1' : 'col-span-2'}`}>
+            <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1`}>
               <div className="pt-1"><User className="text-gray-700 w-5 h-5" /></div>
               <div>
                 <p className="text-xs text-gray-500">Name</p>
@@ -1279,7 +1303,7 @@ useEffect(() => {
 
             {/* Sensitive info - Hidden in public mode */}
 
-                <div className={`flex items-start border border-gray-200 ${publicMode ? 'hidden' : 'block'} rounded-xl px-4 py-3.5 space-x-3col-span-2 md:col-span-1`}>
+                <div className={`flex items-start border border-gray-200 ${publicMode ? 'hidden' : 'block'}  rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1`}>
                     <div className="pt-1"><LocateFixed className="text-gray-700 w-5 h-5" /></div>
                     <div>
                       <p className="text-xs text-gray-500 ml-3">Location</p>
@@ -1317,7 +1341,7 @@ useEffect(() => {
                   </div>
 
                   {!publicMode && (
-                    <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3">
+                    <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
                       <div className="pt-1"><Calendar className="text-gray-700 w-5 h-5" /></div>
                       <div>
                         <p className="text-xs text-gray-500">Account Created</p>
@@ -1330,6 +1354,14 @@ useEffect(() => {
                     </div>
                   )}
 
+                  <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1 ${publicMode ? 'hidden' : 'block'}`}>
+                    <div className="pt-1"><BadgeCheck className="text-gray-700 w-5 h-5" /></div>
+                    <div>
+                      <p className="text-xs text-gray-500">Member Status</p>
+                      <p className="text-black font-medium text-sm break-all">{userRole || "user"}</p>
+                    </div>
+                  </div>
+
                   <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 ${publicMode ? 'hidden' : 'block'}`}>
                     <div className="pt-1"><UserCog className="text-gray-700 w-5 h-5" /></div>
                     <div>
@@ -1337,6 +1369,33 @@ useEffect(() => {
                       <p className="text-black font-medium text-sm break-all">{user.uid}</p>
                     </div>
                   </div>
+
+                  {userRole === "client" && !publicMode && (
+                    <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2">
+                      <div className="flex items-start space-x-3">
+                        <div className="pt-1">
+                          <UserCog className="text-gray-700 w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Client Portal</p>
+                          <p className="text-black font-medium text-sm">
+                            Track projects, payments & progress
+                          </p>
+                        </div>
+                      </div>
+                        
+                      <motion.button
+                        onClick={() => navigate("/client-portal")}
+                        className="py-2.5 px-4 font-semibold mt-4 md:mt-0 rounded-lg bg-black text-white hover:bg-black/90 cursor-custom-pointer transition-all text-xs"
+                        style={{
+                          fontFamily: 'Poppins'
+                        }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Access Client Portal
+                      </motion.button>
+                    </div>
+                  )}
 
                                 {!publicMode && user?.uid === auth.currentUser?.uid && (
                 <>
@@ -1362,7 +1421,7 @@ useEffect(() => {
                     <motion.button
                       onClick={initiateBiometricSetup}
                       disabled={isBiometric2FAEnabled}
-                      className={`px-5 py-2 rounded-lg cursor-custom font-semibold text-[12px] transition-colors ${
+                      className={`px-5 py-2 rounded-lg cursor-custom-pointer font-semibold text-[12px] transition-colors ${
                         isBiometric2FAEnabled
                         ? "bg-green-50 border border-2 border-green-300 text-green-600 hover:bg-green-100"
                         : "bg-black text-white hover:bg-black/90"
@@ -1387,7 +1446,7 @@ useEffect(() => {
                   <h3 className="text-xl md:text-md font-semibold text-black ">Connections & Activities</h3>
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
                     <div className="pt-1">
-                      <Link2 className="text-gray-700 w-5 h-5" />
+                      <Link2 className="text-gray-700 w-4 h-4 -mt-1 -mr-1" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Connected Account</p>
@@ -1415,7 +1474,7 @@ useEffect(() => {
                   </div>
 
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
-                    <div className="pt-1"><History className="text-gray-700 w-5 h-5" /></div>
+                    <div className="pt-1"><History className="text-gray-700 w-4 h-4 -mt-1 -mr-1" /></div>
                     <div>
                       <p className="text-xs text-gray-500">Recent Login Activity</p>
                       <ul className="text-black font-medium text-xs mt-1.5 space-y-1 break-words">

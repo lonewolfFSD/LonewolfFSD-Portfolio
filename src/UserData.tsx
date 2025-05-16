@@ -78,7 +78,7 @@ const UserDataPage: React.FC = () => {
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        setError('User not found with the provided FSD ID. Try checking for any typo mistake.');
+        setError(`No user found for "${uid}". Please check for any typos and try again.`);
         setUserData(null);
         setProjects([]);
         setLoading(false);
@@ -123,7 +123,7 @@ const UserDataPage: React.FC = () => {
       );
       setProjects(projectsData);
     } catch (err) {
-      setError('Failed to fetch data. Please check the UID and try again.');
+      setError(`LonewolfFSD server couldn't find any data linked with "${uid}".`);
       console.error(err);
       setUserData(null);
       setProjects([]);
@@ -242,35 +242,58 @@ const UserDataPage: React.FC = () => {
             LonewolfFSD Client Dashboard
           </h1>
             <p className='font-semibold mb-1' style={{ fontFamily: 'Poppins'}}>FSD ID</p>
-          <form onSubmit={handleFetchData} className="flex items-center gap-2">
-            <motion.input
-              type="text"
-              value={uid}
-              onChange={(e) => setUid(e.target.value.trim())}
-              placeholder="Enter Firebase UID"
-              className="w-full max-w-md px-5 py-3 text-sm border-2 rounded-xl border border-black bg-white/80 backdrop-blur-sm  outline-none transition-all"
-              required
-            />
-            <motion.button
-              type="submit"
-              disabled={loading}
-              className={`px-10 py-3 rounded-lg text-white font-semibold flex items-center gap-2 ${
-                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-black/90'
-              } transition-colors`}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.95 }}
-              >
-              {loading ? 'Loading...' : 'Fetch Details'}
-            </motion.button>
-          </form>
-          <p className="mt-3 text-xs text-gray-600">
-            Enter your <a href="/profile" className='underline font-semibold' title='An unique ID given to each member of LonewolfFSD to identify them' style={{ fontFamily: 'Poppins'}}>FSD ID</a> to securely access the details of your orders.
+          <form
+  onSubmit={handleFetchData}
+  className="flex flex-col md:flex-row md:items-center md:gap-2 gap-3 w-full"
+>
+  <div className="w-full md:max-w-md flex flex-col gap-2">
+    <motion.input
+      type="text"
+      value={uid}
+      onChange={(e) => setUid(e.target.value.trim())}
+      placeholder="Enter your FSD ID"
+      className="w-full px-5 py-3 text-sm border-2 rounded-xl border-black bg-white/80 backdrop-blur-sm outline-none transition-all"
+      required
+    />
+
+    {/* Hint visible only on mobile */}
+    <p className="text-xs text-gray-600 md:hidden -mt-1">
+      Enter your&nbsp;
+      <a
+        href="/profile"
+        className="underline font-semibold"
+        title="A unique ID given to each member of LonewolfFSD to identify them"
+        style={{ fontFamily: 'Poppins' }}
+      >
+        FSD ID
+      </a>
+      &nbsp;to securely access the details of your projects.
+    </p>
+  </div>
+
+  <div className="w-full md:w-auto flex justify-start md:justify-center">
+    <motion.button
+      type="submit"
+      disabled={loading}
+      className={`w-full md:w-auto px-14 md:px-10 py-3 rounded-lg text-white font-semibold flex items-center justify-center mt-1 md:mt-0 gap-2 ${
+        loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-black/90'
+      } transition-colors`}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      {loading ? 'Loading...' : 'Fetch Details'}
+    </motion.button>
+  </div>
+</form>
+
+          <p className="mt-3 text-xs text-gray-600 hidden md:block">
+            Enter your <a href="/profile" className='underline font-semibold' title='An unique ID given to each member of LonewolfFSD to identify them' style={{ fontFamily: 'Poppins'}}>FSD ID</a> to securely access the details of your projects.
           </p>
           {error && (
             <motion.div
               initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
-              className="mt-4 p-4 flex bg-red-100 border border-2 border-red-700 font-semibold text-sm text-red-800 gap-2 rounded-lg w-full max-w-md"
+              className="mt-4 p-4 flex bg-red-100 border border-2 border-red-700 font-semibold text-sm text-red-800 gap-2 rounded-lg w-full max-w-2xl"
             >
               <AlertTriangle size={18} className='mt-0' /> {error}
             </motion.div>
@@ -354,7 +377,7 @@ const UserDataPage: React.FC = () => {
             <div className="bg-white shadow-xl rounded-xl p-8 transform border border-black border-2 transition-all hover:shadow-2xl">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                 <PackageOpen className="h-7 w-7 text-gray-700" />
-                Current Order Details
+                Current Project Details
               </h2>
               {displayUserData.currentProject === 'N/A' ? (
                 <p className="text-gray-600">No current project assigned.</p>
@@ -392,17 +415,22 @@ const UserDataPage: React.FC = () => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="font-medium text-gray-600">Payment Status:</span>
-                        <span
-                          className={`${
-                            project.paymentStatus === 'Paid'
-                              ? 'text-green-600'
-                              : project.paymentStatus === 'Unpaid'
-                              ? 'text-red-600'
-                              : 'text-yellow-600'
-                          } font-semibold`}
-                        >
-                          {project.paymentStatus}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {project.paymentStatus === 'Paid' && <PackageCheck className="h-5 w-5 text-green-600" />}
+                          {project.paymentStatus === 'Partially Paid' && <StarHalf className="h-5 w-5 text-yellow-600" />}
+                          {project.paymentStatus === 'Unpaid' && <AlertTriangle className="h-5 w-5 text-red-600" />}
+                          <span
+                            className={`${
+                              project.paymentStatus === 'Paid'
+                                ? 'text-green-600'
+                                : project.paymentStatus === 'Unpaid'
+                                ? 'text-red-600'
+                                : 'text-yellow-600'
+                            } font-semibold`}
+                          >
+                            {project.paymentStatus}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="font-medium text-gray-600">Start Date:</span>
@@ -516,7 +544,7 @@ const UserDataPage: React.FC = () => {
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2.5">
               <Package2 className="h-8 w-8 text-gray-700" style={{transform: 'rotate(0deg)' }}/>
-              All Orders
+              All Projects
             </h2>
             {projects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
@@ -669,7 +697,7 @@ const UserDataPage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-600">No orders available.</p>
+              <p className="text-gray-600">No projects available.</p>
             )}
           </motion.div>
         )}
