@@ -7,7 +7,7 @@ import NotificationCard from './Dash Components/NotificationCard';
 import MonitoringCard from './Dash Components/MonitoringCard';
 import SystemHealthCard from './Dash Components/SystemHealthCard';
 import ActiveUsersCard from './Dash Components/ActiveUsersCard';
-import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, setDoc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 
 // Interface for project data
@@ -19,6 +19,7 @@ interface ProjectInput {
   deadline: string;
   price: number;
   paymentStatus: string;
+  link?: string; // Discord link for the project
   [key: string]: any;
 }
 
@@ -40,6 +41,7 @@ const AdminPanel: React.FC = () => {
     deadline: '',
     price: 0,
     paymentStatus: 'Unpaid',
+    link: '',
   }]);
   const [existingProjects, setExistingProjects] = useState<ProjectInput[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +96,7 @@ const AdminPanel: React.FC = () => {
             progress: Number(doc.data().progress) || 0,
             price: Number(doc.data().price) || 0,
             paymentStatus: doc.data().paymentStatus || 'Unpaid',
+            link: doc.data().link || '', // Fetch link field
           })) as ProjectInput[];
           setExistingProjects(projectsData);
           // Reset new projects input to avoid duplicates
@@ -104,6 +107,7 @@ const AdminPanel: React.FC = () => {
             deadline: '',
             price: 0,
             paymentStatus: 'Unpaid',
+            link: '',
           }]);
         } catch (err) {
           console.error('Error fetching projects:', err);
@@ -119,6 +123,7 @@ const AdminPanel: React.FC = () => {
           deadline: '',
           price: 0,
           paymentStatus: 'Unpaid',
+          link: '',
         }]);
       }
     };
@@ -134,6 +139,7 @@ const AdminPanel: React.FC = () => {
       deadline: '',
       price: 0,
       paymentStatus: 'Unpaid',
+      link: '',
     }]);
   };
 
@@ -179,6 +185,7 @@ const AdminPanel: React.FC = () => {
           deadline: project.deadline ? new Date(project.deadline) : null,
           price: Number(project.price) || 0,
           paymentStatus: project.paymentStatus || 'Unpaid',
+          link: project.link || '', // Save link field
         });
         // Update local existing projects
         setExistingProjects(prev => [...prev, {
@@ -186,6 +193,7 @@ const AdminPanel: React.FC = () => {
           ...project,
           startDate: project.startDate || '',
           deadline: project.deadline || '',
+          link: project.link || '',
         }]);
       }
 
@@ -219,6 +227,7 @@ const AdminPanel: React.FC = () => {
         deadline: '',
         price: 0,
         paymentStatus: 'Unpaid',
+        link: '',
       }]);
     } catch (err) {
       setError('Failed to assign data. Please try again.');
@@ -258,6 +267,7 @@ const AdminPanel: React.FC = () => {
         deadline: '',
         price: 0,
         paymentStatus: 'Unpaid',
+        link: '',
       }]);
       setExistingProjects([]);
       setSuccess('User data deleted successfully!');
@@ -378,6 +388,19 @@ const AdminPanel: React.FC = () => {
                         <p><strong>Deadline:</strong> {project.deadline || 'N/A'}</p>
                         <p><strong>Price:</strong> ₹{project.price.toLocaleString()}</p>
                         <p><strong>Payment Status:</strong> {project.paymentStatus}</p>
+                        {project.link && (
+                          <p>
+                            <strong>Discord Link:</strong>{' '}
+                            <a
+                              href={project.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 underline"
+                            >
+                              {project.link}
+                            </a>
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -545,6 +568,18 @@ const AdminPanel: React.FC = () => {
                           <option value="Partially Paid">Partially Paid</option>
                           <option value="Paid">Paid</option>
                         </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">
+                          Discord Link
+                        </label>
+                        <input
+                          type="url"
+                          value={project.link || ''}
+                          onChange={(e) => handleProjectChange(index, 'link', e.target.value)}
+                          placeholder="e.g., https://discord.gg/xyz"
+                          className="w-full px-3 py-2 bg-white/5 border border-gray-800 rounded-md outline-none text-white"
+                        />
                       </div>
                     </div>
                     {projects.length > 1 && (
