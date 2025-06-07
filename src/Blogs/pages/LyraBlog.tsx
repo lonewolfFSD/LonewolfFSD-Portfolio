@@ -164,20 +164,16 @@ function App() {
               </div>
             </motion.div>
           )}
-          <a href="https://form.jotform.com/251094777041054">
-          <motion.button
-            className={`px-6 hidden md:block hover:px-8 transition-all py-2 rounded-full font-semibold text-[15px] ${
-              isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-900"
-            } flex items-center gap-2`} style={{
-              fontFamily: 'Inter, system-ui, sans-serif'
-            }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-          >
-            Let's Connect
-          </motion.button>
-          </a>
+                    <Link to="/contact">
+                    <motion.button
+                      className={`px-6 hidden md:block hover:px-8 transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8, duration: 0.5 }}
+                    >
+                      Let's Connect
+                    </motion.button>
+                    </Link>
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`p-2 rounded-full border ${

@@ -11,11 +11,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://lonewolffsd.in/projects</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://lonewolffsd.in/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -41,8 +36,13 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://lonewolffsd.in/notifications</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
+    <loc>https://lonewolffsd.in/blogs/will-ai-take-our-jobs</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+    <url>
+    <loc>https://lonewolffsd.in/blogs/best-lang-to-learn-in-2025</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

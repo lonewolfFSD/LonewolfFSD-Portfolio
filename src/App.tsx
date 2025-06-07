@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, CSSProperties } from 'react';
-import { Menu, ArrowRight, Settings, LogOut, Moon, Sun, Server, Database, Shield, Briefcase, Code, Palette, Send, X, Github, Linkedin, Twitter, Instagram, ArrowDown, ArrowDown01, ArrowDownIcon, ChevronDown, Mail, User, Bell, Scale } from 'lucide-react';
+import { Menu, ArrowRight, Settings, LogOut, Moon, Sun, Server, Database, Shield, Briefcase, Code, Palette, Send, X, Github, Linkedin, Twitter, Instagram, ArrowDown, ArrowDown01, ArrowDownIcon, ChevronDown, Mail, User, Bell, Scale, Contact } from 'lucide-react';
 import { motion, transform } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
 import { useMediaQuery } from "react-responsive";
+import ContactUs from './ContactUs';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
@@ -50,6 +51,8 @@ import { ChatBubble, ChatInterface } from './Newcomponents/chat';
 import NotificationPage from './NotificationPage';
 import NotFound from './NotFound';
 import Projects from './Projects';
+import ModernCalendar from './ModernCalendar';
+import Callback from './Callback';
 
 const override: CSSProperties = {
   display: "block",
@@ -471,7 +474,10 @@ function App() {
       <Route path="/lets-collaborate" element={<HeroSection />} /> {/* New route */}
       <Route path="/about-me" element={<About />} /> {/* New route */}
       <Route path="/profile" element={<Profile isDark={isDark} />} />
+      <Route path="/calendar" element={<ModernCalendar />} />
+      <Route path="/callback" element={<Callback />} />
       <Route path="/notifications" element={<NotificationPage />} />
+      <Route path="/contact" element={<ContactUs />} />
       <Route path="/public-profile/:uid" element={<Profile isDark={isDark} publicMode={true} />} />
       <Route path="*" element={<NotFound />} />
       <Route path="/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29" element={<AdminPanel isDark={isDark} user={user} />} />
@@ -634,7 +640,7 @@ function App() {
                                 </div>
                               </motion.div>
                             )}
-          <a href="https://form.jotform.com/251094777041054">
+          <a href="/contact">
           <motion.button
             aria-label="contact"
             className={`px-6 hover:px-8 hidden md:block cursor-custom-pointer transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
@@ -670,6 +676,7 @@ function App() {
                 { label: 'About Me', href: '/about-me' },
                 { label: 'LonewolfFSD Blogs', href: '/blogs' },
                 { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                { label: 'FSD Calendar', href: '/calendar' },
                 { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
               ].map((item, index) => (
                 <Link
@@ -739,18 +746,36 @@ function App() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.7 }}
           >
-          <motion.button
-            className={`px-8 py-4 hover:px-10 duration-300 cursor-custom-pointer w-60 lg:w-auto text-sm rounded-full transition-all z-10 bg-black text-white hover:bg-white hover:text-black border-2 border-black group hover:border-black ${isDark ? 'bg-white text-black hover:bg-gray-100' : ''} flex items-center gap-2`}
+            <motion.button
+            className={`px-8 py-4 hover:px-10 md:hidden duration-300 cursor-custom-pointer w-60 lg:w-auto text-sm rounded-full transition-all z-10 bg-black text-white hover:bg-white hover:text-black border-2 border-black group hover:border-black ${isDark ? 'bg-white text-black hover:bg-gray-100' : ''} flex items-center gap-2`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.8 }}
             style={{
               fontFamily: 'Poppins, sans-serif'
             }}
-            onClick={() => window.location.href = '#projects'}
+            
           >
-            View Projects <ArrowRight className="w-5 h-5 transition-all duration-500 group-hover:ml-1" />
+            <Link to="/contact">Let's Connect</Link> <ArrowRight className="w-5 h-5 transition-all duration-500 group-hover:ml-1" />
           </motion.button>
+{/** Wrapper div handles visibility, not motion.button itself */}
+<div className="hidden md:block">
+  <motion.button
+    className={`px-8 py-4 hover:px-10 duration-300 cursor-custom-pointer w-60 lg:w-auto text-sm rounded-full transition-all z-10 bg-black text-white hover:bg-white hover:text-black border-2 border-black group hover:border-black ${isDark ? 'bg-white text-black hover:bg-gray-100' : ''} flex items-center gap-2`}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ delay: 0.6, duration: 0.8 }}
+    style={{
+      fontFamily: 'Poppins, sans-serif'
+    }}
+    onClick={() => window.location.href = '#projects'}
+  >
+    <span className="leading-none">View Projects</span>
+    <ArrowRight className="w-5 h-5 transition-all duration-500 group-hover:ml-1 align-middle" />
+  </motion.button>
+</div>
+
+
 
 
             <motion.p
