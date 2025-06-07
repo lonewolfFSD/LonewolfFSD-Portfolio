@@ -33,11 +33,12 @@ interface Stats {
 }
 
 // Interface for user
-interface User {
-  role: 'admin' | 'user';
-  name: string;
-  availability: 'Available' | 'Busy' | 'On Leave' | 'Offline';
-}
+ interface User {
+   role: 'admin' | 'user';
+   name: string;
+   availability: 'Available' | 'Busy' | 'On Leave' | 'Offline';
+   uid: string;
+ }
 
 // Interface for Spotify track
 interface SpotifyTrack {
@@ -91,8 +92,16 @@ const ModernCalendar: React.FC = () => {
             setIsSpotifyConnected(true);
             fetchSpotifyTrack(access_token);
           } else {
-            refreshSpotifyToken(user.uid);
+            await refreshSpotifyToken(user.uid);
+            const updatedDoc = await getDoc(spotifyDocRef);
+            if (updatedDoc.exists()) {
+              setIsSpotifyConnected(true);
+              fetchSpotifyTrack(updatedDoc.data().access_token);
+            }
           }
+        } else {
+          setIsSpotifyConnected(false);
+          setSpotifyTrack(null);
         }
       } else {
         setUserRole(null);
@@ -103,20 +112,24 @@ const ModernCalendar: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Handle Spotify callback
-  useEffect(() => {
+useEffect(() => {
+  async function handleSpotifyCallback() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     if (code && auth.currentUser) {
-      exchangeSpotifyCode(code, auth.currentUser.uid);
-      window.history.replaceState({}, document.title, window.location.pathname);
+      await exchangeSpotifyCode(code, auth.currentUser.uid);
+      setIsSpotifyConnected(true);
+      window.history.replaceState({}, document.title, '/calendar');
     }
-  }, []);
+  }
+
+  handleSpotifyCallback();
+}, []);
 
   // Fetch team members
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
-      const members = snapshot.docs.map(doc => doc.data() as User);
+   const unsubscribe = onSnapshot(collection(db, 'team'), (snapshot) => {
+      const members = snapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id } as User));
       setTeamMembers(members.slice(0, 4)); // Limit to 4 for display
     }, (error) => {
       console.error('Error fetching team members:', error.message);
@@ -179,13 +192,13 @@ const ModernCalendar: React.FC = () => {
   }, [isSpotifyConnected, userRole]);
 
   // Connect to Spotify
-  const connectSpotify = () => {
-    const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-    const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
-    const scope = 'user-read-playback-state';
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
-    window.location.href = authUrl;
-  };
+const connectSpotify = () => {
+   const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+   const redirectUri = encodeURIComponent(import.meta.env.VITE_SPOTIFY_REDIRECT_URI);
+   const scope = 'user-read-playback-state';
+   const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=${scope}`;
+   window.location.href = authUrl;
+ };
 
   // Exchange Spotify auth code for tokens
   const exchangeSpotifyCode = async (code: string, uid: string) => {
@@ -293,7 +306,7 @@ const ModernCalendar: React.FC = () => {
     e.preventDefault();
     if (!userRole || userRole.role !== 'admin' || !selectedUser) return;
     try {
-      await updateDoc(doc(db, 'users', selectedUser.uid), {
+      await updateDoc(doc(db, 'team', selectedUser.uid), {
         availability: selectedUser.availability,
       });
       setIsStatusModalOpen(false);
@@ -438,7 +451,7 @@ const ModernCalendar: React.FC = () => {
     const seconds = currentTime.getSeconds().toString().padStart(2, '0');
     const ampm = currentTime.getHours() >= 12 ? 'PM' : 'AM';
     return (
-      <div className="text-2xl font-mono text-black tracking-wider flex gap-1 animate-pulse">
+      <div className="text-2xl font-mono text-black tracking-wider flex gap-1">
         {hours.split('').map((digit, i) => (
           <motion.span key={`h${i}-${digit}`} variants={clockDigitVariants} initial="initial" animate="animate" exit="exit">{digit}</motion.span>
         ))}
@@ -494,7 +507,7 @@ const ModernCalendar: React.FC = () => {
           </Tilt>
           <Tilt options={{ max: 25, scale: 1.05 }}>
             <motion.div className="bg-white border border-black/20 rounded-xl p-4 shadow-md" variants={cardVariants} initial="hidden" animate="visible">
-              <h3 className="text-base font-semibold text-black mb-2">Next Holiday</h3>
+              <h3 className="text-base font-semibold text-black mb-2">Holiday List</h3>
               <p className="text-black/80 text-sm">{holidays[0]?.name || 'None'}: <span className="font-bold">{holidays[0]?.date || 'N/A'}</span></p>
             </motion.div>
           </Tilt>
@@ -509,10 +522,10 @@ const ModernCalendar: React.FC = () => {
                 <ul className="space-y-2">
                   {teamMembers.map((member, index) => (
                     <li
-                      key={index}
-                      className="flex items-center justify-between text-sm text-black/80"
-                      data-tooltip-id={`tooltip-team-${index}`}
-                      data-tooltip-content={`Role: ${member.role}, Status: ${member.availability}`}
+                       key={member.uid}
+                       className="flex items-center justify-between text-sm text-black/80"
+                       data-tooltip-id={`tooltip-team-${member.uid}`}
+                       data-tooltip-content={`Role: ${member.role}, Status: ${member.availability}`}
                     >
                       <div className="flex items-center">
                         {renderStatusDot(member.availability)}
@@ -529,7 +542,7 @@ const ModernCalendar: React.FC = () => {
                           <Edit2 className="w-3 h-3" />
                         </button>
                       )}
-                      <Tooltip id={`tooltip-team-${index}`} className="bg-black text-white text-xs rounded p-2" />
+                      <Tooltip id={`tooltip-team-${member.uid}`} className="bg-black text-white text-xs rounded p-2" />
                     </li>
                   ))}
                 </ul>
@@ -543,7 +556,7 @@ const ModernCalendar: React.FC = () => {
           <div className="mb-4">
             <div className="flex justify-start gap-2 mb-4">
               <select
-                className="border border-black/20 rounded p-2 text-sm w-32"
+                className="border border-black/20 rounded-lg p-2 text-sm w-48"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value as 'All' | 'Active' | 'Completed')}
               >
@@ -552,7 +565,7 @@ const ModernCalendar: React.FC = () => {
                 <option value="Completed">Completed</option>
               </select>
               <select
-                className="border border-black/20 rounded p-2 text-sm w-32"
+                className="border border-black/20 rounded-lg p-2 text-sm w-60"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'startDate' | 'endDate' | 'title')}
               >
@@ -566,7 +579,7 @@ const ModernCalendar: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search events..."
-                className="border border-black/20 rounded p-2 pl-10 text-sm w-full"
+                className="border border-black/20 rounded p-3 outline-none pl-10 text-sm w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -574,6 +587,7 @@ const ModernCalendar: React.FC = () => {
           </div>
           <motion.div className="flex flex-col items-start" variants={timelineVariants} initial="hidden" animate="visible">
             <div className="relative w-full mb-16">
+              <br />
               <motion.div
                 className="text-6xl font-bold text-black mb-6"
                 style={{ WebkitTextStroke: '2px black', color: 'transparent', textShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}
@@ -585,7 +599,7 @@ const ModernCalendar: React.FC = () => {
               {loading ? (
                 <div className="text-black/60">Loading events...</div>
               ) : filteredEvents.length === 0 ? (
-                <div className="text-black/60">No events available</div>
+                <div className="text-black/60">No projects available to display</div>
               ) : (
                 filteredEvents.map((event, index) => (
                   <Tilt key={event.id} options={{ max: 25, scale: 1.05 }}>
@@ -667,7 +681,7 @@ const ModernCalendar: React.FC = () => {
           </Tilt>
           <Tilt options={{ max: 25, scale: 1.05 }}>
             <motion.div
-              className="bg-white border border-black/20 rounded-xl p-4 shadow-md flex justify-center animate-pulse"
+              className="bg-white border border-black/20 rounded-xl p-4 shadow-md flex justify-center"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
@@ -691,7 +705,7 @@ const ModernCalendar: React.FC = () => {
                 <Music className="w-4 h-4 mr-2" /> Now Playing
               </h3>
               {isSpotifyConnected ? (
-                spotifyTrack ? (
+                spotifyTrack && spotifyTrack.name ? (
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <a href={spotifyTrack.externalUrl} target="_blank" rel="noopener noreferrer">
@@ -900,8 +914,8 @@ const ModernCalendar: React.FC = () => {
                     type="button"
                     className="px-4 py-2 border border-black/20 rounded text-sm"
                     onClick={() => {
-                      setIsStatusModalOpen(false);
-                      setSelectedUser(null);
+                      setSelectedUser(member);
+                      setIsStatusModalOpen(true);
                     }}
                   >
                     Cancel
