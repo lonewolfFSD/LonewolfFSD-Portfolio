@@ -474,7 +474,7 @@ function App() {
       <Route path="/lets-collaborate" element={<HeroSection />} /> {/* New route */}
       <Route path="/about-me" element={<About />} /> {/* New route */}
       <Route path="/profile" element={<Profile isDark={isDark} />} />
-      <Route path="/calendar" element={<ModernCalendar />} />
+      <Route path="/dev-sync" element={<ModernCalendar />} />
       <Route path="/callback" element={<Callback />} />
       <Route path="/notifications" element={<NotificationPage />} />
       <Route path="/contact" element={<ContactUs />} />
@@ -676,7 +676,7 @@ function App() {
                 { label: 'About Me', href: '/about-me' },
                 { label: 'LonewolfFSD Blogs', href: '/blogs' },
                 { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
-                { label: 'FSD Calendar', href: '/calendar' },
+                { label: 'FSD DevSync', href: '/dev-sync' },
                 { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
               ].map((item, index) => (
                 <Link
