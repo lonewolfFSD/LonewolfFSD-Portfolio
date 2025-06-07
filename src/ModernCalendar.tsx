@@ -510,11 +510,26 @@ const connectSpotify = () => {
             </motion.div>
           </Tilt>
           <Tilt options={{ max: 25, scale: 1.05 }}>
-            <motion.div className="bg-white border border-black/20 rounded-xl p-4 shadow-md" variants={cardVariants} initial="hidden" animate="visible">
-              <h3 className="text-base font-semibold text-black mb-2">Holiday List</h3>
-              <p className="text-black/80 text-sm">{holidays[0]?.name || 'None'}: <span className="font-bold">{holidays[0]?.date || 'N/A'}</span></p>
-            </motion.div>
-          </Tilt>
+  <motion.div
+    className="bg-white border border-black/20 rounded-xl p-4 shadow-md"
+    variants={cardVariants}
+    initial="hidden"
+    animate="visible"
+  >
+    <h3 className="text-base font-semibold text-black mb-2">Holiday List</h3>
+    <div className="space-y-1">
+      {holidays.length > 0 ? (
+        holidays.map((holiday, index) => (
+          <p key={index} className="text-black/80 text-sm">
+            {holiday.name}: <span className="font-bold">{holiday.date}</span>
+          </p>
+        ))
+      ) : (
+        <p className="text-black/80 text-sm">None</p>
+      )}
+    </div>
+  </motion.div>
+</Tilt>
           <Tilt options={{ max: 25, scale: 1.05 }}>
   <motion.div
     className={`bg-white border border-black/20 rounded-xl p-4 shadow-md ${userRole?.role === 'admin' ? 'block' : 'hidden'}`}
