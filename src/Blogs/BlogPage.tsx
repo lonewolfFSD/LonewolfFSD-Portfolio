@@ -285,6 +285,7 @@ function App() {
                 { label: 'About Me', href: '#about' },
                 { label: 'LonewolfFSD Blogs', href: '/blogs' },
                 { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                { label: 'FSD DevSync', href: '/dev-sync' },
                 { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
               ].map((item, index) => (
                 <Link
