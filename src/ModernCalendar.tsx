@@ -84,30 +84,25 @@ const ModernCalendar: React.FC = () => {
           }
         });
         // Check Spotify auth
-        const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
-        const spotifyDoc = await getDoc(spotifyDocRef);
-        if (spotifyDoc.exists()) {
-          const { access_token, expires_at, refresh_token } = spotifyDoc.data();
-          if (Date.now() < expires_at) {
-            setIsSpotifyConnected(true);
-            fetchSpotifyTrack(access_token);
-            console.log('Using existing Spotify token');
-          } else {
-            console.log('Spotify token expired, refreshing...');
-            await refreshSpotifyToken(user.uid);
-            const updatedDoc = await getDoc(spotifyDocRef);
-            if (updatedDoc.exists()) {
-              setIsSpotifyConnected(true);
-              fetchSpotifyTrack(updatedDoc.data().access_token);
-            } else {
-              setIsSpotifyConnected(false);
-              setSpotifyTrack(null);
-            }
-          }
+        // Check Spotify auth
+        const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
+        if (tokens.access_token && tokens.expires_at > Date.now()) {
+          setIsSpotifyConnected(true);
+          fetchSpotifyTrack(tokens.access_token);
+          console.log('Using existing Spotify token from localStorage');
+          const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
+          setDoc(spotifyDocRef, tokens, { merge: true }).then(() => {
+            console.log('Synced Spotify tokens to Firestore from localStorage');
+          }).catch(error => {
+            console.error('Error syncing Spotify tokens to Firestore:', error.message);
+          });
+        } else if (tokens.refresh_token) {
+          console.log('Spotify token expired, refreshing...');
+          refreshSpotifyToken(user.uid);
         } else {
           setIsSpotifyConnected(false);
           setSpotifyTrack(null);
-          console.log('No Spotify auth found in Firestore');
+          console.log('No Spotify auth found in localStorage');
         }
       } else {
         setUserRole(null);
@@ -118,26 +113,29 @@ const ModernCalendar: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
- useEffect(() => {
-   async function handleSpotifyCallback() {
-     const urlParams = new URLSearchParams(window.location.search);
-     const code = urlParams.get('code');
-     const state = urlParams.get('state');
-     if (code && auth.currentUser && state) {
-       await exchangeSpotifyCode(code, auth.currentUser.uid);
-       const spotifyDoc = await getDoc(doc(db, `users/${auth.currentUser.uid}/spotify`, 'auth'));
-       if (spotifyDoc.exists()) {
-         setIsSpotifyConnected(true);
-         fetchSpotifyTrack(spotifyDoc.data().access_token);
-         console.log('Spotify callback processed, tokens found in Firestore');
-       } else {
-         console.error('Spotify callback: No tokens found in Firestore after exchange');
-       }
-       window.history.replaceState({}, document.title, '/calendar');
-     }
-   }
-   handleSpotifyCallback();
- }, []);
+useEffect(() => {
+  async function handleSpotifyCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    if (code && auth.currentUser && state) {
+      await exchangeSpotifyCode(code, auth.currentUser.uid);
+      const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
+      if (tokens.access_token) {
+        setIsSpotifyConnected(true);
+        fetchSpotifyTrack(tokens.access_token);
+        console.log('Spotify callback processed, tokens found in localStorage');
+        const spotifyDocRef = doc(db, `users/${auth.currentUser.uid}/spotify`, 'auth');
+        await setDoc(spotifyDocRef, tokens, { merge: true });
+        console.log('Spotify tokens synced to Firestore after callback');
+      } else {
+        console.error('Spotify callback: No tokens found in localStorage after exchange');
+      }
+      window.history.replaceState({}, document.title, '/calendar');
+    }
+  }
+  handleSpotifyCallback();
+}, []);
 
   // Fetch team members
   useEffect(() => {
@@ -216,70 +214,64 @@ const ModernCalendar: React.FC = () => {
  };
 
   // Exchange Spotify auth code for tokens
- const exchangeSpotifyCode = async (code: string, uid: string) => {
-   try {
-     const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
-       grant_type: 'authorization_code',
-       code,
-       redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
-       client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-       client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
-     }).toString(), {
-       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-     });
-     const { access_token, refresh_token, expires_in } = response.data;
-     const expires_at = Date.now() + (expires_in - 300) * 1000;
-     const spotifyDocRef = doc(db, `users/${uid}/spotify`, 'auth');
-     let attempts = 0;
-     const maxAttempts = 3;
-     while (attempts < maxAttempts) {
-       try {
-         await setDoc(spotifyDocRef, { access_token, refresh_token, expires_at }, { merge: true });
-         console.log('Spotify tokens saved:', { access_token: access_token.substring(0, 10) + '...', refresh_token: refresh_token.substring(0, 10) + '...', expires_at });
-         break;
-       } catch (firestoreError) {
-         attempts++;
-         console.error(`Firestore write attempt ${attempts} failed:`, firestoreError.message);
-         if (attempts === maxAttempts) throw firestoreError;
-         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
-       }
-     }
-     setIsSpotifyConnected(true);
-     fetchSpotifyTrack(access_token);
-   } catch (error) {
-     console.error('Error exchanging Spotify code:', error.response?.data || error.message);
-   }
- };
+const exchangeSpotifyCode = async (code: string, uid: string) => {
+  try {
+    const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
+      client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
+      client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
+    }).toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    const { access_token, refresh_token, expires_in } = response.data;
+    const expires_at = Date.now() + (expires_in - 300) * 1000;
+    const tokens = { access_token, refresh_token, expires_at };
+    localStorage.setItem('spotify_tokens', JSON.stringify(tokens));
+    console.log('Spotify tokens saved to localStorage:', { access_token: access_token.substring(0, 10) + '...', refresh_token: refresh_token.substring(0, 10) + '...', expires_at });
+    const spotifyDocRef = doc(db, `users/${uid}/spotify`, 'auth');
+    await setDoc(spotifyDocRef, tokens, { merge: true });
+    console.log('Spotify tokens synced to Firestore');
+    setIsSpotifyConnected(true);
+    fetchSpotifyTrack(access_token);
+  } catch (error) {
+    console.error('Error exchanging Spotify code:', error.response?.data || error.message);
+  }
+};
 
   // Refresh Spotify token
-  const refreshSpotifyToken = async (uid: string) => {
-   try {
-     const spotifyDoc = await getDoc(doc(db, `users/${uid}/spotify`, 'auth'));
-     if (spotifyDoc.exists()) {
-       const { refresh_token } = spotifyDoc.data();
-       const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
-         grant_type: 'refresh_token',
-         refresh_token,
-         client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-         client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
-       }).toString(), {
-         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-       });
-       const { access_token, expires_in } = response.data;
-       const expires_at = Date.now() + (expires_in - 300) * 1000; // Buffer for expiration
-       await setDoc(doc(db, `users/${uid}/spotify`, 'auth'), { access_token, refresh_token, expires_at }, { merge: true });
-       console.log('Spotify token refreshed:', { access_token, expires_at });
-       setIsSpotifyConnected(true);
-       fetchSpotifyTrack(access_token);
-     } else {
-       console.error('No refresh token found in Firestore');
-       setIsSpotifyConnected(false);
-     }
-   } catch (error) {
-     console.error('Error refreshing Spotify token:', error.response?.data || error.message);
-     setIsSpotifyConnected(false);
-   }
- };
+const refreshSpotifyToken = async (uid: string) => {
+  try {
+    const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
+    if (tokens.refresh_token) {
+      const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: tokens.refresh_token,
+        client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
+        client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
+      }).toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+      const { access_token, expires_in } = response.data;
+      const expires_at = Date.now() + (expires_in - 300) * 1000;
+      const newTokens = { access_token, refresh_token: tokens.refresh_token, expires_at };
+      localStorage.setItem('spotify_tokens', JSON.stringify(newTokens));
+      console.log('Spotify token refreshed in localStorage:', { access_token: access_token.substring(0, 10) + '...', expires_at });
+      const spotifyDocRef = doc(db, `users/${uid}/spotify`, 'auth');
+      await setDoc(spotifyDocRef, newTokens, { merge: true });
+      console.log('Refreshed Spotify tokens synced to Firestore');
+      setIsSpotifyConnected(true);
+      fetchSpotifyTrack(access_token);
+    } else {
+      console.error('No refresh token found in localStorage');
+      setIsSpotifyConnected(false);
+    }
+  } catch (error) {
+    console.error('Error refreshing Spotify token:', error.response?.data || error.message);
+    setIsSpotifyConnected(false);
+  }
+};
 
   // Fetch current Spotify track
   const fetchSpotifyTrack = async (accessToken: string) => {
