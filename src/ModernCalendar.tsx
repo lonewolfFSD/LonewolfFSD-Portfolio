@@ -118,19 +118,26 @@ const ModernCalendar: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-useEffect(() => {
-  async function handleSpotifyCallback() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    if (code && auth.currentUser) {
-      await exchangeSpotifyCode(code, auth.currentUser.uid);
-      setIsSpotifyConnected(true);
-      window.history.replaceState({}, document.title, '/calendar');
-    }
-  }
-
-  handleSpotifyCallback();
-}, []);
+ useEffect(() => {
+   async function handleSpotifyCallback() {
+     const urlParams = new URLSearchParams(window.location.search);
+     const code = urlParams.get('code');
+     const state = urlParams.get('state');
+     if (code && auth.currentUser && state) {
+       await exchangeSpotifyCode(code, auth.currentUser.uid);
+       const spotifyDoc = await getDoc(doc(db, `users/${auth.currentUser.uid}/spotify`, 'auth'));
+       if (spotifyDoc.exists()) {
+         setIsSpotifyConnected(true);
+         fetchSpotifyTrack(spotifyDoc.data().access_token);
+         console.log('Spotify callback processed, tokens found in Firestore');
+       } else {
+         console.error('Spotify callback: No tokens found in Firestore after exchange');
+       }
+       window.history.replaceState({}, document.title, '/calendar');
+     }
+   }
+   handleSpotifyCallback();
+ }, []);
 
   // Fetch team members
   useEffect(() => {
@@ -198,11 +205,13 @@ useEffect(() => {
   }, [isSpotifyConnected, userRole]);
 
   // Connect to Spotify
-const connectSpotify = () => {
+ const connectSpotify = () => {
    const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
    const redirectUri = encodeURIComponent(import.meta.env.VITE_SPOTIFY_REDIRECT_URI);
    const scope = 'user-read-playback-state';
-   const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=${scope}`;
+   const state = Math.random().toString(36).substring(2); // Random state
+   const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
+   console.log('Redirecting to Spotify auth:', authUrl);
    window.location.href = authUrl;
  };
 
@@ -219,10 +228,22 @@ const connectSpotify = () => {
        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
      });
      const { access_token, refresh_token, expires_in } = response.data;
-     const expires_at = Date.now() + (expires_in - 300) * 1000; // Buffer for expiration
+     const expires_at = Date.now() + (expires_in - 300) * 1000;
      const spotifyDocRef = doc(db, `users/${uid}/spotify`, 'auth');
-     await setDoc(spotifyDocRef, { access_token, refresh_token, expires_at }, { merge: true });
-     console.log('Spotify tokens saved:', { access_token, refresh_token, expires_at });
+     let attempts = 0;
+     const maxAttempts = 3;
+     while (attempts < maxAttempts) {
+       try {
+         await setDoc(spotifyDocRef, { access_token, refresh_token, expires_at }, { merge: true });
+         console.log('Spotify tokens saved:', { access_token: access_token.substring(0, 10) + '...', refresh_token: refresh_token.substring(0, 10) + '...', expires_at });
+         break;
+       } catch (firestoreError) {
+         attempts++;
+         console.error(`Firestore write attempt ${attempts} failed:`, firestoreError.message);
+         if (attempts === maxAttempts) throw firestoreError;
+         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+       }
+     }
      setIsSpotifyConnected(true);
      fetchSpotifyTrack(access_token);
    } catch (error) {
