@@ -382,7 +382,7 @@ const ContactForm: React.FC = () => {
                   </motion.div>
                 )}
 
-                <div className="flex flex-col md:flex-row justify-between mt-6">
+                <div className="flex flex-col gap-2 md:gap-0 md:flex-row justify-between mt-6">
                   {currentStep > 1 && (
                     <motion.button
                       type="button"
@@ -402,7 +402,7 @@ const ContactForm: React.FC = () => {
                       variants={buttonVariants}
                       whileHover="hover"
                       whileTap="tap"
-                      className="py-3 px-10 flex gap-2 bg-black text-white font-semibold rounded-lg hover:bg-black/90 transition-all duration-300 ml-auto"
+                      className="py-3 px-10 flex gap-2 bg-black text-white font-semibold rounded-lg hover:bg-black/90 transition-all duration-300 md:ml-auto"
                     >
                       Next Step <ArrowRight size={18} strokeWidth={3} className='mt-1' />
                     </motion.button>
@@ -413,7 +413,7 @@ const ContactForm: React.FC = () => {
                       variants={buttonVariants}
                       whileHover="hover"
                       whileTap="tap"
-                      className="py-3 px-6 bg-black text-white font-semibold rounded-lg hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 ml-auto"
+                      className="py-3 px-6 bg-black text-white font-semibold rounded-lg hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 md:ml-auto"
                     >
                       {isSubmitting ? (
                         <span className="flex items-center justify-center">
