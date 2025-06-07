@@ -87,21 +87,27 @@ const ModernCalendar: React.FC = () => {
         const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
         const spotifyDoc = await getDoc(spotifyDocRef);
         if (spotifyDoc.exists()) {
-          const { access_token, expires_at } = spotifyDoc.data();
+          const { access_token, expires_at, refresh_token } = spotifyDoc.data();
           if (Date.now() < expires_at) {
             setIsSpotifyConnected(true);
             fetchSpotifyTrack(access_token);
+            console.log('Using existing Spotify token');
           } else {
+            console.log('Spotify token expired, refreshing...');
             await refreshSpotifyToken(user.uid);
             const updatedDoc = await getDoc(spotifyDocRef);
             if (updatedDoc.exists()) {
               setIsSpotifyConnected(true);
               fetchSpotifyTrack(updatedDoc.data().access_token);
+            } else {
+              setIsSpotifyConnected(false);
+              setSpotifyTrack(null);
             }
           }
         } else {
           setIsSpotifyConnected(false);
           setSpotifyTrack(null);
+          console.log('No Spotify auth found in Firestore');
         }
       } else {
         setUserRole(null);
@@ -201,77 +207,85 @@ const connectSpotify = () => {
  };
 
   // Exchange Spotify auth code for tokens
-  const exchangeSpotifyCode = async (code: string, uid: string) => {
-    try {
-      const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
-        client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-        client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
-      }), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      });
-      const { access_token, refresh_token, expires_in } = response.data;
-      const expires_at = Date.now() + expires_in * 1000;
-      await setDoc(doc(db, `users/${uid}/spotify`, 'auth'), { access_token, refresh_token, expires_at });
-      setIsSpotifyConnected(true);
-      fetchSpotifyTrack(access_token);
-    } catch (error) {
-      console.error('Error exchanging Spotify code:', error);
-    }
-  };
+ const exchangeSpotifyCode = async (code: string, uid: string) => {
+   try {
+     const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
+       grant_type: 'authorization_code',
+       code,
+       redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
+       client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
+       client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
+     }).toString(), {
+       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+     });
+     const { access_token, refresh_token, expires_in } = response.data;
+     const expires_at = Date.now() + (expires_in - 300) * 1000; // Buffer for expiration
+     const spotifyDocRef = doc(db, `users/${uid}/spotify`, 'auth');
+     await setDoc(spotifyDocRef, { access_token, refresh_token, expires_at }, { merge: true });
+     console.log('Spotify tokens saved:', { access_token, refresh_token, expires_at });
+     setIsSpotifyConnected(true);
+     fetchSpotifyTrack(access_token);
+   } catch (error) {
+     console.error('Error exchanging Spotify code:', error.response?.data || error.message);
+   }
+ };
 
   // Refresh Spotify token
   const refreshSpotifyToken = async (uid: string) => {
-    try {
-      const spotifyDoc = await getDoc(doc(db, `users/${uid}/spotify`, 'auth'));
-      if (spotifyDoc.exists()) {
-        const { refresh_token } = spotifyDoc.data();
-        const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
-          grant_type: 'refresh_token',
-          refresh_token,
-          client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-          client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
-        }), {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        });
-        const { access_token, expires_in } = response.data;
-        const expires_at = Date.now() + expires_in * 1000;
-        await updateDoc(doc(db, `users/${uid}/spotify`, 'auth'), { access_token, expires_at });
-        setIsSpotifyConnected(true);
-        fetchSpotifyTrack(access_token);
-      }
-    } catch (error) {
-      console.error('Error refreshing Spotify token:', error);
-      setIsSpotifyConnected(false);
-    }
-  };
+   try {
+     const spotifyDoc = await getDoc(doc(db, `users/${uid}/spotify`, 'auth'));
+     if (spotifyDoc.exists()) {
+       const { refresh_token } = spotifyDoc.data();
+       const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
+         grant_type: 'refresh_token',
+         refresh_token,
+         client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
+         client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
+       }).toString(), {
+         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+       });
+       const { access_token, expires_in } = response.data;
+       const expires_at = Date.now() + (expires_in - 300) * 1000; // Buffer for expiration
+       await setDoc(doc(db, `users/${uid}/spotify`, 'auth'), { access_token, refresh_token, expires_at }, { merge: true });
+       console.log('Spotify token refreshed:', { access_token, expires_at });
+       setIsSpotifyConnected(true);
+       fetchSpotifyTrack(access_token);
+     } else {
+       console.error('No refresh token found in Firestore');
+       setIsSpotifyConnected(false);
+     }
+   } catch (error) {
+     console.error('Error refreshing Spotify token:', error.response?.data || error.message);
+     setIsSpotifyConnected(false);
+   }
+ };
 
   // Fetch current Spotify track
   const fetchSpotifyTrack = async (accessToken: string) => {
-    try {
-      const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (response.status === 200 && response.data) {
-        const item = response.data.item;
-        setSpotifyTrack({
-          name: item.name,
-          artist: item.artists[0].name,
-          albumArt: item.album.images[2]?.url || '',
-          durationMs: item.duration_ms,
-          progressMs: response.data.progress_ms,
-          externalUrl: item.external_urls.spotify,
-        });
-      } else {
-        setSpotifyTrack(null);
-      }
-    } catch (error) {
-      console.error('Error fetching Spotify track:', error);
-      setSpotifyTrack(null);
-    }
-  };
+   try {
+     const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
+       headers: { Authorization: `Bearer ${accessToken}` },
+     });
+     if (response.status === 200 && response.data?.item) {
+       const item = response.data.item;
+       setSpotifyTrack({
+         name: item.name,
+         artist: item.artists[0].name,
+         albumArt: item.album.images.find(img => img.width <= 64)?.url || '',
+         durationMs: item.duration_ms,
+         progressMs: response.data.progress_ms || 0,
+         externalUrl: item.external_urls.spotify,
+       });
+       console.log('Spotify track fetched:', item.name);
+     } else {
+       setSpotifyTrack(null);
+       console.log('No track currently playing');
+     }
+   } catch (error) {
+     console.error('Error fetching Spotify track:', error.response?.data || error.message);
+     setSpotifyTrack(null);
+   }
+ };
 
   // Handle event form submission
   const handleEventSubmit = async (e: React.FormEvent) => {
