@@ -746,6 +746,7 @@ function App() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.7 }}
           >
+            <Link to="/contact">
             <motion.button
             className={`px-8 py-4 hover:px-10 md:hidden duration-300 cursor-custom-pointer w-60 lg:w-auto text-sm rounded-full transition-all z-10 bg-black text-white hover:bg-white hover:text-black border-2 border-black group hover:border-black ${isDark ? 'bg-white text-black hover:bg-gray-100' : ''} flex items-center gap-2`}
             initial={{ opacity: 0 }}
@@ -756,8 +757,9 @@ function App() {
             }}
             
           >
-            <Link to="/contact">Let's Connect</Link> <ArrowRight className="w-5 h-5 transition-all duration-500 group-hover:ml-1" />
+            Let's Connect <ArrowRight className="w-5 h-5 transition-all duration-500 group-hover:ml-1" />
           </motion.button>
+              </Link>
 {/** Wrapper div handles visibility, not motion.button itself */}
 <div className="hidden md:block">
   <motion.button
