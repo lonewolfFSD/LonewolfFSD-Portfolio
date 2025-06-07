@@ -229,7 +229,7 @@ const ContactForm: React.FC = () => {
                   fontFamily: 'Poppins'
                 }}
               >
-                Contact LonewolfFSD
+                Let's Connect
               </motion.h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
