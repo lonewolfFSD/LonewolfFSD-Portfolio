@@ -84,31 +84,42 @@ const ModernCalendar: React.FC = () => {
           }
         });
         // Check Spotify auth
-        const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
-        console.log('Checking localStorage for tokens:', tokens);
-        if (tokens.access_token && tokens.expires_at > Date.now()) {
-          setIsSpotifyConnected(true);
-          fetchSpotifyTrack(tokens.access_token);
-          console.log('Using Spotify token from localStorage');
-          const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
-          setDoc(spotifyDocRef, tokens, { merge: true }).then(() => {
-            console.log('Synced tokens to Firestore from localStorage');
-          }).catch(error => {
-            console.error('Failed to sync tokens to Firestore:', error.message);
-          });
-        } else if (tokens.refresh_token) {
-          console.log('Spotify token expired, refreshing...');
-          refreshSpotifyToken(user.uid);
-        } else {
-          setIsSpotifyConnected(false);
-          setSpotifyTrack(null);
-          console.log('No Spotify auth in localStorage');
-        }
-      } else {
-        setUserRole(null);
-        setIsSpotifyConnected(false);
-        setSpotifyTrack(null);
-      }
+if (user) {
+  const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
+  console.log('Checking localStorage for tokens:', tokens);
+  if (tokens.access_token && tokens.expires_at > Date.now()) {
+    setIsSpotifyConnected(true);
+    fetchSpotifyTrack(tokens.access_token);
+    console.log('Using Spotify token from localStorage');
+    const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
+    setDoc(spotifyDocRef, tokens, { merge: true }).then(() => {
+      console.log('Synced tokens to Firestore from localStorage');
+    }).catch(error => {
+      console.error('Failed to sync tokens to Firestore:', error.message);
+    });
+  } else if (tokens.refresh_token) {
+    console.log('Spotify token expired, refreshing...');
+    refreshSpotifyToken(user.uid);
+  } else {
+    const callbackData = JSON.parse(localStorage.getItem('spotify_callback') || '{}');
+    console.log('Checking for stored callback data:', callbackData);
+    if (callbackData.code && callbackData.state) {
+      console.log('Processing stored Spotify callback');
+      exchangeSpotifyCode(callbackData.code, user.uid).then(() => {
+        localStorage.removeItem('spotify_callback');
+        console.log('Cleared stored callback data');
+      });
+    } else {
+      setIsSpotifyConnected(false);
+      setSpotifyTrack(null);
+      console.log('No Spotify auth in localStorage');
+    }
+  }
+} else {
+  setIsSpotifyConnected(false);
+  setSpotifyTrack(null);
+}
+      } 
     });
     return () => unsubscribe();
   }, []);
@@ -120,38 +131,26 @@ useEffect(() => {
     const state = urlParams.get('state');
     console.log('Callback URL:', window.location.href);
     console.log('Callback params - Code:', code, 'State:', state);
-    const waitForAuth = (timeout = 5000) => new Promise((resolve, reject) => {
-      const start = Date.now();
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-          unsubscribe();
-          resolve(user);
-        } else if (Date.now() - start > timeout) {
-          unsubscribe();
-          reject(new Error('Firebase auth timeout'));
-        }
-      });
-    });
     if (code && state) {
-      try {
-        console.log('Waiting for Firebase auth...');
-        const user = auth.currentUser || await waitForAuth();
-        console.log('User authenticated:', user.uid);
-        await exchangeSpotifyCode(code, user.uid);
+      if (auth.currentUser) {
+        console.log('User authenticated:', auth.currentUser.uid);
+        await exchangeSpotifyCode(code, auth.currentUser.uid);
         const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
         console.log('Tokens in localStorage:', tokens);
         if (tokens.access_token) {
           setIsSpotifyConnected(true);
           fetchSpotifyTrack(tokens.access_token);
-          const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
+          const spotifyDocRef = doc(db, `users/${auth.currentUser.uid}/spotify`, 'auth');
           await setDoc(spotifyDocRef, tokens, { merge: true });
           console.log('Tokens synced to Firestore after callback');
         } else {
           console.error('No tokens in localStorage after exchange');
         }
         window.history.replaceState({}, document.title, '/calendar');
-      } catch (error) {
-        console.error('Callback error:', error.message);
+      } else {
+        console.log('No user, storing code/state in localStorage');
+        localStorage.setItem('spotify_callback', JSON.stringify({ code, state }));
+        console.log('Stored callback data:', { code, state });
       }
     } else {
       console.error('No code or state in callback URL');
