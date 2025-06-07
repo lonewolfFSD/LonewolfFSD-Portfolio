@@ -498,6 +498,7 @@ const connectSpotify = () => {
           <Tilt options={{ max: 25, scale: 1.05 }}>
             <motion.div className="bg-white border border-black/20 rounded-xl p-4 shadow-md" variants={cardVariants} initial="hidden" animate="visible">
               <h3 className="text-base font-semibold text-black mb-2">Project Stats</h3>
+              <hr />
               <p className="text-black/80 text-sm">Total: <span className="font-bold">{stats.totalProjects}</span></p>
               <p className="text-black/80 text-sm">Completed: <span className="font-bold">{stats.totalProjects - stats.activeProjects}</span></p>
             </motion.div>
@@ -505,6 +506,7 @@ const connectSpotify = () => {
           <Tilt options={{ max: 25, scale: 1.05 }}>
             <motion.div className="bg-white border border-black/20 rounded-xl p-4 shadow-md" variants={cardVariants} initial="hidden" animate="visible">
               <h3 className="text-base font-semibold text-black mb-2">Current Work</h3>
+              <hr />
               <p className="text-black/80 text-sm">Active: <span className="font-bold">{stats.activeProjects}</span></p>
               <p className="text-black/80 text-sm">Deadline: <span className="font-bold">{stats.nextDeadline || 'N/A'}</span></p>
             </motion.div>
@@ -517,6 +519,7 @@ const connectSpotify = () => {
     animate="visible"
   >
     <h3 className="text-base font-semibold text-black mb-2">Holiday List</h3>
+    <hr />
     <div className="space-y-1">
       {holidays.length > 0 ? (
         holidays.map((holiday, index) => (
@@ -540,6 +543,7 @@ const connectSpotify = () => {
     <h3 className="text-base font-semibold text-black mb-2 flex items-center">
       <Calendar className="w-4 h-4 mr-2" /> Manage Holidays
     </h3>
+    <hr />
     {holidays.length === 0 ? (
       <p className="text-black/80 text-sm">No holidays found</p>
     ) : (
@@ -588,6 +592,7 @@ const connectSpotify = () => {
               <h3 className="text-base font-semibold text-black mb-2 flex items-center">
                 <Users className="w-4 h-4 mr-2" /> Team Availability
               </h3>
+              <hr />
               {teamMembers.length === 0 ? (
                 <p className="text-black/80 text-sm">No team members found</p>
               ) : (
