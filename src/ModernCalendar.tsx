@@ -97,18 +97,36 @@ if (user) {
     }).catch(error => {
       console.error('Failed to sync tokens to Firestore:', error.message);
     });
-  } else if (tokens.refresh_token) {
-    console.log('Spotify token expired, refreshing...');
-    refreshSpotifyToken(user.uid);
   } else {
     const callbackData = JSON.parse(localStorage.getItem('spotify_callback') || '{}');
     console.log('Checking for stored callback data:', callbackData);
     if (callbackData.code && callbackData.state) {
-      console.log('Processing stored Spotify callback');
+      console.log('Processing stored Spotify callback for user:', user.uid);
       exchangeSpotifyCode(callbackData.code, user.uid).then(() => {
+        const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
+        console.log('Tokens after exchange:', tokens);
+        if (tokens.access_token) {
+          setIsSpotifyConnected(true);
+          fetchSpotifyTrack(tokens.access_token);
+          const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
+          setDoc(spotifyDocRef, tokens, { merge: true }).then(() => {
+            console.log('Tokens synced to Firestore from stored callback');
+            localStorage.removeItem('spotify_callback');
+            console.log('Cleared stored callback data');
+          }).catch(error => {
+            console.error('Failed to sync tokens to Firestore:', error.message);
+          });
+        } else {
+          console.error('No tokens saved after exchange');
+          localStorage.removeItem('spotify_callback');
+        }
+      }).catch(error => {
+        console.error('Error processing stored callback:', error.message);
         localStorage.removeItem('spotify_callback');
-        console.log('Cleared stored callback data');
       });
+    } else if (tokens.refresh_token) {
+      console.log('Spotify token expired, refreshing...');
+      refreshSpotifyToken(user.uid);
     } else {
       setIsSpotifyConnected(false);
       setSpotifyTrack(null);
