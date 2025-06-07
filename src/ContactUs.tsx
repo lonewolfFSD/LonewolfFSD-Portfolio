@@ -382,7 +382,7 @@ const ContactForm: React.FC = () => {
                   </motion.div>
                 )}
 
-                <div className="flex justify-between mt-6">
+                <div className="flex flex-col md:flex-row justify-between mt-6">
                   {currentStep > 1 && (
                     <motion.button
                       type="button"
