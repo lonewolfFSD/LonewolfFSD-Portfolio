@@ -277,7 +277,7 @@ const refreshSpotifyToken = async (uid: string) => {
     console.error('Refresh token failed:', error.response?.data || error.message);
     setIsSpotifyConnected(false);
   }
-};git 
+};
 
   // Fetch current Spotify track
   const fetchSpotifyTrack = async (accessToken: string) => {
