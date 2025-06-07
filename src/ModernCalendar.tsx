@@ -73,6 +73,10 @@ const ModernCalendar: React.FC = () => {
   const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
 
+  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+const [selectedHoliday, setSelectedHoliday] = useState<Partial<Holiday>>({});
+const [isHolidayEditMode, setIsHolidayEditMode] = useState(false);
+
   // Fetch user role and Spotify auth
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -84,55 +88,30 @@ const ModernCalendar: React.FC = () => {
           }
         });
         // Check Spotify auth
-// Check Spotify auth
-if (user) {
-  const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
-  console.log('Checking localStorage for tokens:', tokens);
-  const spotifyDocRef = doc(db, `spotify_auth`, user.uid);
-  getDoc(spotifyDocRef).then(doc => {
-    if (doc.exists()) {
-      const { access_token, expires_at } = doc.data();
-      if (Date.now() < expires_at) {
-        setIsSpotifyConnected(true);
-        fetchSpotifyTrack(access_token);
-        console.log('Using Spotify token from spotify_auth collection');
-      } else if (doc.data().refresh_token) {
-        console.log('Spotify token expired, refreshing...');
-        refreshSpotifyToken(user.uid);
-      }
-    } else if (tokens.access_token && tokens.expires_at > Date.now()) {
-      setIsSpotifyConnected(true);
-      fetchSpotifyTrack(tokens.access_token);
-      console.log('Using Spotify token from localStorage');
-      setDoc(spotifyDocRef, tokens, { merge: true }).then(() => {
-        console.log('Synced tokens to spotify_auth collection');
-      }).catch(error => {
-        console.error('Failed to sync tokens to spotify_auth:', error.message);
-      });
-    } else {
-      const callbackData = JSON.parse(localStorage.getItem('spotify_callback') || '{}');
-      console.log('Checking for stored callback data:', callbackData);
-      if (callbackData.code && callbackData.state) {
-        console.log('Processing stored Spotify callback for user:', user.uid);
-        exchangeSpotifyCode(callbackData.code, user.uid).then(() => {
-          localStorage.removeItem('spotify_callback');
-          console.log('Cleared stored callback data');
-        });
-      } else if (tokens.refresh_token) {
-        console.log('Spotify token expired, refreshing...');
-        refreshSpotifyToken(user.uid);
+        const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
+        const spotifyDoc = await getDoc(spotifyDocRef);
+        if (spotifyDoc.exists()) {
+          const { access_token, expires_at } = spotifyDoc.data();
+          if (Date.now() < expires_at) {
+            setIsSpotifyConnected(true);
+            fetchSpotifyTrack(access_token);
+          } else {
+            await refreshSpotifyToken(user.uid);
+            const updatedDoc = await getDoc(spotifyDocRef);
+            if (updatedDoc.exists()) {
+              setIsSpotifyConnected(true);
+              fetchSpotifyTrack(updatedDoc.data().access_token);
+            }
+          }
+        } else {
+          setIsSpotifyConnected(false);
+          setSpotifyTrack(null);
+        }
       } else {
+        setUserRole(null);
         setIsSpotifyConnected(false);
         setSpotifyTrack(null);
-        console.log('No Spotify auth in localStorage or spotify_auth');
       }
-    }
-  });
-} else {
-  setIsSpotifyConnected(false);
-  setSpotifyTrack(null);
-}
-      } 
     });
     return () => unsubscribe();
   }, []);
@@ -141,34 +120,13 @@ useEffect(() => {
   async function handleSpotifyCallback() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
-    const state = urlParams.get('state');
-    console.log('Callback URL:', window.location.href);
-    console.log('Callback params - Code:', code, 'State:', state);
-    if (code && state) {
-      if (auth.currentUser) {
-        console.log('User authenticated:', auth.currentUser.uid);
-        await exchangeSpotifyCode(code, auth.currentUser.uid);
-        const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
-        console.log('Tokens in localStorage:', tokens);
-        if (tokens.access_token) {
-          setIsSpotifyConnected(true);
-          fetchSpotifyTrack(tokens.access_token);
-          const spotifyDocRef = doc(db, `spotify_auth`, auth.currentUser.uid);
-          await setDoc(spotifyDocRef, tokens, { merge: true });
-          console.log('Tokens saved to spotify_auth collection after callback');
-        } else {
-          console.error('No tokens in localStorage after exchange');
-        }
-        window.history.replaceState({}, document.title, '/calendar');
-      } else {
-        console.log('No user, storing code/state in localStorage');
-        localStorage.setItem('spotify_callback', JSON.stringify({ code, state }));
-        console.log('Stored callback data:', { code, state });
-      }
-    } else {
-      console.error('No code or state in callback URL');
+    if (code && auth.currentUser) {
+      await exchangeSpotifyCode(code, auth.currentUser.uid);
+      setIsSpotifyConnected(true);
+      window.history.replaceState({}, document.title, '/calendar');
     }
   }
+
   handleSpotifyCallback();
 }, []);
 
@@ -239,106 +197,85 @@ useEffect(() => {
 
   // Connect to Spotify
 const connectSpotify = () => {
-  const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-  const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
-  const scope = 'user-read-playback-state';
-  const state = Math.random().toString(36).substring(2);
-  const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
-  console.log('Spotify auth URL:', authUrl);
-  console.log('Config - Client ID:', clientId, 'Redirect URI:', redirectUri, 'State:', state);
-  window.location.href = authUrl;
-};
+   const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+   const redirectUri = encodeURIComponent(import.meta.env.VITE_SPOTIFY_REDIRECT_URI);
+   const scope = 'user-read-playback-state';
+   const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=${scope}`;
+   window.location.href = authUrl;
+ };
 
   // Exchange Spotify auth code for tokens
-const exchangeSpotifyCode = async (code: string, uid: string) => {
-  console.log('Exchanging Spotify code for UID:', uid);
-  try {
-    const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
-      client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-      client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
-    }).toString(), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
-    console.log('Spotify API response:', response.data);
-    const { access_token, refresh_token, expires_in } = response.data;
-    const expires_at = Date.now() + (expires_in - 300) * 1000;
-    const tokens = { access_token, refresh_token, expires_at };
-    localStorage.setItem('spotify_tokens', JSON.stringify(tokens));
-    console.log('Tokens saved to localStorage:', tokens);
-    const spotifyDocRef = doc(db, `spotify_auth`, uid);
-    await setDoc(spotifyDocRef, tokens, { merge: true });
-    console.log('Tokens saved to spotify_auth collection');
-    setIsSpotifyConnected(true);
-    fetchSpotifyTrack(access_token);
-  } catch (error) {
-    console.error('Spotify code exchange failed:', error.response?.data || error.message);
-  }
-};
-
-  // Refresh Spotify token
-const refreshSpotifyToken = async (uid: string) => {
-  console.log('Refreshing token for UID:', uid);
-  try {
-    const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
-    if (tokens.refresh_token) {
+  const exchangeSpotifyCode = async (code: string, uid: string) => {
+    try {
       const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: tokens.refresh_token,
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
         client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
         client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
-      }).toString(), {
+      }), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
-      console.log('Refresh token API response:', response.data);
-      const { access_token, expires_in } = response.data;
-      const expires_at = Date.now() + (expires_in - 300) * 1000;
-      const newTokens = { access_token, refresh_token: tokens.refresh_token, expires_at };
-      localStorage.setItem('spotify_tokens', JSON.stringify(newTokens));
-      console.log('Refreshed tokens saved to localStorage:', newTokens);
-      const spotifyDocRef = doc(db, `spotify_auth`, uid);
-      await setDoc(spotifyDocRef, newTokens, { merge: true });
-      console.log('Refreshed tokens saved to spotify_auth collection');
+      const { access_token, refresh_token, expires_in } = response.data;
+      const expires_at = Date.now() + expires_in * 1000;
+      await setDoc(doc(db, `users/${uid}/spotify`, 'auth'), { access_token, refresh_token, expires_at });
       setIsSpotifyConnected(true);
       fetchSpotifyTrack(access_token);
-    } else {
-      console.error('No refresh token in localStorage');
+    } catch (error) {
+      console.error('Error exchanging Spotify code:', error);
+    }
+  };
+
+  // Refresh Spotify token
+  const refreshSpotifyToken = async (uid: string) => {
+    try {
+      const spotifyDoc = await getDoc(doc(db, `users/${uid}/spotify`, 'auth'));
+      if (spotifyDoc.exists()) {
+        const { refresh_token } = spotifyDoc.data();
+        const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token,
+          client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
+          client_secret: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET,
+        }), {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        const { access_token, expires_in } = response.data;
+        const expires_at = Date.now() + expires_in * 1000;
+        await updateDoc(doc(db, `users/${uid}/spotify`, 'auth'), { access_token, expires_at });
+        setIsSpotifyConnected(true);
+        fetchSpotifyTrack(access_token);
+      }
+    } catch (error) {
+      console.error('Error refreshing Spotify token:', error);
       setIsSpotifyConnected(false);
     }
-  } catch (error) {
-    console.error('Refresh token failed:', error.response?.data || error.message);
-    setIsSpotifyConnected(false);
-  }
-};
+  };
 
   // Fetch current Spotify track
   const fetchSpotifyTrack = async (accessToken: string) => {
-   try {
-     const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
-       headers: { Authorization: `Bearer ${accessToken}` },
-     });
-     if (response.status === 200 && response.data?.item) {
-       const item = response.data.item;
-       setSpotifyTrack({
-         name: item.name,
-         artist: item.artists[0].name,
-         albumArt: item.album.images.find(img => img.width <= 64)?.url || '',
-         durationMs: item.duration_ms,
-         progressMs: response.data.progress_ms || 0,
-         externalUrl: item.external_urls.spotify,
-       });
-       console.log('Spotify track fetched:', item.name);
-     } else {
-       setSpotifyTrack(null);
-       console.log('No track currently playing');
-     }
-   } catch (error) {
-     console.error('Error fetching Spotify track:', error.response?.data || error.message);
-     setSpotifyTrack(null);
-   }
- };
+    try {
+      const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (response.status === 200 && response.data) {
+        const item = response.data.item;
+        setSpotifyTrack({
+          name: item.name,
+          artist: item.artists[0].name,
+          albumArt: item.album.images[2]?.url || '',
+          durationMs: item.duration_ms,
+          progressMs: response.data.progress_ms,
+          externalUrl: item.external_urls.spotify,
+        });
+      } else {
+        setSpotifyTrack(null);
+      }
+    } catch (error) {
+      console.error('Error fetching Spotify track:', error);
+      setSpotifyTrack(null);
+    }
+  };
 
   // Handle event form submission
   const handleEventSubmit = async (e: React.FormEvent) => {
@@ -579,6 +516,59 @@ const refreshSpotifyToken = async (uid: string) => {
             </motion.div>
           </Tilt>
           <Tilt options={{ max: 25, scale: 1.05 }}>
+  <motion.div
+    className={`bg-white border border-black/20 rounded-xl p-4 shadow-md ${userRole?.role === 'admin' ? 'block' : 'hidden'}`}
+    variants={cardVariants}
+    initial="hidden"
+    animate="visible"
+  >
+    <h3 className="text-base font-semibold text-black mb-2 flex items-center">
+      <Calendar className="w-4 h-4 mr-2" /> Manage Holidays
+    </h3>
+    {holidays.length === 0 ? (
+      <p className="text-black/80 text-sm">No holidays found</p>
+    ) : (
+      <ul className="space-y-2">
+        {holidays.slice(0, 4).map((holiday, index) => (
+          <li
+            key={index}
+            className="flex items-center justify-between text-sm text-black/80"
+            data-tooltip-id={`tooltip-holiday-${holiday.date}`}
+            data-tooltip-content={`${holiday.name}: ${holiday.date}`}
+          >
+            <span>{holiday.name}</span>
+            {userRole?.role === 'admin' && (
+              <button
+                onClick={() => {
+                  setSelectedHoliday(holiday);
+                  setIsHolidayEditMode(true);
+                  setIsHolidayModalOpen(true);
+                }}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+            )}
+            <Tooltip id={`tooltip-holiday-${holiday.date}`} className="bg-black text-white text-xs rounded p-2" />
+          </li>
+        ))}
+      </ul>
+    )}
+    {userRole?.role === 'admin' && (
+      <button
+        onClick={() => {
+          setSelectedHoliday({});
+          setIsHolidayEditMode(false);
+          setIsHolidayModalOpen(true);
+        }}
+        className="mt-2 p-1 bg-black text-white rounded-full hover:bg-gray-800"
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+    )}
+  </motion.div>
+</Tilt>
+          <Tilt options={{ max: 25, scale: 1.05 }}>
             <motion.div className="bg-white border border-black/20 rounded-xl p-4 shadow-md" variants={cardVariants} initial="hidden" animate="visible">
               <h3 className="text-base font-semibold text-black mb-2 flex items-center">
                 <Users className="w-4 h-4 mr-2" /> Team Availability
@@ -594,9 +584,13 @@ const refreshSpotifyToken = async (uid: string) => {
                        data-tooltip-id={`tooltip-team-${member.uid}`}
                        data-tooltip-content={`Role: ${member.role}, Status: ${member.availability}`}
                     >
-                      <div className="flex items-center">
-                        {renderStatusDot(member.availability)}
-                        <span className="ml-2">{member.name}</span>
+                      <div className="flex items-center mt-2">
+                        
+                        <span className='-mt-3.5'>{renderStatusDot(member.availability)}</span>
+                        <span className='flex flex-col'>
+                          <span className="ml-2 font-semibold">{member.name}</span>
+                          <span className="ml-2 text-xs">{member.availability}</span>
+                        </span>
                       </div>
                       {userRole?.role === 'admin' && (
                         <button
@@ -759,59 +753,6 @@ const refreshSpotifyToken = async (uid: string) => {
                 </h3>
                 {renderDigitalClock()}
               </div>
-            </motion.div>
-          </Tilt>
-          <Tilt options={{ max: 25, scale: 1.05 }}>
-            <motion.div
-              className="bg-white border border-black/20 rounded-xl p-4 shadow-md"
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <h3 className="text-base font-semibold text-black mb-2 flex items-center">
-                <Music className="w-4 h-4 mr-2" /> Now Playing
-              </h3>
-              {isSpotifyConnected ? (
-                spotifyTrack && spotifyTrack.name ? (
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <a href={spotifyTrack.externalUrl} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={spotifyTrack.albumArt}
-                          alt="Album Art"
-                          className="w-12 h-12 rounded filter grayscale"
-                        />
-                      </a>
-                      <div>
-                        <p
-                          className="text-sm text-black/80 truncate max-w-[150px]"
-                          data-tooltip-id="tooltip-spotify"
-                          data-tooltip-content={`${spotifyTrack.name} by ${spotifyTrack.artist}`}
-                        >
-                          {spotifyTrack.name}
-                        </p>
-                        <p className="text-xs text-black/60">{spotifyTrack.artist}</p>
-                        <Tooltip id="tooltip-spotify" className="bg-black text-white text-xs rounded p-2" />
-                      </div>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                      <div
-                        className="bg-black h-1.5 rounded-full"
-                        style={{ width: `${calculateSpotifyProgress(spotifyTrack.progressMs, spotifyTrack.durationMs)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-black/80">Not listening to anything</p>
-                )
-              ) : (
-                <button
-                  onClick={connectSpotify}
-                  className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800"
-                >
-                  Connect Spotify
-                </button>
-              )}
             </motion.div>
           </Tilt>
         </div>
@@ -995,6 +936,113 @@ const refreshSpotifyToken = async (uid: string) => {
             </motion.div>
           </motion.div>
         )}
+
+        {isHolidayModalOpen && (
+  <motion.div
+    className="fixed inset-0 bg-black/50 flex justify-center items-center z-50"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    <motion.div
+      className="bg-white rounded-xl p-6 w-full max-w-md"
+      initial={{ scale: 0.8 }}
+      animate={{ scale: 1 }}
+      exit={{ scale: 0.8 }}
+    >
+      <h2 className="text-lg font-semibold mb-4">{isHolidayEditMode ? 'Edit Holiday' : 'Add Holiday'}</h2>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!userRole || userRole.role !== 'admin') return;
+          try {
+            if (isHolidayEditMode && selectedHoliday.id) {
+              await updateDoc(doc(db, 'holidays', selectedHoliday.id), selectedHoliday);
+            } else {
+              await addDoc(collection(db, 'holidays'), selectedHoliday);
+            }
+            setIsHolidayModalOpen(false);
+            setSelectedHoliday({});
+            setIsHolidayEditMode(false);
+          } catch (error) {
+            console.error('Error saving holiday:', error);
+          }
+        }}
+        className="space-y-4"
+      >
+        <input
+          type="text"
+          placeholder="Holiday Name"
+          className="w-full border border-black/20 rounded p-2 text-sm"
+          value={selectedHoliday.name || ''}
+          onChange={(e) => setSelectedHoliday({ ...selectedHoliday, name: e.target.value })}
+          required
+        />
+        <input
+          type="date"
+          className="w-full border border-black/20 rounded p-2 text-sm"
+          value={selectedHoliday.date || ''}
+          onChange={(e) => setSelectedHoliday({ ...selectedHoliday, date: e.target.value })}
+          required
+        />
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            className="px-4 py-2 border border-black/20 rounded text-sm"
+            onClick={() => setIsHolidayModalOpen(false)}
+          >
+            Cancel
+          </button>
+          <button type="submit" className="px-4 py-2 bg-black text-white rounded text-sm">
+            {isHolidayEditMode ? 'Update' : 'Add'}
+          </button>
+        </div>
+      </form>
+      <h3 className="text-base font-semibold text-black mt-6 mb-2">Holiday List</h3>
+      {holidays.length === 0 ? (
+        <p className="text-black/80 text-sm">No holidays available</p>
+      ) : (
+        <ul className="max-h-40 overflow-y-auto space-y-2">
+          {holidays.map((holiday) => (
+            <li
+              key={holiday.date}
+              className="flex items-center justify-between text-sm text-black/80"
+            >
+              <span>{holiday.name} ({holiday.date})</span>
+              {userRole?.role === 'admin' && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedHoliday(holiday);
+                      setIsHolidayEditMode(true);
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (holiday.id) {
+                        try {
+                          await deleteDoc(doc(db, 'holidays', holiday.id));
+                        } catch (error) {
+                          console.error('Error deleting holiday:', error);
+                        }
+                      }
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </motion.div>
+  </motion.div>
+)}
       </div>
     </div>
   );
