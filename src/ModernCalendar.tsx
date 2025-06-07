@@ -118,11 +118,38 @@ useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const state = urlParams.get('state');
-    console.log('Callback received - Code:', code, 'State:', state, 'User:', auth.currentUser?.uid);
-    if (code && auth.currentUser && state) {
+    console.log('Callback URL:', window.location.href);
+    console.log('Callback params - Code:', code, 'State:', state);
+    if (!auth.currentUser) {
+      console.log('Waiting for Firebase auth to initialize...');
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          console.log('User authenticated:', user.uid);
+          if (code && state) {
+            await exchangeSpotifyCode(code, user.uid);
+            const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
+            console.log('Tokens in localStorage:', tokens);
+            if (tokens.access_token) {
+              setIsSpotifyConnected(true);
+              fetchSpotifyTrack(tokens.access_token);
+              const spotifyDocRef = doc(db, `users/${user.uid}/spotify`, 'auth');
+              await setDoc(spotifyDocRef, tokens, { merge: true });
+              console.log('Tokens synced to Firestore after callback');
+            } else {
+              console.error('No tokens in localStorage after exchange');
+            }
+            window.history.replaceState({}, document.title, '/calendar');
+          } else {
+            console.error('No code or state in callback URL');
+          }
+        }
+        unsubscribe();
+      });
+    } else if (code && state) {
+      console.log('User already authenticated:', auth.currentUser.uid);
       await exchangeSpotifyCode(code, auth.currentUser.uid);
       const tokens = JSON.parse(localStorage.getItem('spotify_tokens') || '{}');
-      console.log('Tokens in localStorage after exchange:', tokens);
+      console.log('Tokens in localStorage:', tokens);
       if (tokens.access_token) {
         setIsSpotifyConnected(true);
         fetchSpotifyTrack(tokens.access_token);
@@ -133,6 +160,8 @@ useEffect(() => {
         console.error('No tokens in localStorage after exchange');
       }
       window.history.replaceState({}, document.title, '/calendar');
+    } else {
+      console.error('No code or state in callback URL');
     }
   }
   handleSpotifyCallback();
@@ -206,12 +235,12 @@ useEffect(() => {
   // Connect to Spotify
 const connectSpotify = () => {
   const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-  const redirectUri = encodeURIComponent(import.meta.env.VITE_SPOTIFY_REDIRECT_URI);
+  const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
   const scope = 'user-read-playback-state';
   const state = Math.random().toString(36).substring(2);
-  const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
+  const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
   console.log('Spotify auth URL:', authUrl);
-  console.log('Client ID:', clientId, 'Redirect URI:', import.meta.env.VITE_SPOTIFY_REDIRECT_URI);
+  console.log('Config - Client ID:', clientId, 'Redirect URI:', redirectUri, 'State:', state);
   window.location.href = authUrl;
 };
 
