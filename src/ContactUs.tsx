@@ -42,7 +42,7 @@ const ContactForm: React.FC = () => {
       // Validates format like +91 98765 43210
       const phoneRegex = /^\+91\s\d{5}\s\d{5}$/;
       if (value && !phoneRegex.test(value)) {
-        setPhoneError('Please enter a valid phone number (e.g., +91 98765 43210)');
+        setPhoneError('Please enter a valid phone number (e.g., +00 00000 00000)');
       } else {
         setPhoneError('');
       }
@@ -180,7 +180,7 @@ const ContactForm: React.FC = () => {
       <div className="relative z-10 flex items-center justify-center min-h-screen">
         <Toaster position="top-right" />
         <motion.div
-          className="w-full max-w-xl bg-black/40 backdrop-blur-md border border-white/60 rounded-2xl px-8 py-14 shadow-lg"
+          className="w-full h-screen md:h-auto md:max-w-xl bg-black/40 backdrop-blur-md border border-white/60 md:rounded-2xl px-8 py-14 shadow-lg"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -245,7 +245,7 @@ const ContactForm: React.FC = () => {
                 >
                   Let's Connect
                 </motion.h2>
-                <p className="text-white text-center text-sm md:text-sm mb-8 px-6 mx-auto opacity-90" style={{ fontFamily: 'Poppins' }}>
+                <p className="text-white text-center text-sm md:text-sm mb-8 md:px-6 mx-auto opacity-90" style={{ fontFamily: 'Poppins' }}>
   Whether you're ready to build your next project or just exploring ideas, I'm here to collaborate and bring your vision to life. Reach out and let's make something remarkable together.
 </p>
 
@@ -401,7 +401,7 @@ const ContactForm: React.FC = () => {
                     </motion.div>
                   )}
 
-                  <div className="flex flex-col gap-2 md:gap-0 md:flex-row justify-between mt-6">
+                  <div className="flex flex-col gap-4 md:gap-0 md:flex-row justify-between mt-6">
                     {currentStep > 1 && (
                       <motion.button
                         type="button"

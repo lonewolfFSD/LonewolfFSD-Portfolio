@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { db, storage } from "../firebase"; // Ensure storage is imported
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -9,6 +9,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { getAuth } from 'firebase/auth';
 import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 import { Tilt } from 'react-tilt';
+
+import JapaneseSpring from './Videos/japanese-spring.960x540.mp4';
 
 import Cropper from "react-easy-crop";
 import { Area } from "react-easy-crop/types";
@@ -190,6 +192,119 @@ const Profile: React.FC<ProfileProps> = ({ isDark, publicMode = false }) => {
   const [nsfwModel, setNsfwModel] = useState(null); // State for NSFW model
   const [passwordError, setPasswordError] = useState<string>("");
   const [biometricError, setBiometricError] = useState<string>(""); // New state for modal
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+const [virtualCurrency, setVirtualCurrency] = useState<number>(300);
+
+  const [searchQuery, setSearchQuery] = useState("");
+const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+const allCategories = ["anime"];
+
+
+function toggleCategory(category: string) {
+  setSelectedCategories(prev => 
+    prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+  );
+}
+
+
+
+const videoOptions = [
+  { id: "video1", name: "Tranquil Japan Lake", url: "https://motionbgs.com/media/7359/tranquil-japan-lake-view.960x540.mp4", categories: ["anime"], price: 500, locked: true },
+  { id: "video2", name: "Mystical Torii", url: "https://motionbgs.com/media/6203/mystical-torii.960x540.mp4", categories: ["anime"], price: 1500, locked: true },
+  { id: "video3", name: "Japanese Spring", url: JapaneseSpring, categories: ["anime"], price: 500, locked: true },
+  { id: "none", name: "No Video Background", url: null, categories: [], price: 0, locked: false },
+];
+
+const [purchasedVideos, setPurchasedVideos] = useState<string[]>([]);
+
+const filteredVideos = videoOptions.filter(video => {
+  const matchesSearch = video.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const matchesCategory = selectedCategories.length === 0
+    ? true
+    : video.categories.some(cat => selectedCategories.includes(cat));
+  return matchesSearch && matchesCategory;
+});
+
+const handlePurchaseVideo = async (video: { id: string; price: number; url: string }) => {
+  if (!user || !user.uid) return;
+  if (virtualCurrency < video.price) {
+    setError("Insufficient currency to purchase this background.");
+    return;
+  }
+  try {
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, {
+      virtualCurrency: virtualCurrency - video.price,
+      purchasedVideos: arrayUnion(video.id), // Use arrayUnion for safe append
+      updatedAt: new Date().toISOString(),
+    });
+    setVirtualCurrency(virtualCurrency - video.price);
+    setPurchasedVideos([...purchasedVideos, video.id]);
+    setSuccess(`Purchased ${video.name} successfully! 🌟`);
+  } catch (err) {
+    console.error("Purchase video error:", err);
+    setError("Failed to purchase video background.");
+  }
+};
+
+const loadUserData = async () => {
+  if (!user || !user.uid) return;
+  try {
+    const userDocRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      setVirtualCurrency(data.virtualCurrency ?? 300);
+      setPurchasedVideos(data.purchasedVideos ?? []); // Initialize purchasedVideos
+      setSelectedVideo(data.backgroundVideo);
+    } else {
+      // Initialize user document if it doesn't exist
+      await setDoc(userDocRef, {
+        virtualCurrency: 300,
+        purchasedVideos: [],
+        createdAt: new Date().toISOString(),
+      });
+      setPurchasedVideos([]);
+    }
+  } catch (err) {
+    console.error("Load user data error:", err);
+    setError("Failed to load user data.");
+  }
+};
+
+useEffect(() => {
+  loadUserData();
+}, [user]);
+
+
+
+const handleVideoSelect = async (video: { id: string; url: string | null }) => {
+  if (!user || !user.uid) return;
+  if (videoOptions.find(v => v.id === video.id)?.locked && !purchasedVideos.includes(video.id) && videoOptions.find(v => v.id === video.id)?.price !== 0) {
+    setError("Please purchase this background first.");
+    return;
+  }
+  try {
+    setSelectedVideo(video.url);
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, {
+      backgroundVideo: video.url,
+      updatedAt: new Date().toISOString(),
+    });
+    window.location.reload();
+
+    setSuccess("Background video updated successfully! 🌟");
+    setIsVideoModalOpen(false);
+
+    window.location.reload();
+
+  } catch (err) {
+    console.error("Save background video error:", err);
+    setError("Failed to save background video.");
+  }
+};
 
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -221,28 +336,22 @@ useEffect(() => {
   return () => unsubscribe();
 }, [user]);
 
-// Add this function to award achievements, before the handleSignOut function
-const awardAchievement = async (achievementId: string, name: string, description: string, badgeImage: string) => {
-  if (!user || !user.uid) return;
-  try {
-    const achievementRef = doc(db, 'users', user.uid, 'achievements', achievementId);
-    const docSnap = await getDoc(achievementRef);
-    if (!docSnap.exists()) {
-      await setDoc(achievementRef, {
-        achievementId,
-        name,
-        description,
-        badgeImage,
-        earnedDate: new Date().toISOString(),
-        status: 'earned',
-      });
-      setSuccess(`Achievement "${name}" unlocked! 🎉`);
+useEffect(() => {
+  const loadBackgroundVideo = async () => {
+    if (!user || !user.uid) return;
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists() && docSnap.data().backgroundVideo) {
+        setSelectedVideo(docSnap.data().backgroundVideo);
+      }
+    } catch (err) {
+      console.error("Load background video error:", err);
+      setError("Failed to load background video.");
     }
-  } catch (err) {
-    console.error("Award achievement error:", err);
-    setError("Failed to award achievement.");
-  }
-};
+  };
+  loadBackgroundVideo();
+}, [user]);
 
   // Load avatar from Firestore on mount
 useEffect(() => {
@@ -1031,7 +1140,18 @@ useEffect(() => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+    {selectedVideo && (
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover z-0"
+      >
+        <source src={selectedVideo} type="video/mp4" />
+      </video>
+    )}
       
       <Helmet>
         <title>{user?.displayName || "User"}'s Profile</title>
@@ -1197,6 +1317,7 @@ useEffect(() => {
                 { label: 'About Me', href: '/about-me' },
                 { label: 'LonewolfFSD Blogs', href: '/blogs' },
                 { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                { label: 'FSD DevSync', href: '/dev-sync' },
                 { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
               ].map((item, index) => (
                 <Link
@@ -1230,21 +1351,21 @@ useEffect(() => {
       </motion.header>
 
             <div className="absolute inset-0 z-50 pointer-events-none">
-        <div className="relative h-[800px] w-full overflow-hidden">
-          <DotPatternWithGlowEffectDemo />
-        </div>
-        
-        </div>
-
-      <div className="flex min-h-screen items-center justify-center px-4 md:px-6 py-20 bg-white z-0">
+    <div className="relative h-[800px] w-full overflow-hidden">
+      <DotPatternWithGlowEffectDemo />
+    </div>
+  </div>
 
 
-        <motion.div
-          className={`w-full max-w-5xl -mt-14 ${publicMode ? 'md:-mt-36' : 'md:-mt-10'} px-2 md:py-16 md:px-12 md:rounded-xl backdrop-blur-lg md:border md:border-black bg-white relative z-10`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+      <div className="flex min-h-screen items-center justify-center px-4 md:px-6 py-20 bg-transparent z-0">
+
+
+      <motion.div
+        className={`w-full max-w-5xl -mt-14 ${publicMode ? 'md:-mt-36' : 'md:-mt-10'} px-6 ${selectedVideo ? 'py-10' : ''} md:py-16 md:px-12 rounded-2xl md:rounded-xl backdrop-blur-lg md:border md:border-black ${selectedVideo ? 'bg-white/100' : 'bg-white'} relative z-10`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
 <h2
       className="text-[30px] font-bold mb-6 text-left text-black tracking-tight"
       style={{ fontFamily: "Poppins" }}
@@ -1489,6 +1610,33 @@ useEffect(() => {
                       ) : (
                         <p className="text-sm text-gray-500 col-span-2 border p-4 rounded-xl">No achievements yet. Keep exploring!</p>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="mt-8 col-span-2">
+                    <h1 className="text-2xl md:text-lg font-bold col-span-2 mb-5" style={{ fontFamily: 'Poppins' }}>
+                      Personalization
+                    </h1>
+                    <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
+                      <div className="pt-1">
+                        <Settings className="text-gray-700 w-4 h-4 -mt-1 -mr-1" />
+                      </div>
+
+                      <div className="flex flex-1 justify-between items-start">
+                        <div>
+                          <p className="text-xs text-gray-500">Background Video</p>
+                          <p className="text-black font-medium text-sm">Customize your profile background</p>
+                        </div>
+
+                        <motion.button
+                          onClick={() => setIsVideoModalOpen(true)}
+                          className="ml-auto px-4 py-2 text-sm font-semibold rounded-md bg-black text-white hover:bg-black/90 cursor-pointer"
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Change Background
+                        </motion.button>
+                      </div>
                     </div>
                   </div>
 
@@ -2103,6 +2251,166 @@ useEffect(() => {
           </motion.div>
         )}
       </AnimatePresence>
+
+<AnimatePresence>
+       {isVideoModalOpen && (
+         <motion.div
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           exit={{ opacity: 0 }}
+           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+           onClick={() => setIsVideoModalOpen(false)}
+         >
+           <motion.div
+             initial={{ scale: 0.95, y: 20 }}
+             animate={{ scale: 1, y: 0 }}
+             exit={{ scale: 0.95, y: 20 }}
+             onClick={(e) => e.stopPropagation()}
+             className="bg-white h-full md:h-auto md:rounded-2xl md:p-20 p-6 pb-14 w-full max-w-4xl relative flex flex-col"
+           >
+             <button
+               onClick={() => setIsVideoModalOpen(false)}
+               className="absolute top-4 right-4 text-gray-500 hover:text-black cursor-custom-pointer"
+             >
+               <X className="w-5 h-5" />
+             </button>
+            <div className="flex mt-12 md:mt-0 justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-black" style={{ fontFamily: "Poppins" }}>
+                Select Background 
+              </h3>
+              <span className="flex items-center gap-1 text-sm font-semibold text-black border border-black px-4 py-1 rounded-full">
+                <img src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" alt="Credits" className="w-4 h-4" />
+                {virtualCurrency}
+              </span>
+
+            </div>
+
+             {error && (
+               <p className="text-red-500 text-sm mb-4 bg-red-100 px-4 py-2 rounded-lg border border-red-400 flex gap-1.5">
+                 <AlertTriangle size={16} className="mt-0.5" /> {error}
+               </p>
+             )}
+             {success && (
+               <p className="text-green-500 text-sm mb-4 bg-green-100 px-4 py-2 rounded-lg border border-green-400 flex gap-1.5">
+                 <CheckCircle size={16} className="mt-0.5" /> {success}
+               </p>
+             )}
+             <div className="mb-4">
+               <div className="flex items-center justify-between mb-3">
+                 <input
+                   type="text"
+                   placeholder="Search backgrounds..."
+                   value={searchQuery}
+                   onChange={e => setSearchQuery(e.target.value)}
+                   className="w-full p-3 rounded-lg text-sm border border-gray-300"
+                 />
+                 
+               </div>
+               <div className="flex gap-2 flex-wrap">
+                 {allCategories.map(category => {
+                   const isSelected = selectedCategories.includes(category);
+                   return (
+                     <button
+                       key={category}
+                       onClick={() => toggleCategory(category)}
+                       className={`px-5 py-2 rounded-lg text-xs font-semibold border cursor-pointer
+                         ${isSelected ? "bg-black text-white" : "bg-gray-100 text-gray-700 border-gray-300"}`}
+                     >
+                       {category.charAt(0).toUpperCase() + category.slice(1)}
+                     </button>
+                   );
+                 })}
+               </div>
+             </div>
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+  {filteredVideos.map((video, index) => (
+    <motion.div
+      key={video.id}
+      className={`rounded-xl p-3 flex items-center gap-3 relative transition-all duration-200 h-32
+        ${selectedVideo === video.url ? "border-black border" : "bg-white border border-gray-200"}
+        ${index === 1 ? "scale-100 z-10" : "scale-100"}
+        cursor-custom-pointer`}
+      whileHover={{ scale: 1 }}
+      whileTap={{ scale: 1 }}
+      onClick={() => {
+        if (!video.locked || purchasedVideos.includes(video.id) || video.price === 0) {
+          handleVideoSelect(video);
+        }
+      }}
+    >
+      {/* === VIDEO PREVIEW === */}
+      <div
+        className={`w-24 h-20 rounded-lg overflow-hidden flex-shrink-0 
+        ${video.locked && !purchasedVideos.includes(video.id) && video.price > 0 ? "grayscale" : ""}`}
+      >
+        {video.url ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src={video.url} type="video/mp4" />
+          </video>
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+            Empty
+          </div>
+        )}
+      </div>
+
+      {/* === TEXT + BUTTON AREA === */}
+      <div className="flex-1 flex flex-col justify-center">
+        <div className={`${video.locked && !purchasedVideos.includes(video.id) && video.price > 0 ? "opacity-100" : ""}`}>
+          <p className="text-base font-semibold text-black">{video.name}</p>
+          <p className="text-xs text-gray-500 flex items-center gap-1">
+            {purchasedVideos.includes(video.id) ? (
+              "Owned"
+            ) : video.price > 0 ? (
+              <>
+                <img src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" alt="Credits" className="w-3.5 h-3.5" />
+                {video.price}
+              </>
+            ) : (
+              "Free"
+            )}
+          </p>
+        </div>
+
+        {/* === BUTTON stays NORMAL === */}
+        {video.locked && !purchasedVideos.includes(video.id) && video.price > 0 && (
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent select
+              handlePurchaseVideo(video);
+            }}
+            className="mt-2 px-3 py-2 text-sm font-semibold rounded-md bg-black text-white hover:bg-black/90"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.95 }}
+            disabled={virtualCurrency < video.price}
+          >
+            Buy "{video.name}"
+          </motion.button>
+        )}
+      </div>
+
+      {/* === ICONS === */}
+      {selectedVideo === video.url && (
+        <CheckCircle strokeWidth={3} className="w-4 h-4 text-black absolute top-3 right-3" />
+      )}
+      {video.locked && !purchasedVideos.includes(video.id) && video.price > 0 && (
+        <Lock strokeWidth={3} className="w-4 h-4 text-gray-500 absolute top-3 right-3" />
+      )}
+    </motion.div>
+  ))}
+
+             </div>
+           </motion.div>
+         </motion.div>
+       )}
+     </AnimatePresence>
     </div>
   );
 };
