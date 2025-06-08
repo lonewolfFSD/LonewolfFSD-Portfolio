@@ -199,7 +199,7 @@ const [virtualCurrency, setVirtualCurrency] = useState<number>(300);
   const [searchQuery, setSearchQuery] = useState("");
 const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-const allCategories = ["anime"];
+const allCategories = ["nature", "anime", "neon", "space", "games"];
 
 
 function toggleCategory(category: string) {
@@ -211,9 +211,19 @@ function toggleCategory(category: string) {
 
 
 const videoOptions = [
-  { id: "video1", name: "Tranquil Japan Lake", url: "https://motionbgs.com/media/7359/tranquil-japan-lake-view.960x540.mp4", categories: ["anime"], price: 500, locked: true },
-  { id: "video2", name: "Mystical Torii", url: "https://motionbgs.com/media/6203/mystical-torii.960x540.mp4", categories: ["anime"], price: 1500, locked: true },
-  { id: "video3", name: "Japanese Spring", url: JapaneseSpring, categories: ["anime"], price: 500, locked: true },
+  { id: "video1", name: "Tranquil Japan Lake", url: "https://motionbgs.com/media/7359/tranquil-japan-lake-view.960x540.mp4", categories: ["nature"], price: 500, locked: true },
+  { id: "video2", name: "Mystical Torii", url: "https://motionbgs.com/media/6203/mystical-torii.960x540.mp4", categories: ["nature"], price: 1500, locked: true },
+  { id: "video3", name: "Japanese Spring", url: JapaneseSpring, categories: ["nature"], price: 500, locked: true },
+  { id: "video4", name: "Samurai Night", url: "https://motionbgs.com/media/2763/samurai-spirit-under-the-moon.960x540.mp4", categories: ["anime"], price: 1500, locked: true  },
+  { id: "video5", name: "Coffee Shop", url: "https://motionbgs.com/media/6199/coffee-shop.960x540.mp4", categories: ["anime"], price: 2000, locked: true  },
+  { id: "video6", name: "Misty Rain", url: "https://motionbgs.com/media/7362/hydrangeas-rain.960x540.mp4", categories: ["nature"], price: 2000, locked: true  },
+  { id: "video7", name: "Evening Drive", url: "https://motionbgs.com/media/7513/evening-drive-and-windmills.960x540.mp4", categories: ["nature"], price: 2000, locked: true  },
+  { id: "video8", name: "Neon Skyline", url: "https://motionbgs.com/media/7738/neon-skyline.960x540.mp4", categories: ["neon"], price: 0, locked: false  },
+  { id: "video9", name: "The Nebula", url: "https://motionbgs.com/media/2887/nebula.960x540.mp4", categories: ["space"], price: 5000, locked: true  },
+  { id: "video10", name: "The Last Of Us", url: "https://motionbgs.com/media/501/surviving-the-last-of-us.960x540.mp4", categories: ["games"], price: 5000, locked: true  },
+   { id: "video11", name: "Silent Hill 2", url: "https://motionbgs.com/media/7031/silent-hill-2.960x540.mp4", categories: ["games"], price: 3500, locked: true  },
+  { id: "video12", name: "Los Santos: GTA V", url: "https://motionbgs.com/media/2538/sunset-in-los-santos-gta-v.960x540.mp4", categories: ["games"], price: 2000, locked: true  },
+  { id: "video13", name: "Read Dead: RDR2", url: "https://motionbgs.com/media/2837/rdr-2-animated.960x540.mp4", categories: ["games"], price: 3500, locked: true  }, 
   { id: "none", name: "No Video Background", url: null, categories: [], price: 0, locked: false },
 ];
 
