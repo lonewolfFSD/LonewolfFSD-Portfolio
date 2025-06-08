@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { db, storage } from "../firebase"; // Ensure storage is imported
-import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, arrayUnion, runTransaction } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -227,25 +227,39 @@ const filteredVideos = videoOptions.filter(video => {
   return matchesSearch && matchesCategory;
 });
 
-const handlePurchaseVideo = async (video: { id: string; price: number; url: string }) => {
-  if (!user || !user.uid) return;
+const handlePurchaseVideo = async (video: { id: string; price: number; url: string; name: string }) => {
+  if (!user || !user.uid) {
+    setError("You must be signed in to purchase videos.");
+    return;
+  }
   if (virtualCurrency < video.price) {
-    setError("Insufficient currency to purchase this background.");
+    setError(`Insufficient credits to purchase "${video.name}". Need ${video.price} credits, but you have ${videoCurrency}.`);
     return;
   }
   try {
     const userDocRef = doc(db, "users", user.uid);
-    await updateDoc(userDocRef, {
-      virtualCurrency: virtualCurrency - video.price,
-      purchasedVideos: arrayUnion(video.id), // Use arrayUnion for safe append
-      updatedAt: new Date().toISOString(),
+    await runTransaction(db, async (transaction) => {
+      const userDoc = await transaction.get(userDocRef);
+      if (!userDoc.exists()) {
+        throw new Error("User document not found.");
+      }
+      const currentData = userDoc.data();
+      const currentCredits = currentData.virtualCurrency ?? 0;
+      if (currentCredits < video.price) {
+        throw new Error(`Insufficient credits in transaction. ${currentCredits} available, need ${video.price}`);
+      }
+      transaction.update(userDocRef, {
+        virtualCurrency: currentCredits - video.price,
+        purchasedVideos: arrayUnion(video.id),
+        updatedAt: new Date().toISOString(),
+      });
     });
-    setVirtualCurrency(virtualCurrency - video.price);
-    setPurchasedVideos([...purchasedVideos, video.id]);
-    setSuccess(`Purchased ${video.name} successfully! 🌟`);
+    setVirtualCurrency((prev) => prev - video.price);
+    setPurchasedVideos((prev) => [...prev, video.id]);
+    setSuccess(`Purchased "${video.name}" successfully! 🌟`);
   } catch (err) {
     console.error("Purchase video error:", err);
-    setError("Failed to purchase video background.");
+    setError(err.message || "Failed to purchase video background. Please try again.");
   }
 };
 
@@ -2380,20 +2394,22 @@ useEffect(() => {
         </div>
 
         {/* === BUTTON stays NORMAL === */}
-        {video.locked && !purchasedVideos.includes(video.id) && video.price > 0 && (
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent select
-              handlePurchaseVideo(video);
-            }}
-            className="mt-2 px-3 py-2 text-sm font-semibold rounded-md bg-black text-white hover:bg-black/90"
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={virtualCurrency < video.price}
-          >
-            Buy "{video.name}"
-          </motion.button>
-        )}
+{video.locked && !purchasedVideos.includes(video.id) && video.price > 0 && (
+  <motion.button
+    onClick={(e) => {
+      e.stopPropagation();
+      console.log("Buy button clicked for:", video.name, "Currency:", virtualCurrency, "Price:", video.price);
+      handlePurchaseVideo(video);
+    }}
+    className={`mt-2 px-3 py-2 text-sm font-semibold rounded-md text-white z-10
+      ${virtualCurrency < video.price ? "bg-gray-400 cursor-not-allowed opacity-50" : "bg-black hover:bg-black/90 cursor-pointer"}`}
+    whileHover={{ scale: virtualCurrency < video.price ? 1 : 1.01 }}
+    whileTap={{ scale: virtualCurrency < video.price ? 1 : 0.95 }}
+    disabled={virtualCurrency < video.price}
+  >
+    Buy "{video.name}"
+  </motion.button>
+)}
       </div>
 
       {/* === ICONS === */}
