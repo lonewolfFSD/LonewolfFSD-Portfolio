@@ -12,8 +12,8 @@
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@google/generative-ai": "^0.24.0",
-    "@react-three/drei": "^9.121.5",
-    "@react-three/fiber": "^8.17.14",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "@schlomoh/react-cookieconsent": "^1.6.1",
     "@splinetool/react-spline": "^4.0.0",
     "@tensorflow-models/handpose": "^0.1.0",

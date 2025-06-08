@@ -9,6 +9,7 @@ import SystemHealthCard from './Dash Components/SystemHealthCard';
 import ActiveUsersCard from './Dash Components/ActiveUsersCard';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import AchievementsCard from './Dash Components/AchievementsCard';
 
 // Interface for project data
 interface ProjectInput {
@@ -627,6 +628,7 @@ const AdminPanel: React.FC = () => {
           <NotificationCard />
           <SystemHealthCard systems={systems} />
           <ActiveUsersCard users={activeUsers} />
+          <AchievementsCard isDark={true} isAdmin={true} />
         </div>
       </div>
     </DashboardLayout>

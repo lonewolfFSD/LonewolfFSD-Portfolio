@@ -536,61 +536,7 @@ const connectSpotify = () => {
     </div>
   </motion.div>
 </Tilt>
-          <Tilt options={{ max: 25, scale: 1.05 }}>
-  <motion.div
-    className={`bg-white border border-black/20 rounded-xl p-4 shadow-md ${userRole?.role === 'admin' ? 'block' : 'hidden'}`}
-    variants={cardVariants}
-    initial="hidden"
-    animate="visible"
-  >
-    <h3 className="text-base font-semibold text-black mb-2 flex items-center">
-      <Calendar className="w-4 h-4 mr-2" /> Manage Holidays
-    </h3>
-    <hr />
-    <br />
-    {holidays.length === 0 ? (
-      <p className="text-black/80 text-sm">No holidays found</p>
-    ) : (
-      <ul className="space-y-2">
-        {holidays.slice(0, 4).map((holiday, index) => (
-          <li
-            key={index}
-            className="flex items-center justify-between text-sm text-black/80"
-            data-tooltip-id={`tooltip-holiday-${holiday.date}`}
-            data-tooltip-content={`${holiday.name}: ${holiday.date}`}
-          >
-            <span>{holiday.name}</span>
-            {userRole?.role === 'admin' && (
-              <button
-                onClick={() => {
-                  setSelectedHoliday(holiday);
-                  setIsHolidayEditMode(true);
-                  setIsHolidayModalOpen(true);
-                }}
-                className="p-1 hover:bg-gray-100 rounded"
-              >
-                <Edit2 className="w-3 h-3" />
-              </button>
-            )}
-            <Tooltip id={`tooltip-holiday-${holiday.date}`} className="bg-black text-white text-xs rounded p-2" />
-          </li>
-        ))}
-      </ul>
-    )}
-    {userRole?.role === 'admin' && (
-      <button
-        onClick={() => {
-          setSelectedHoliday({});
-          setIsHolidayEditMode(false);
-          setIsHolidayModalOpen(true);
-        }}
-        className="mt-2 p-1 bg-black text-white rounded-full hover:bg-gray-800"
-      >
-        <Plus className="w-4 h-4" />
-      </button>
-    )}
-  </motion.div>
-</Tilt>
+          
           <Tilt options={{ max: 25, scale: 1.05 }}>
             <motion.div className="bg-white border border-black/20 rounded-xl p-4 shadow-md" variants={cardVariants} initial="hidden" animate="visible">
               <h3 className="text-base font-semibold text-black mb-2 flex items-center">
@@ -780,6 +726,61 @@ const connectSpotify = () => {
               </div>
             </motion.div>
           </Tilt>
+          <Tilt options={{ max: 25, scale: 1.05 }}>
+  <motion.div
+    className={`bg-white border border-black/20 rounded-xl p-4 shadow-md ${userRole?.role === 'admin' ? 'block' : 'hidden'}`}
+    variants={cardVariants}
+    initial="hidden"
+    animate="visible"
+  >
+    <h3 className="text-base font-semibold text-black mb-2 flex items-center">
+      <Calendar className="w-4 h-4 mr-2" /> Manage Holidays
+    </h3>
+    <hr />
+    <br />
+    {holidays.length === 0 ? (
+      <p className="text-black/80 text-sm">No holidays found</p>
+    ) : (
+      <ul className="space-y-2">
+        {holidays.slice(0, 4).map((holiday, index) => (
+          <li
+            key={index}
+            className="flex items-center justify-between text-sm text-black/80"
+            data-tooltip-id={`tooltip-holiday-${holiday.date}`}
+            data-tooltip-content={`${holiday.name}: ${holiday.date}`}
+          >
+            <span>{holiday.name}</span>
+            {userRole?.role === 'admin' && (
+              <button
+                onClick={() => {
+                  setSelectedHoliday(holiday);
+                  setIsHolidayEditMode(true);
+                  setIsHolidayModalOpen(true);
+                }}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+            )}
+            <Tooltip id={`tooltip-holiday-${holiday.date}`} className="bg-black text-white text-xs rounded p-2" />
+          </li>
+        ))}
+      </ul>
+    )}
+    {userRole?.role === 'admin' && (
+      <button
+        onClick={() => {
+          setSelectedHoliday({});
+          setIsHolidayEditMode(false);
+          setIsHolidayModalOpen(true);
+        }}
+        className="mt-2 p-1 bg-black text-white rounded-full hover:bg-gray-800"
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+    )}
+  </motion.div>
+</Tilt>
         </div>
 
         {/* Floating Action Button (Admin Only) */}

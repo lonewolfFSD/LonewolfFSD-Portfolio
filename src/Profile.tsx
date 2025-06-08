@@ -8,6 +8,7 @@ import { useAvatar } from "./AvatarContext.tsx";
 import { QRCodeSVG } from "qrcode.react";
 import { getAuth } from 'firebase/auth';
 import * as nsfwjs from "nsfwjs"; // Import nsfwjs
+import { Tilt } from 'react-tilt';
 
 import Cropper from "react-easy-crop";
 import { Area } from "react-easy-crop/types";
@@ -64,6 +65,16 @@ import {
   updateProfile,
 } from "../firebase";
 import Helmet from "react-helmet";
+
+// Add this interface at the top of Profile.tsx, after imports
+interface Achievement {
+  achievementId: string;
+  name: string;
+  description: string;
+  badgeImage: string; // URL to badge image
+  earnedDate?: string; // ISO date string or undefined if locked
+  status: 'earned' | 'locked';
+}
 
 const DeleteAccountModal = ({ isOpen, onClose, onDelete }) => {
 
@@ -184,6 +195,54 @@ const Profile: React.FC<ProfileProps> = ({ isDark, publicMode = false }) => {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+  // Add this state variable inside the Profile component, after other useState declarations
+const [achievements, setAchievements] = useState<Achievement[]>([]);
+
+// Add this useEffect to fetch achievements, after the existing useEffect for auth state
+useEffect(() => {
+  if (!user || !user.uid) {
+    console.log("No user or UID for achievements");
+    return;
+  }
+
+  const achievementsRef = collection(db, 'users', user.uid, 'achievements');
+  const unsubscribe = onSnapshot(achievementsRef, (snapshot) => {
+    const achievementList: Achievement[] = snapshot.docs.map((doc) => ({
+      achievementId: doc.id,
+      ...doc.data(),
+    } as Achievement));
+    setAchievements(achievementList);
+  }, (err) => {
+    console.error("Achievements fetch error:", err);
+    setError("Failed to load achievements.");
+  });
+
+  return () => unsubscribe();
+}, [user]);
+
+// Add this function to award achievements, before the handleSignOut function
+const awardAchievement = async (achievementId: string, name: string, description: string, badgeImage: string) => {
+  if (!user || !user.uid) return;
+  try {
+    const achievementRef = doc(db, 'users', user.uid, 'achievements', achievementId);
+    const docSnap = await getDoc(achievementRef);
+    if (!docSnap.exists()) {
+      await setDoc(achievementRef, {
+        achievementId,
+        name,
+        description,
+        badgeImage,
+        earnedDate: new Date().toISOString(),
+        status: 'earned',
+      });
+      setSuccess(`Achievement "${name}" unlocked! 🎉`);
+    }
+  } catch (err) {
+    console.error("Award achievement error:", err);
+    setError("Failed to award achievement.");
+  }
+};
 
   // Load avatar from Firestore on mount
 useEffect(() => {
@@ -927,6 +986,8 @@ useEffect(() => {
     }
   };
 
+  // Add this useEffect to award a sample achievement on first login, after the useEffect for deviceName
+
   const accountLogos: Record<string, string> = {
     Google: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png",
     Microsoft: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Microsoft_icon.svg/768px-Microsoft_icon.svg.png",
@@ -1102,7 +1163,7 @@ useEffect(() => {
                                 </div>
                               </motion.div>
                             )}
-          <a href="https://form.jotform.com/251094777041054">
+          <Link to="/contact">
           <motion.button
             className={`px-6 hover:px-8 hidden md:block cursor-custom-pointer transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
             initial={{ opacity: 0 }}
@@ -1111,7 +1172,7 @@ useEffect(() => {
           >
             Let's Connect
           </motion.button>
-          </a>
+          </Link>
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`p-2 cursor-custom-pointer rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-10`}
@@ -1367,6 +1428,67 @@ useEffect(() => {
                     <div>
                       <p className="text-xs text-gray-500">FSD ID</p>
                       <p className="text-black font-medium text-sm break-all">{user.uid}</p>
+                    </div>
+                  </div>
+
+                  
+                  <div className="mt-8 col-span-2">
+                    <h1 className="text-2xl md:text-lg font-bold col-span-2" style={{ fontFamily: 'Poppins' }}>
+                      Achievements
+                    </h1>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      {achievements.length > 0 ? (
+                        achievements.map((achievement) => (
+                          <Tilt
+                            options={{
+                              
+                              scale: 1.02,
+                              speed: 300,
+                              perspective: 1000,
+                              glare: true,
+                              "max-glare": 0.2,
+                            }}
+                            style={{ transformStyle: 'preserve-3d' }}
+                          >
+                            <motion.div
+                              className={`flex border border-gray-200 rounded-xl px-4 py-3.5 col-span-1 bg-white  ${
+                                achievement.status === 'locked' ? 'opacity-50' : ''
+                              }`}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3 }}
+                              style={{ minHeight: '8rem' }}
+                            >
+                              <div className="badge-container">
+                                <img
+                                  src={achievement.badgeImage}
+                                  alt={achievement.name}
+                                  className={`badge-image w-28 h-auto ${achievement.status === 'earned' ? 'opacity-100' : 'opacity-50 grayscale'}`}
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'https://via.placeholder.com/112'; // Fallback image matches w-28 (112px)
+                                  }}
+                                />
+                                {achievement.status === 'earned' && (
+                                  <div className="shine-overlay" />
+                                )}
+                              </div>
+                              <div className="ml-4 flex flex-col justify-center">
+                                <p className={`text-lg font-bold text-black ${achievement.status === 'earned' ? 'opacity-100' : 'opacity-50 grayscale'}`} style={{ fontFamily: 'Poppins' }}>
+                                  {achievement.name}
+                                </p>
+                                <p className={`text-sm text-gray-500 ${achievement.status === 'earned' ? 'opacity-100' : 'opacity-50 grayscale'}`}>{achievement.description}</p>
+                                <hr className="my-2" />
+                                
+                                  <p className={`text-xs text-gray-400 mt-1 ${achievement.status === 'earned' ? 'opacity-100' : 'opacity-50 grayscale'}`}>
+                                    <span className={`${achievement.status === 'earned' ? 'opacity-100' : 'opacity-50 grayscale hidden'}`}>Earned: {new Date(achievement.earnedDate).toLocaleDateString()}</span><span className={`${achievement.status === 'earned' ? 'hidden' : ' block'}`}>not earned</span>
+                                  </p>
+                              </div>
+                            </motion.div>
+                          </Tilt>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 col-span-2 border p-4 rounded-xl">No achievements yet. Keep exploring!</p>
+                      )}
                     </div>
                   </div>
 

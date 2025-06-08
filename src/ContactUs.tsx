@@ -4,6 +4,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import Beams from './Beam';
 
 // Interface for form data
 interface FormData {
@@ -163,289 +164,308 @@ const ContactForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <Toaster position="top-right" />
-      <motion.div
-        className="w-full max-w-xl bg-white border border-black/20 rounded-2xl px-8 py-14 shadow-lg"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <AnimatePresence mode="wait">
-          {!isSubmitted ? (
-            <>
-              {/* Step Tracker */}
-<div className="mb-8">
-  <div className="flex items-center justify-center gap-4">
-    <motion.div
-      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-        currentStep >= 1 ? 'bg-black text-white' : 'bg-black/10 text-black/50'
-      }`}
-      animate={{ scale: currentStep === 1 ? 1.2 : 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      1
-    </motion.div>
-    <motion.div
-      className="h-1 mx-1"
-      animate={{ backgroundColor: currentStep > 1 ? '#000000' : '#00000033' }}
-      variants={lineVariants}
-      initial="hidden"
-      animate={currentStep > 1 ? 'visible' : 'hidden'}
-    />
-    <motion.div
-      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-        currentStep >= 2 ? 'bg-black text-white' : 'bg-black/10 text-black/50'
-      }`}
-      animate={{ scale: currentStep === 2 ? 1.2 : 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      2
-    </motion.div>
-    <motion.div
-      className="h-1  mx-1"
-      animate={{ backgroundColor: currentStep > 2 ? '#000000' : '#00000033' }}
-      variants={lineVariants}
-      initial="hidden"
-      animate={currentStep > 2 ? 'visible' : 'hidden'}
-    />
-    <motion.div
-      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-        currentStep >= 3 ? 'bg-black text-white' : 'bg-black/10 text-black/50'
-      }`}
-      animate={{ scale: currentStep === 3 ? 1.2 : 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      3
-    </motion.div>
-  </div>
-
-              </div>
-                    
-              <motion.h2
-                className="text-3xl font-bold text-black mb-6 text-center tracking-wide"
-                variants={itemVariants}
-                style={{
-                  fontFamily: 'Poppins'
-                }}
-              >
-                Let's Connect
-              </motion.h2>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {currentStep === 1 && (
-                  <motion.div key="step1" variants={itemVariants} initial="hidden" animate="visible">
-                    <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-black/80 mb-2">
-                        First Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="firstName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 bg-white border border-black/20 rounded-lg text-black focus:outline-none focus:border-black/50 transition-all duration-300"
-                        placeholder="First Name"
-                      />
-                    </div>
-                    <div className="mt-4">
-                      <label htmlFor="lastName" className="block text-sm font-medium text-black/80 mb-2">
-                        Last Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 bg-white border border-black/20 rounded-lg text-black focus:outline-none focus:border-black/50 transition-all duration-300"
-                        placeholder="Last Name"
-                      />
-                    </div>
-                    <div className="mt-4">
-                      <label htmlFor="email" className="block text-sm font-medium text-black/80 mb-2">
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 bg-white border border-black/20 rounded-lg text-black focus:outline-none focus:border-black/50 transition-all duration-300"
-                        placeholder="example@example.com"
-                      />
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 2 && (
-                  <motion.div key="step2" variants={itemVariants} initial="hidden" animate="visible">
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-black/80 mb-2">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 bg-white border ${
-                          phoneError ? 'border-red-500' : 'border-black/20'
-                        } rounded-lg text-black focus:outline-none focus:border-black/50 transition-all duration-300`}
-                        placeholder="(000) 000-0000"
-                      />
-                      {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
-                    </div>
-                    <div className="mt-4">
-                      <label htmlFor="company" className="block text-sm font-medium text-black/80 mb-2">
-                        Company Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="company"
-                        name="company"
-                        value={formData.company}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 bg-white border border-black/20 rounded-lg text-black focus:outline-none focus:border-black/50 transition-all duration-300"
-                        placeholder="Company Name"
-                      />
-                    </div>
-                    <div className="mt-4">
-                      <label htmlFor="workType" className="block text-sm font-medium text-black/80 mb-2">
-                        Type of Work Required *
-                      </label>
-                      <select
-                        id="workType"
-                        name="workType"
-                        value={formData.workType}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 bg-white border border-black/20 rounded-lg text-black focus:outline-none focus:border-black/50 transition-all duration-300"
-                      >
-                        <option value="">Select Work Type</option>
-                        <option value="Web Development">Web Development</option>
-                        <option value="Mobile Development">Mobile Development</option>
-                        <option value="UI/UX Design">UI/UX Design</option>
-                        <option value="Backend Development">Backend Development</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 3 && (
-                  <motion.div key="step3" variants={itemVariants} initial="hidden" animate="visible">
-                    <div>
-                      <label htmlFor="contactMethod" className="block text-sm font-medium text-black/80 mb-2">
-                        Preferred Contact Method *
-                      </label>
-                      <select
-                        id="contactMethod"
-                        name="contactMethod"
-                        value={formData.contactMethod}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 bg-white border border-black/20 rounded-lg text-black focus:outline-none focus:border-black/50 transition-all duration-300"
-                      >
-                        <option value="">Select Contact Method</option>
-                        <option value="Email">Email</option>
-                        <option value="Phone">Phone</option>
-                        <option value="Video Call">Video Call</option>
-                      </select>
-                    </div>
-                    <div className="mt-4">
-                      <label htmlFor="contactTime" className="block text-sm font-medium text-black/80 mb-2">
-                        Best Time to Contact *
-                      </label>
-                      <select
-                        id="contactTime"
-                        name="contactTime"
-                        value={formData.contactTime}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 bg-white border border-black/20 rounded-lg text-black focus:outline-none focus:border-black/50 transition-all duration-300"
-                      >
-                        <option value="">Select Time</option>
-                        <option value="Morning">Morning</option>
-                        <option value="Afternoon">Afternoon</option>
-                        <option value="Evening">Evening</option>
-                        <option value="Anytime">Anytime</option>
-                      </select>
-                    </div>
-                  </motion.div>
-                )}
-
-                <div className="flex flex-col gap-2 md:gap-0 md:flex-row justify-between mt-6">
-                  {currentStep > 1 && (
-                    <motion.button
-                      type="button"
-                      onClick={prevStep}
-                      variants={buttonVariants}
-                      whileHover="hover"
-                      whileTap="tap"
-                      className="py-3 px-10 flex gap-2 bg-black/10 text-black font-semibold rounded-lg hover:bg-black/20 transition-all duration-300"
+    <div className="relative h-screen bg-white">
+      <div className="absolute inset-0 z-0">
+        <Beams
+          beamWidth={2}
+          beamHeight={15}
+          beamNumber={12}
+          lightColor="#ffffff"
+          speed={2}
+          noiseIntensity={1.75}
+          scale={0.2}
+          rotation={0}
+        />
+      </div>
+      <div className="relative z-10 flex items-center justify-center min-h-screen">
+        <Toaster position="top-right" />
+        <motion.div
+          className="w-full max-w-xl bg-black/40 backdrop-blur-md border border-white/60 rounded-2xl px-8 py-14 shadow-lg"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <AnimatePresence mode="wait">
+            {!isSubmitted ? (
+              <>
+                {/* Step Tracker */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-center gap-4">
+                    <motion.div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                        currentStep >= 1 ? 'bg-white text-black' : 'bg-white/10 text-black/50'
+                      }`}
+                      animate={{ scale: currentStep === 1 ? 1.2 : 1 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      <ArrowLeft size={18} strokeWidth={3} className='mt-0.5' /> Previous
-                    </motion.button>
-                  )}
-                  {currentStep < 3 ? (
-                    <motion.button
-                      type="button"
-                      onClick={nextStep}
-                      variants={buttonVariants}
-                      whileHover="hover"
-                      whileTap="tap"
-                      className="py-3 px-10 flex gap-2 bg-black text-white font-semibold rounded-lg hover:bg-black/90 transition-all duration-300 md:ml-auto"
+                      1
+                    </motion.div>
+                    <motion.div
+                      className="h-1 mx-1 bg-black/10"
+                      animate={{ backgroundColor: currentStep > 1 ? '#000000' : '#00000033' }}
+                      variants={lineVariants}
+                      initial="hidden"
+                      animate={currentStep > 1 ? 'visible' : 'hidden'}
+                    />
+                    <motion.div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                        currentStep >= 2 ? 'bg-white text-black' : 'bg-white/10 text-white/50'
+                      }`}
+                      animate={{ scale: currentStep === 2 ? 1.2 : 1 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      Next Step <ArrowRight size={18} strokeWidth={3} className='mt-1' />
-                    </motion.button>
-                  ) : (
-                    <motion.button
-                      type="submit"
-                      disabled={isSubmitting || !!phoneError}
-                      variants={buttonVariants}
-                      whileHover="hover"
-                      whileTap="tap"
-                      className="py-3 px-6 bg-black text-white font-semibold rounded-lg hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 md:ml-auto"
+                      2
+                    </motion.div>
+                    <motion.div
+                      className="h-1 mx-1 bg-black/10"
+                      animate={{ backgroundColor: currentStep > 2 ? '#000000' : '#00000033' }}
+                      variants={lineVariants}
+                      initial="hidden"
+                      animate={currentStep > 2 ? 'visible' : 'hidden'}
+                    />
+                    <motion.div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                        currentStep >= 3 ? 'bg-white text-black' : 'bg-white/10 text-white/50'
+                      }`}
+                      animate={{ scale: currentStep === 3 ? 1.2 : 1 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      {isSubmitting ? (
-                        <span className="flex items-center justify-center">
-                          <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Submitting...
-                        </span>
-                      ) : (
-                        'Submit Enquiry'
-                      )}
-                    </motion.button>
-                  )}
+                      3
+                    </motion.div>
+                  </div>
+                    <hr className='my-6 w-20 mx-auto' />
                 </div>
-              </form>
-            </>
-          ) : (
-            <motion.div
-              className="text-center text-black"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl font-bold mb-4">Success!</h2>
-              <p>Details saved successfully on queue list.</p>
-              <p>LonewolfFSD will soon contact you for further details.</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+                
+                <motion.h2
+                  className="text-3xl lg:text-4xl font-bold text-white mb-6 text-center tracking-wide"
+                  variants={itemVariants}
+                  style={{
+                    fontFamily: 'Poppins'
+                  }}
+                >
+                  Let's Connect
+                </motion.h2>
+                <p className="text-white text-center text-sm md:text-sm mb-8 px-6 mx-auto opacity-90" style={{ fontFamily: 'Poppins' }}>
+  Whether you're ready to build your next project or just exploring ideas, I'm here to collaborate and bring your vision to life. Reach out and let's make something remarkable together.
+</p>
+
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {currentStep === 1 && (
+                    <motion.div key="step1" variants={itemVariants} initial="hidden" animate="visible">
+                      <div>
+                        <label htmlFor="firstName" className="block text-sm font-medium text-white/80 mb-2">
+                          First Name <span className='text-red-600'>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="firstName"
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
+                          placeholder="First Name"
+                        />
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="lastName" className="block text-sm font-medium text-white/80 mb-2">
+                          Last Name <span className='text-red-600'>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="lastName"
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
+                          placeholder="Last Name"
+                        />
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          
+                          className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
+                          placeholder="example@example.com"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {currentStep === 2 && (
+                    <motion.div key="step2" variants={itemVariants} initial="hidden" animate="visible">
+                      <div>
+                        <label htmlFor="phone" className="block text-sm font-medium text-white/80 mb-2">
+                          Phone Number <span className='text-red-600'>*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          required
+                          onChange={handleChange}
+                          className={`w-full px-4 py-4 bg-black border ${
+                            phoneError ? 'border-red-500' : 'border-white/20'
+                          } rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300`}
+                          placeholder="(000) 000-0000"
+                        />
+                        {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="company" className="block text-sm font-medium text-white/80 mb-2">
+                          Company Name <span className='text-red-600'>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="company"
+                          name="company"
+                          value={formData.company}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
+                          placeholder="Company Name"
+                        />
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="workType" className="block text-sm font-medium text-white/80 mb-2">
+                          Type of Work Required <span className='text-red-600'>*</span>
+                        </label>
+                        <select
+                          id="workType"
+                          name="workType"
+                          value={formData.workType}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
+                        >
+                          <option value="">Select Work Type</option>
+                          <option value="Web Development">Web Development</option>
+                          <option value="Mobile Development">Mobile Development</option>
+                          <option value="UI/UX Design">UI/UX Design</option>
+                          <option value="Backend Development">Backend Development</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {currentStep === 3 && (
+                    <motion.div key="step3" variants={itemVariants} initial="hidden" animate="visible">
+                      <div>
+                        <label htmlFor="contactMethod" className="block text-sm font-medium text-white/80 mb-2">
+                          Preferred Contact Method <span className='text-red-600'>*</span>
+                        </label>
+                        <select
+                          id="contactMethod"
+                          name="contactMethod"
+                          value={formData.contactMethod}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-black/50 transition-all duration-300"
+                        >
+                          <option value="">Select Contact Method</option>
+                          <option value="Email">Email</option>
+                          <option value="Phone">Phone</option>
+                          <option value="Video Call">Video Call</option>
+                        </select>
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="contactTime" className="block text-sm font-medium text-white/80 mb-2">
+                          Best Time to Contact <span className='text-red-600'>*</span>
+                        </label>
+                        <select
+                          id="contactTime"
+                          name="contactTime"
+                          value={formData.contactTime}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-black/50 transition-all duration-300"
+                        >
+                          <option value="">Select Time</option>
+                          <option value="Morning">Morning</option>
+                          <option value="Afternoon">Afternoon</option>
+                          <option value="Evening">Evening</option>
+                          <option value="Anytime">Anytime</option>
+                        </select>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  <div className="flex flex-col gap-2 md:gap-0 md:flex-row justify-between mt-6">
+                    {currentStep > 1 && (
+                      <motion.button
+                        type="button"
+                        onClick={prevStep}
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                        className="py-4 px-10 flex gap-2 bg-white/5 text-white font-semibold rounded-lg hover:bg-black/20 transition-all duration-300"
+                      >
+                        <ArrowLeft size={18} strokeWidth={3} className='mt-0.5' /> Previous
+                      </motion.button>
+                    )}
+                    {currentStep < 3 ? (
+                      <motion.button
+                        type="button"
+                        onClick={nextStep}
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                        className="py-4 px-10 flex gap-2 bg-white text-black font-semibold rounded-lg hover:bg-white/90 transition-all duration-300 md:ml-auto"
+                      >
+                        Next Step <ArrowRight size={18} strokeWidth={3} className='mt-1' />
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        type="submit"
+                        disabled={isSubmitting || !!phoneError}
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                        className="py-4 px-6 bg-white text-black font-semibold rounded-lg hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 md:ml-auto"
+                      >
+                        {isSubmitting ? (
+                          <span className="flex items-center justify-center">
+                            <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Submitting...
+                          </span>
+                        ) : (
+                          'Submit Enquiry'
+                        )}
+                      </motion.button>
+                    )}
+                  </div>
+                </form>
+              </>
+            ) : (
+              <motion.div
+                className="text-center text-black"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-bold mb-4">Success!</h2>
+                <p>Details saved successfully on queue list.</p>
+                <p>LonewolfFSD will soon contact you for further details.</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </div>
   );
 };
