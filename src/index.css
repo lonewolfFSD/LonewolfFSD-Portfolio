@@ -322,4 +322,11 @@
   height: 100%;
 }
 
+.music-preview-button {
+  transition: background-color 0.2s ease;
+}
+.music-preview-button:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
 

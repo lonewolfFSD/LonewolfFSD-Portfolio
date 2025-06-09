@@ -11,10 +11,22 @@ import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 import { Tilt } from 'react-tilt';
 
 import JapaneseSpring from './Videos/japanese-spring.960x540.mp4';
+import LosSantos from './Videos/sunset-in-los-santos-gta-v.1920x1080.mp4';
+import Tanquirl from './Videos/tranquil-japan-lake-view.3840x2160.mp4';
+import MysticalTorii from './Videos/mystical-torii.3840x2160.mp4';
+import Samurai from './Videos/samurai-spirit-under-the-moon.3840x2160.mp4';
+import Coffeeshop from './Videos/coffee-shop.3840x2160.mp4';
+import MistyRain from './Videos/hydrangeas-rain.3840x2160.mp4';
+import SunsetDrive from './Videos/evening-drive-and-windmills.3840x2160.mp4';
+import Nebula from './Videos/nebula.3840x2160.mp4';
+import LastOfUs from './Videos/surviving-the-last-of-us.3840x2160.mp4';
+import SilentHill from './Videos/silent-hill-2.3840x2160.mp4';
+import RedDead from './Videos/rdr-2-animated.3840x2160.mp4';
+import Yinlin from './Videos/yinlin-wuthering-waves.3840x2160.mp4';
 
 import Cropper from "react-easy-crop";
 import { Area } from "react-easy-crop/types";
-import { BadgeCheck, Plus, RotateCcw, RotateCw } from "lucide-react";
+import { BadgeCheck, Music, Paintbrush2, PaintBucket, Pause, Play, Plus, RotateCcw, RotateCw } from "lucide-react";
 
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
@@ -196,6 +208,15 @@ const Profile: React.FC<ProfileProps> = ({ isDark, publicMode = false }) => {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 const [virtualCurrency, setVirtualCurrency] = useState<number>(300);
 
+const [selectedMusic, setSelectedMusic] = useState<string | null>(null);
+const [purchasedMusic, setPurchasedMusic] = useState<string[]>([]);
+const [isMusicModalOpen, setIsMusicModalOpen] = useState(false);
+const [musicSearchQuery, setMusicSearchQuery] = useState("");
+const [selectedMusicCategories, setSelectedMusicCategories] = useState<string[]>([]);
+const [playingMusicId, setPlayingMusicId] = useState<string | null>(null);
+const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
+
+
   const [searchQuery, setSearchQuery] = useState("");
 const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
@@ -212,20 +233,33 @@ function toggleCategory(category: string) {
 
 const videoOptions = [
   { id: "none", name: "No Video Background", url: null, categories: ["free"], price: 0, locked: false },
-  { id: "video1", name: "Tranquil Japan Lake", url: "https://motionbgs.com/media/7359/tranquil-japan-lake-view.960x540.mp4", categories: ["nature"], price: 500, locked: true },
-  { id: "video2", name: "Mystical Torii", url: "https://motionbgs.com/media/6203/mystical-torii.960x540.mp4", categories: ["nature"], price: 1500, locked: true },
+  { id: "video1", name: "Tranquil Japan Lake", url: Tanquirl, categories: ["nature"], price: 500, locked: true },
+  { id: "video2", name: "Mystical Torii", url: MysticalTorii, categories: ["nature"], price: 1500, locked: true },
   { id: "video3", name: "Japanese Spring", url: JapaneseSpring, categories: ["nature"], price: 500, locked: true },
-  { id: "video4", name: "Samurai Night", url: "https://motionbgs.com/media/2763/samurai-spirit-under-the-moon.960x540.mp4", categories: ["anime"], price: 1500, locked: true  },
-  { id: "video5", name: "Coffee Shop", url: "https://motionbgs.com/media/6199/coffee-shop.960x540.mp4", categories: ["anime"], price: 2000, locked: true  },
-  { id: "video6", name: "Misty Rain", url: "https://motionbgs.com/media/7362/hydrangeas-rain.960x540.mp4", categories: ["nature"], price: 2000, locked: true  },
-  { id: "video7", name: "Evening Drive", url: "https://motionbgs.com/media/7513/evening-drive-and-windmills.960x540.mp4", categories: ["nature"], price: 2000, locked: true  },
+  { id: "video4", name: "Samurai Night", url: Samurai, categories: ["anime"], price: 1500, locked: true  },
+  { id: "video5", name: "Coffee Shop", url: Coffeeshop, categories: ["anime"], price: 2000, locked: true  },
+  { id: "video6", name: "Misty Rain", url: MistyRain, categories: ["nature"], price: 2000, locked: true  },
+  { id: "video7", name: "Evening Drive", url: SunsetDrive, categories: ["nature"], price: 2000, locked: true  },
   { id: "video8", name: "Neon Skyline", url: "https://motionbgs.com/media/7738/neon-skyline.960x540.mp4", categories: ["neon", "free"], price: 0, locked: false  },
-  { id: "video9", name: "The Nebula", url: "https://motionbgs.com/media/2887/nebula.960x540.mp4", categories: ["space"], price: 5000, locked: true  },
-  { id: "video10", name: "The Last Of Us", url: "https://motionbgs.com/media/501/surviving-the-last-of-us.960x540.mp4", categories: ["games"], price: 5000, locked: true  },
-  { id: "video11", name: "Silent Hill 2", url: "https://motionbgs.com/media/7031/silent-hill-2.960x540.mp4", categories: ["games"], price: 3500, locked: true  },
-  { id: "video12", name: "Los Santos: GTA V", url: "https://motionbgs.com/media/2538/sunset-in-los-santos-gta-v.960x540.mp4", categories: ["games"], price: 2000, locked: true  },
-  { id: "video13", name: "Read Dead: RDR2", url: "https://motionbgs.com/media/2837/rdr-2-animated.960x540.mp4", categories: ["games"], price: 3500, locked: true  }, 
+  { id: "video9", name: "The Nebula", url: Nebula, categories: ["space"], price: 5000, locked: true  },
+  { id: "video10", name: "The Last Of Us", url: LastOfUs, categories: ["games"], price: 5000, locked: true  },
+  { id: "video11", name: "Silent Hill 2", url: SilentHill, categories: ["games"], price: 3500, locked: true  },
+  { id: "video12", name: "Los Santos: GTA V", url: LosSantos, categories: ["games"], price: 3500, locked: true  },
+  { id: "video13", name: "Read Dead: RDR2", url: RedDead, categories: ["games"], price: 5000, locked: true  }, 
+  { id: "video14", name: "Yinlin - WW", url: Yinlin, categories: ["games"], price: 5000, locked: true  }, 
 ];
+
+const musicOptions = [
+  { id: "none", name: "No Music", url: null, categories: ["free"], price: 0, locked: false, image: "https://via.placeholder.com/150?text=None" },
+  { id: "music1", name: "Biscuit", url: "https://audio.jukehost.co.uk/cVF4excsRCXKJ9cW2VYrsQ6Jw6b0hqV2", categories: ["relax", "lo-fi"], price: 0, locked: false, image: "https://data.freetouse.com/music/tracks/0b2af3c9-f44f-df2f-0ae3-1a75f439829d/cover/webp/md" },
+  { id: "music2", name: "Coffee", url: "https://audio.jukehost.co.uk/eYFWyH1hMSQI1SoibSSNU8Y4LTWihVI6", categories: ["lofi", "artist"], price: 1000, locked: true, image: "https://i.scdn.co/image/ab67616d00004851ad2c1e1bcbc8d7415636691b" },
+  { id: "music3", name: "Blue - Yung Kai", url: "https://audio.jukehost.co.uk/pUsQGYErof1dt2bEbMJF18QnyxUJRxVq", categories: ["artist", "relax"], price: 2000, locked: true, image: "https://i.scdn.co/image/ab67616d00004851373c63a4666fb7193febc167" },
+  { id: "music4", name: "Cigarettes After Sex", url: "https://audio.jukehost.co.uk/LxT0GaUKYp6F2cDePpDWvAXOJSrScsxn", categories: ["artist", "relax"], price: 2500, locked: true, image: "https://i.scdn.co/image/ab67616d00004851f20d15ff288e94492f7097eb" },
+  { id: "music5", name: "Pursuit", url: "https://audio.jukehost.co.uk/S3J2BXhUOu7B9ySMs26iVlxpZAGpa2hj", categories: ["artist", "dark"], price: 2500, locked: true, image: "https://i.scdn.co/image/ab67616d00004851bd6a20f5851ef12e1a5583da" },
+  { id: "music6", name: "Red Dead Redemption", url: "https://audio.jukehost.co.uk/P1lVIdxWvk9asAW13uYBAU4Wnn2DtNuN", categories: ["artist", "dark", "games"], price: 4000, locked: true, image: "https://i.scdn.co/image/ab67616d000048513dae5c9cf336a67a5b490608" },
+];
+
+const allMusicCategories = ["lo-fi", "dark", "free"];
 
 const [purchasedVideos, setPurchasedVideos] = useState<string[]>([]);
 
@@ -273,6 +307,49 @@ const handlePurchaseVideo = async (video: { id: string; price: number; url: stri
   }
 };
 
+const handlePurchaseMusic = async (music: { id: string; price: number; name: string }) => {
+  if (!user || !user.uid) {
+    setError("You must be signed in to purchase music.");
+    return;
+  }
+
+  if (virtualCurrency < music.price) {
+    setError(`Insufficient credits to purchase "${music.name}". Need ${music.price} credits, but you have ${virtualCurrency}.`);
+    return;
+  }
+
+  try {
+    const userDocRef = doc(db, "users", user.uid);
+
+    await runTransaction(db, async (transaction) => {
+      const userDoc = await transaction.get(userDocRef);
+      if (!userDoc.exists()) {
+        throw new Error("User document not found.");
+      }
+
+      const currentData = userDoc.data();
+      const currentCredits = currentData.virtualCurrency ?? 0;
+
+      if (currentCredits < music.price) {
+        throw new Error(`Insufficient credits in transaction. ${currentCredits} available, need ${music.price}`);
+      }
+
+      transaction.update(userDocRef, {
+        virtualCurrency: currentCredits - music.price,
+        purchasedMusic: arrayUnion(music.id),
+        updatedAt: new Date().toISOString(),
+      });
+    });
+
+    setVirtualCurrency(prev => prev - music.price);
+    setPurchasedMusic(prev => [...prev, music.id]);
+    setSuccess(`Purchased "${music.name}" successfully! 🎵`);
+  } catch (err) {
+    console.error("Purchase music error:", err);
+    setError(err.message || "Failed to purchase music. Please try again.");
+  }
+};
+
 const loadUserData = async () => {
   if (!user || !user.uid) return;
   try {
@@ -281,16 +358,19 @@ const loadUserData = async () => {
     if (docSnap.exists()) {
       const data = docSnap.data();
       setVirtualCurrency(data.virtualCurrency ?? 300);
-      setPurchasedVideos(data.purchasedVideos ?? []); // Initialize purchasedVideos
+      setPurchasedVideos(data.purchasedVideos ?? []);
+      setPurchasedMusic(data.purchasedMusic ?? []);
       setSelectedVideo(data.backgroundVideo);
+      setSelectedMusic(data.backgroundMusic);
     } else {
-      // Initialize user document if it doesn't exist
       await setDoc(userDocRef, {
         virtualCurrency: 300,
         purchasedVideos: [],
+        purchasedMusic: [],
         createdAt: new Date().toISOString(),
       });
       setPurchasedVideos([]);
+      setPurchasedMusic([]);
     }
   } catch (err) {
     console.error("Load user data error:", err);
@@ -299,9 +379,98 @@ const loadUserData = async () => {
 };
 
 useEffect(() => {
+  const loadBackgroundMusic = async () => {
+    if (!user || !user.uid) return;
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists() && docSnap.data().backgroundMusic) {
+        setSelectedMusic(docSnap.data().backgroundMusic);
+      }
+    } catch (err) {
+      console.error("Load background music error:", err);
+      setError("Failed to load background music.");
+    }
+  };
+  loadBackgroundMusic();
+}, [user]);
+
+useEffect(() => {
+  if (selectedMusic) {
+    const audio = new Audio(selectedMusic);
+    audio.loop = true;
+    audio.play().catch(err => console.error("Audio play error:", err));
+    return () => audio.pause();
+  }
+}, [selectedMusic]);
+
+useEffect(() => {
   loadUserData();
 }, [user]);
 
+const handleMusicSelect = async (music: { id: string; url: string | null }) => {
+  if (!user || !user.uid) return;
+
+  const selectedMusicOption = musicOptions.find(m => m.id === music.id);
+  const isLocked = selectedMusicOption?.locked;
+  const isPurchased = purchasedMusic.includes(music.id);
+  const isFree = selectedMusicOption?.price === 0;
+
+  if (isLocked && !isPurchased && !isFree) {
+    setError("Please purchase this music first.");
+    return;
+  }
+
+  try {
+    setSelectedMusic(music.url);
+
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, {
+      profileMusic: music.url,
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Remove window.location.reload() from handleMusicSelect
+    // Instead, rely on state updates
+    setSelectedMusic(music.url || null);
+    setSuccess("Profile music updated successfully! 🎵");
+    setIsMusicModalOpen(false);
+  } catch (err) {
+    console.error("Save profile music error:", err);
+    setError("Failed to save profile music.");
+  }
+};
+
+// Consolidate loading logic in one useEffect
+useEffect(() => {
+  if (!user || !user.uid) return;
+  const loadData = async () => {
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setVirtualCurrency(data.virtualCurrency ?? 300);
+        setPurchasedVideos(data.purchasedVideos ?? []);
+        setPurchasedMusic(data.purchasedMusic ?? []);
+        setSelectedVideo(data.backgroundVideo || null);
+        setSelectedMusic(data.profileMusic || null); // Use profileMusic
+      } else {
+        await setDoc(userDocRef, {
+          virtualCurrency: 300,
+          purchasedVideos: [],
+          purchasedMusic: [],
+          profileMusic: null,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    } catch (err) {
+      console.error("Load data error:", err);
+      setError("Failed to load user data.");
+    }
+  };
+  loadData();
+}, [user]);
 
 
 const handleVideoSelect = async (video: { id: string; url: string | null }) => {
@@ -317,12 +486,11 @@ const handleVideoSelect = async (video: { id: string; url: string | null }) => {
       backgroundVideo: video.url,
       updatedAt: new Date().toISOString(),
     });
+    
+    setSelectedVideo(video.url || null);
     window.location.reload();
-
     setSuccess("Background video updated successfully! 🌟");
     setIsVideoModalOpen(false);
-
-    window.location.reload();
 
   } catch (err) {
     console.error("Save background video error:", err);
@@ -1679,7 +1847,7 @@ useEffect(() => {
                     <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2">
                       <div className="flex items-start space-x-3">
                         <div className="pt-1">
-                          <Settings className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
+                          <Paintbrush2 className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
                         </div>
                         <div>
                           <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>Background Appearance</p>
@@ -1697,6 +1865,27 @@ useEffect(() => {
                         whileTap={{ scale: 0.95 }}
                       >
                         Change Background
+                      </motion.button>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2 mt-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="pt-1">
+                          <Music className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
+                        </div>
+                        <div>
+                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>Profile Music</p>
+                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>Customize your profile music</p>
+                        </div>
+                      </div>
+                      <motion.button
+                        onClick={() => setIsMusicModalOpen(true)}
+                        className={`py-2.5 px-4 font-semibold mt-4 md:mt-0 rounded-lg ${selectedVideo ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-black hover:bg-black/90'} cursor-custom-pointer transition-all text-xs`}
+                        style={{ fontFamily: 'Poppins' }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Change Music
                       </motion.button>
                     </div>
                     
@@ -2343,21 +2532,23 @@ useEffect(() => {
                  />
                  
                </div>
-               <div className="flex gap-2 flex-wrap">
-                 {allCategories.map(category => {
-                   const isSelected = selectedCategories.includes(category);
-                   return (
-                     <button
-                       key={category}
-                       onClick={() => toggleCategory(category)}
-                       className={`px-5 py-2 rounded-lg text-xs font-semibold border cursor-pointer
-                         ${isSelected ? "bg-black text-white" : "bg-gray-100 text-gray-700 border-gray-300"}`}
-                     >
-                       {category.charAt(0).toUpperCase() + category.slice(1)}
-                     </button>
-                   );
-                 })}
-               </div>
+               <div className="w-full overflow-x-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+                  <div className="inline-flex gap-2 whitespace-nowrap px-1 pb-1">
+                    {allCategories.map(category => {
+                      const isSelected = selectedCategories.includes(category);
+                      return (
+                        <button
+                          key={category}
+                          onClick={() => toggleCategory(category)}
+                          className={`px-5 py-2 rounded-lg cursor-custom-pointer text-xs font-semibold border flex-shrink-0
+                            ${isSelected ? "bg-black text-white" : "bg-gray-100 text-gray-700 border-gray-300"}`}
+                        >
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
              </div>
 
 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -2450,6 +2641,192 @@ useEffect(() => {
          </motion.div>
        )}
      </AnimatePresence>
+
+     <AnimatePresence>
+  {isMusicModalOpen && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={() => setIsMusicModalOpen(false)}
+    >
+      <motion.div
+        initial={{ scale: 0.95, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white h-full md:h-auto md:rounded-2xl md:p-20 p-6 pb-14 w-full max-w-4xl relative flex flex-col"
+      >
+        <button
+          onClick={() => setIsMusicModalOpen(false)}
+          className="absolute top-4 right-4 text-gray-500 hover:text-black cursor-custom-pointer"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <div className="flex mt-12 md:mt-0 justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold text-black" style={{ fontFamily: "Poppins" }}>
+            Select Profile Music
+          </h3>
+          <span className="flex items-center gap-1 text-sm font-semibold text-black border border-black px-4 py-1 rounded-full">
+            <img src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" alt="Credits" className="w-4 h-4" />
+            {virtualCurrency} <span className="bg-black p-1 rounded-full ml-1"><Plus size={10} className="text-white cursor-custom-pointer"/></span>
+          </span>
+        </div>
+        {error && (
+          <p className="text-red-500 text-sm mb-4 bg-red-100 px-4 py-2 rounded-lg border border-red-400 flex gap-1.5">
+            <AlertTriangle size={16} className="mt-0.5" /> {error}
+          </p>
+        )}
+        {success && (
+          <p className="text-green-500 text-sm mb-4 bg-green-100 px-4 py-2 rounded-lg border border-green-400 flex gap-1.5">
+            <CheckCircle size={16} className="mt-0.5" /> {success}
+          </p>
+        )}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <input
+              type="text"
+              placeholder="Search music..."
+              value={musicSearchQuery}
+              onChange={e => setMusicSearchQuery(e.target.value)}
+              className="w-full p-3 rounded-lg text-sm border border-gray-300"
+            />
+          </div>
+          <div className="w-full overflow-x-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+            <div className="inline-flex gap-2 whitespace-nowrap px-1 pb-1">
+              {allMusicCategories.map(category => {
+                const isSelected = selectedMusicCategories.includes(category);
+                return (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedMusicCategories(prev =>
+                      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
+                    )}
+                    className={`px-5 py-2 rounded-lg cursor-custom-pointer text-xs font-semibold border flex-shrink-0
+                      ${isSelected ? "bg-black text-white" : "bg-gray-100 text-gray-700 border-gray-300"}`}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+          {musicOptions
+            .filter(music => {
+              const matchesSearch = music.name.toLowerCase().includes(musicSearchQuery.toLowerCase());
+              const matchesCategory = selectedMusicCategories.length === 0
+                ? true
+                : music.categories.some(cat => selectedMusicCategories.includes(cat));
+              return matchesSearch && matchesCategory;
+            })
+            .map((music, index) => (
+              <motion.div
+                key={music.id}
+                className={`rounded-xl p-3 flex items-center gap-3 relative transition-all duration-200 h-32
+                  ${selectedMusic === music.url ? "border-black border" : "bg-white border border-gray-200"}
+                  cursor-custom-pointer`}
+                whileHover={{ scale: 1 }}
+                whileTap={{ scale: 1 }}
+                onClick={() => {
+                  if (!music.locked || purchasedMusic.includes(music.id) || music.price === 0) {
+                    handleMusicSelect(music);
+                  }
+                }}
+              >
+                <div
+                  className={`w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200 bg-center bg-cover relative`}
+                  style={{
+                    backgroundImage: `url(${music.image})`,
+                    filter: music.locked && !purchasedMusic.includes(music.id) && music.price > 0 ? 'grayscale(100%)' : 'none'
+                  }}
+                >
+
+                  {music.url ? (
+                    <>
+                      <audio
+                        ref={(el) => (audioRefs.current[music.id] = el)}
+                        src={music.url}
+                        preload="metadata"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const audio = audioRefs.current[music.id];
+                          if (!audio) return;
+
+                          if (playingMusicId === music.id) {
+                            audio.pause();
+                            setPlayingMusicId(null);
+                          } else {
+                            Object.values(audioRefs.current).forEach(a => {
+                              if (a && !a.paused) a.pause();
+                            });
+                            audio.play();
+                            setPlayingMusicId(music.id);
+                          }
+                        }}
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black shadow-md rounded-full p-3 hover:bg-black/90 transition-colors"
+                      >
+                        {playingMusicId === music.id ? (
+                          <Pause fill="currentColor" className="w-5 h-5 text-white" />
+                        ) : (
+                          <Play fill="currentColor" className="w-5 h-5 text-white" />
+                        )}
+                      </button>
+
+                    </>
+                  ) : (
+                    <div className="text-sm text-gray-500">No Audio</div>
+                  )}
+                </div>
+                <div className="flex-1 flex flex-col justify-center">
+                  <div className={`${music.locked && !purchasedMusic.includes(music.id) && music.price > 0 ? "opacity-100" : ""}`}>
+                    <p className="text-base font-semibold text-black">{music.name}</p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      {purchasedMusic.includes(music.id) ? (
+                        "Owned"
+                      ) : music.price > 0 ? (
+                        <>
+                          <img src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" alt="Credits" className="w-3.5 h-3.5" />
+                          {music.price}
+                        </>
+                      ) : (
+                        "Free"
+                      )}
+                    </p>
+                  </div>
+                  {music.locked && !purchasedMusic.includes(music.id) && music.price > 0 && (
+                    <motion.button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePurchaseMusic(music);
+                      }}
+                      className={`mt-2 px-3 py-2 text-sm font-semibold rounded-md text-white z-10
+                        ${virtualCurrency < music.price ? "bg-gray-400 cursor-not-allowed opacity-50" : "bg-black hover:bg-black/90 cursor-pointer"}`}
+                      whileHover={{ scale: virtualCurrency < music.price ? 1 : 1.01 }}
+                      whileTap={{ scale: virtualCurrency < music.price ? 1 : 0.95 }}
+                      disabled={virtualCurrency < music.price}
+                    >
+                      Buy "{music.name}"
+                    </motion.button>
+                  )}
+                </div>
+                {selectedMusic === music.url && (
+                  <CheckCircle strokeWidth={3} className="w-4 h-4 text-black absolute top-3 right-3" />
+                )}
+                {music.locked && !purchasedMusic.includes(music.id) && music.price > 0 && (
+                  <Lock strokeWidth={3} className="w-4 h-4 text-gray-500 absolute top-3 right-3" />
+                )}
+              </motion.div>
+            ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   );
 };
