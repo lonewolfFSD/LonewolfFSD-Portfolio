@@ -14,7 +14,7 @@ import JapaneseSpring from './Videos/japanese-spring.960x540.mp4';
 
 import Cropper from "react-easy-crop";
 import { Area } from "react-easy-crop/types";
-import { BadgeCheck, RotateCcw, RotateCw } from "lucide-react";
+import { BadgeCheck, Plus, RotateCcw, RotateCw } from "lucide-react";
 
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
@@ -199,7 +199,7 @@ const [virtualCurrency, setVirtualCurrency] = useState<number>(300);
   const [searchQuery, setSearchQuery] = useState("");
 const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-const allCategories = ["nature", "anime", "neon", "space", "games"];
+const allCategories = ["nature", "anime", "neon", "space", "games", "free"];
 
 
 function toggleCategory(category: string) {
@@ -211,6 +211,7 @@ function toggleCategory(category: string) {
 
 
 const videoOptions = [
+  { id: "none", name: "No Video Background", url: null, categories: ["free"], price: 0, locked: false },
   { id: "video1", name: "Tranquil Japan Lake", url: "https://motionbgs.com/media/7359/tranquil-japan-lake-view.960x540.mp4", categories: ["nature"], price: 500, locked: true },
   { id: "video2", name: "Mystical Torii", url: "https://motionbgs.com/media/6203/mystical-torii.960x540.mp4", categories: ["nature"], price: 1500, locked: true },
   { id: "video3", name: "Japanese Spring", url: JapaneseSpring, categories: ["nature"], price: 500, locked: true },
@@ -218,13 +219,12 @@ const videoOptions = [
   { id: "video5", name: "Coffee Shop", url: "https://motionbgs.com/media/6199/coffee-shop.960x540.mp4", categories: ["anime"], price: 2000, locked: true  },
   { id: "video6", name: "Misty Rain", url: "https://motionbgs.com/media/7362/hydrangeas-rain.960x540.mp4", categories: ["nature"], price: 2000, locked: true  },
   { id: "video7", name: "Evening Drive", url: "https://motionbgs.com/media/7513/evening-drive-and-windmills.960x540.mp4", categories: ["nature"], price: 2000, locked: true  },
-  { id: "video8", name: "Neon Skyline", url: "https://motionbgs.com/media/7738/neon-skyline.960x540.mp4", categories: ["neon"], price: 0, locked: false  },
+  { id: "video8", name: "Neon Skyline", url: "https://motionbgs.com/media/7738/neon-skyline.960x540.mp4", categories: ["neon", "free"], price: 0, locked: false  },
   { id: "video9", name: "The Nebula", url: "https://motionbgs.com/media/2887/nebula.960x540.mp4", categories: ["space"], price: 5000, locked: true  },
   { id: "video10", name: "The Last Of Us", url: "https://motionbgs.com/media/501/surviving-the-last-of-us.960x540.mp4", categories: ["games"], price: 5000, locked: true  },
-   { id: "video11", name: "Silent Hill 2", url: "https://motionbgs.com/media/7031/silent-hill-2.960x540.mp4", categories: ["games"], price: 3500, locked: true  },
+  { id: "video11", name: "Silent Hill 2", url: "https://motionbgs.com/media/7031/silent-hill-2.960x540.mp4", categories: ["games"], price: 3500, locked: true  },
   { id: "video12", name: "Los Santos: GTA V", url: "https://motionbgs.com/media/2538/sunset-in-los-santos-gta-v.960x540.mp4", categories: ["games"], price: 2000, locked: true  },
   { id: "video13", name: "Read Dead: RDR2", url: "https://motionbgs.com/media/2837/rdr-2-animated.960x540.mp4", categories: ["games"], price: 3500, locked: true  }, 
-  { id: "none", name: "No Video Background", url: null, categories: [], price: 0, locked: false },
 ];
 
 const [purchasedVideos, setPurchasedVideos] = useState<string[]>([]);
@@ -1381,17 +1381,17 @@ useEffect(() => {
   </div>
 
 
-      <div className="flex min-h-screen items-center justify-center px-4 md:px-6 py-20 bg-transparent z-0">
+      <div className={`flex min-h-screen items-center justify-center ${selectedVideo ? 'px-3 md:px-6' : 'px-2 md:px-6'}  py-20 bg-transparent z-0`}>
 
 
       <motion.div
-        className={`w-full max-w-5xl -mt-14 ${publicMode ? 'md:-mt-36' : 'md:-mt-10'} px-6 ${selectedVideo ? 'py-10' : ''} md:py-16 md:px-12 rounded-2xl md:rounded-xl backdrop-blur-lg md:border md:border-black ${selectedVideo ? 'bg-white/100' : 'bg-white'} relative z-10`}
+        className={`w-full max-w-5xl -mt-14 ${publicMode ? 'md:-mt-36' : 'md:-mt-10'} px-6 ${selectedVideo ? 'py-10' : ''} md:py-16 md:px-12 rounded-2xl md:rounded-xl backdrop-blur-lg md:border md:border-black ${selectedVideo ? 'bg-black/60' : 'bg-white'} relative z-10`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
 <h2
-      className="text-[30px] font-bold mb-6 text-left text-black tracking-tight"
+      className={`text-[30px] font-bold mb-6 text-left ${selectedVideo ? 'text-white' : 'text-black'}  tracking-tight`}
       style={{ fontFamily: "Poppins" }}
     >
       {user.displayName}'s Profile
@@ -1465,63 +1465,63 @@ useEffect(() => {
               </div>
           </div>
 
-            <h3 className={`text-2xl md:text-lg font-bold text-black md:mt-3 mt-8 ${publicMode ? 'col-span-2' : 'col-span-2'}`} style={{ fontFamily: 'Poppins'}}>Personal Details</h3>
+            <h3 className={`text-2xl md:text-lg font-bold md:mt-3 mt-8 ${publicMode ? 'col-span-2' : 'col-span-2'} ${selectedVideo ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Poppins'}}>Personal Details</h3>
 
             <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1`}>
-              <div className="pt-1"><User className="text-gray-700 w-5 h-5" /></div>
+              <div className="pt-1"><User className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className="text-xs text-gray-500">Name</p>
-                <p className="text-black font-medium text-sm break-words">{user.displayName || "Not set"}</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Name</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user.displayName || "Not set"}</p>
               </div>
             </div>
 
             <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
-              <div className="pt-1"><Mail className="text-gray-700 w-5 h-5" /></div>
+              <div className="pt-1"><Mail className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className="text-xs text-gray-500">Email</p>
-                <p className="text-black font-medium text-sm break-words">{user.email || "Unknown"}</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Email</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user.email || "Unknown"}</p>
               </div>
             </div>
 
             <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
-              <div className="pt-1"><ShieldCheck className="text-gray-700 w-5 h-5" /></div>
+              <div className="pt-1"><ShieldCheck className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className="text-xs text-gray-500">Email Verified</p>
-                <p className="text-black font-medium text-sm break-words">{user.emailVerified ? "Yes" : "No"}</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Email Verified</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user.emailVerified ? "Yes" : "No"}</p>
               </div>
             </div>
 
             <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
-              <div className="pt-1"><Calendar className="text-gray-700 w-5 h-5" /></div>
+              <div className="pt-1"><Calendar className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className="text-xs text-gray-500">Last Login</p>
-                <p className="text-black font-medium text-sm break-words">{publicMode ? user.metadata?.lastSignInTime || "Unknown" : user.metadata?.lastSignInTime || "Unknown"}</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Last Login</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{publicMode ? user.metadata?.lastSignInTime || "Unknown" : user.metadata?.lastSignInTime || "Unknown"}</p>
               </div>
             </div>
 
             <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
-              <div className="pt-1"><Globe className="text-gray-700 w-5 h-5" /></div>
+              <div className="pt-1"><Globe className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className="text-xs text-gray-500">Region</p>
-                <p className="text-black font-medium text-sm break-words">{region}</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Region</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{region}</p>
               </div>
             </div>
 
             {/* Sensitive info - Hidden in public mode */}
 
                 <div className={`flex items-start border border-gray-200 ${publicMode ? 'hidden' : 'block'}  rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1`}>
-                    <div className="pt-1"><LocateFixed className="text-gray-700 w-5 h-5" /></div>
+                    <div className="pt-1"><LocateFixed className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
-                      <p className="text-xs text-gray-500 ml-3">Location</p>
-                      <p className="text-black font-medium text-sm break-words ml-3 md:ml-3">{location}</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Location</p>
+                      <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{location}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
-                    <div className="pt-1"><Clock className="text-gray-700 w-5 h-5" /></div>
+                    <div className="pt-1"><Clock className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
-                      <p className="text-xs text-gray-500">Current Time</p>
-                      <p className="text-black font-medium text-sm break-words">{currentTime}</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Current Time</p>
+                      <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{currentTime}</p>
                     </div>
                   </div>
 
@@ -1529,29 +1529,29 @@ useEffect(() => {
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
                     <div className="pt-1">
                       {deviceName === "iPhone" ? (
-                        <Phone className="text-gray-700 w-5 h-5" />
+                        <Phone className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} />
                       ) : deviceName === "Windows PC" ? (
-                        <Monitor className="text-gray-700 w-5 h-5" />
+                        <Monitor className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} />
                       ) : deviceName === "Linux PC" ? (
-                        <Monitor className="text-gray-700 w-5 h-5" />
+                        <Monitor className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} />
                       ) : deviceName.includes("Android") ? (
-                        <Phone className="text-gray-700 w-5 h-5" />
+                        <Phone className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} />
                       ) : (
-                        <User className="text-gray-700 w-5 h-5" />
+                        <User className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} />
                       )}
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Device</p>
-                      <p className="text-black font-medium text-sm break-words">{deviceName}</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Device</p>
+                      <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{deviceName}</p>
                     </div>
                   </div>
 
                   {!publicMode && (
                     <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
-                      <div className="pt-1"><Calendar className="text-gray-700 w-5 h-5" /></div>
+                      <div className="pt-1"><Calendar className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                       <div>
-                        <p className="text-xs text-gray-500">Account Created</p>
-                        <p className="text-black font-medium text-sm break-words">
+                        <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Account Created</p>
+                        <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>
                           {user?.metadata?.creationTime
                             ? new Date(user.metadata.creationTime).toLocaleDateString()
                             : "Unknown"}
@@ -1561,24 +1561,59 @@ useEffect(() => {
                   )}
 
                   <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1 ${publicMode ? 'hidden' : 'block'}`}>
-                    <div className="pt-1"><BadgeCheck className="text-gray-700 w-5 h-5" /></div>
+                    <div className="pt-1"><BadgeCheck className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
-                      <p className="text-xs text-gray-500">Member Status</p>
-                      <p className="text-black font-medium text-sm break-all">{userRole || "user"}</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Member Status</p>
+                      <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-all`}>{userRole || "user"}</p>
                     </div>
                   </div>
 
                   <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 ${publicMode ? 'hidden' : 'block'}`}>
-                    <div className="pt-1"><UserCog className="text-gray-700 w-5 h-5" /></div>
+                    <div className="pt-1"><UserCog className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
-                      <p className="text-xs text-gray-500">FSD ID</p>
-                      <p className="text-black font-medium text-sm break-all">{user.uid}</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>FSD ID</p>
+                      <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-all`}>{user.uid}</p>
                     </div>
                   </div>
 
+                  {userRole === "client" && !publicMode && (
+                    <hr className="my-3 opacity-20" />
+                  )}
+
+                  {userRole === "client" && !publicMode && (
+                    <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2">
+                      <div className="flex items-start space-x-3">
+                        <div className="pt-1">
+                          <UserCog className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} />
+                        </div>
+                        <div>
+                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>Client Portal</p>
+                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>
+                            Track projects, payments & progress
+                          </p>
+                        </div>
+                      </div>
+                        
+                      <motion.button
+                        onClick={() => navigate("/client-portal")}
+                        className={`py-2.5 px-4 font-semibold mt-4 md:mt-0 rounded-lg ${selectedVideo ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-black hover:bg-black/90'}  cursor-custom-pointer transition-all text-xs`}
+                        style={{
+                          fontFamily: 'Poppins'
+                        }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Access Client Portal
+                      </motion.button>
+                    </div>
+                  )}
+
+                  {userRole === "client" && !publicMode && (
+                    <hr className="my-3 opacity-20" />
+                  )}
+
                   
                   <div className="mt-8 col-span-2">
-                    <h1 className="text-2xl md:text-lg font-bold col-span-2" style={{ fontFamily: 'Poppins' }}>
+                    <h1 className={`${selectedVideo ? 'text-white' : 'text-black'} text-2xl md:text-lg font-bold col-span-2`} style={{ fontFamily: 'Poppins' }}>
                       Achievements
                     </h1>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -1632,82 +1667,60 @@ useEffect(() => {
                           </Tilt>
                         ))
                       ) : (
-                        <p className="text-sm text-gray-500 col-span-2 border p-4 rounded-xl">No achievements yet. Keep exploring!</p>
+                        <p className={`text-sm  col-span-2 border p-4 rounded-xl ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>No achievements yet. Keep exploring!</p>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-8 col-span-2">
-                    <h1 className="text-2xl md:text-lg font-bold col-span-2 mb-5" style={{ fontFamily: 'Poppins' }}>
+                    <h1 className={`text-2xl md:text-lg font-bold col-span-2 mb-5 ${selectedVideo ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Poppins' }}>
                       Personalization
                     </h1>
-                    <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
-                      <div className="pt-1">
-                        <Settings className="text-gray-700 w-4 h-4 -mt-1 -mr-1" />
-                      </div>
-
-                      <div className="flex flex-1 justify-between items-start">
-                        <div>
-                          <p className="text-xs text-gray-500">Background Video</p>
-                          <p className="text-black font-medium text-sm">Customize your profile background</p>
-                        </div>
-
-                        <motion.button
-                          onClick={() => setIsVideoModalOpen(true)}
-                          className="ml-auto px-4 py-2 text-sm font-semibold rounded-md bg-black text-white hover:bg-black/90 cursor-pointer"
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          Change Background
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {userRole === "client" && !publicMode && (
                     <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2">
                       <div className="flex items-start space-x-3">
                         <div className="pt-1">
-                          <UserCog className="text-gray-700 w-5 h-5" />
+                          <Settings className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500">Client Portal</p>
-                          <p className="text-black font-medium text-sm">
-                            Track projects, payments & progress
-                          </p>
+                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>Background Appearance</p>
+                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>Customize your profile background</p>
                         </div>
                       </div>
                         
                       <motion.button
-                        onClick={() => navigate("/client-portal")}
-                        className="py-2.5 px-4 font-semibold mt-4 md:mt-0 rounded-lg bg-black text-white hover:bg-black/90 cursor-custom-pointer transition-all text-xs"
+                        onClick={() => setIsVideoModalOpen(true)}
+                        className={`py-2.5 px-4 font-semibold mt-4 md:mt-0 rounded-lg ${selectedVideo ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-black hover:bg-black/90'}  cursor-custom-pointer transition-all text-xs`}
                         style={{
                           fontFamily: 'Poppins'
                         }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        Access Client Portal
+                        Change Background
                       </motion.button>
                     </div>
-                  )}
+                    
+                  </div>
+
+
 
                                 {!publicMode && user?.uid === auth.currentUser?.uid && (
                 <>
 
                   {/* Privacy & Security Section */}
-                  <h1 className="text-2xl md:text-lg font-bold mt-8 col-span-2" style={{ fontFamily:'Poppins'}}>Privacy & Security</h1>
+                  <h1 className={`text-2xl md:text-lg font-bold mt-8 col-span-2 ${selectedVideo ? 'text-white' : 'text-black'}`} style={{ fontFamily:'Poppins'}}>Privacy & Security</h1>
                   
-                  <h3 className="text-lg md:text-sm font-semibold text-black mb-1 mt-3 col-span-2">Two-Factor Authentication (2FA)</h3>
+                  <h3 className={`text-lg md:text-sm font-semibold ${selectedVideo ? 'text-white' : 'text-black'} mb-1 mt-3 col-span-2`}>Two-Factor Authentication (2FA)</h3>
                   {biometricError && <p className="text-red-500 text-sm mb-4"><span className="bg-red-100 text-sm border border-red-400 rounded-lg px-6 py-2.5 flex gap-2"><AlertCircle size={18} className="mt-[1px]" />{biometricError}</span></p>}
                     {success && <p className="text-green-500 text-sm mb-4"><span className="bg-green-100 text-sm border border-green-400 rounded-lg px-6 py-2.5 flex gap-2"><CheckCircle size={18} className="mt-[1px]" />{success}</span></p>}
-                  <div className="flex items-center justify-between col-span-2">
-                    <div className="flex items-center space-x-4 ">
-                      <div className="p-3 bg-black/5 rounded-lg">
-                        <Fingerprint className="w-6 h-6 text-black" />
+                  <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2">
+                      <div className="flex items-start space-x-3">
+                      <div className={`p-3  ${selectedVideo ? 'bg-white/5' : 'bg-black/5'} rounded-lg`}>
+                        <Fingerprint className={`w-6 h-6 ${selectedVideo ? 'text-white' : 'text-black'}`} />
                       </div>
-                      <div>
-                        <h3 className="font-medium mt-2 md:mt-0">Biometric Authentication</h3>
-                        <p className="text-sm text-gray-500">
+                      <div className="-mt-1.5 md:mt-0">
+                        <h3 className={`font-medium mt-2 md:mt-0 ${selectedVideo ? 'text-white' : 'text-black'}`}>Biometric Authentication</h3>
+                        <p className={`text-sm ${selectedVideo ? 'text-gray-300' : 'text-gray-500'}`}>
                           {isBiometric2FAEnabled ? "Enabled" : "Not enabled"}
                         </p>
                       </div>
@@ -1715,9 +1728,9 @@ useEffect(() => {
                     <motion.button
                       onClick={initiateBiometricSetup}
                       disabled={isBiometric2FAEnabled}
-                      className={`px-5 py-2 rounded-lg cursor-custom-pointer font-semibold text-[12px] transition-colors ${
+                      className={`px-5 py-2 rounded-lg mt-3 md:mt-0 cursor-custom-pointer font-semibold text-[12px] transition-colors ${
                         isBiometric2FAEnabled
-                        ? "bg-green-50 border border-2 border-green-300 text-green-600 hover:bg-green-100"
+                        ? "bg-green-50 border border-2 border-green-300 text-green-600 hover:bg-green-100 cursor-not-allowed"
                         : "bg-black text-white hover:bg-black/90"
                       }`}
                       style={{ fontFamily: "Poppins" }}
@@ -1725,8 +1738,8 @@ useEffect(() => {
                       {isBiometric2FAEnabled ? "Biometric 2FA Enabled" : "Enable Biometric 2FA"}
                     </motion.button>
                   </div>
-                  <span className="bg-yellow-50  col-span-2 text-sm border border-yellow-400 rounded-lg text-yellow-600 px-5 py-3 flex items-start space-x-2">
-                    <AlertCircle className="hidden md:block md:w-6 md:h-6 md:-mt-0.5" />
+                  <span className={`bg-yellow-50 ${isBiometric2FAEnabled ? '' : 'hidden'}  col-span-2 text-sm border border-yellow-400 rounded-lg text-yellow-600 px-5 py-3 flex items-start space-x-2`}>
+                    <AlertCircle className="w-12 -mt-0.5 md:block  md:w-6 md:h-6 md:-mt-0.5" />
                     <span className="font-semibold">
                       <span style={{ fontFamily: 'Poppins' }}>Biometric 2FA</span> is enabled for your security. Disabling it without a proper reason may put your account at risk. 
                       
@@ -1737,13 +1750,13 @@ useEffect(() => {
                   </span>
 
                   <hr className="col-span-2 my-3" />
-                  <h3 className="text-xl md:text-md font-semibold text-black ">Connections & Activities</h3>
+                  <h3 className={`text-xl md:text-md font-semibold ${selectedVideo ? 'text-white' : 'text-black'} `}>Connections & Activities</h3>
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
                     <div className="pt-1">
-                      <Link2 className="text-gray-700 w-4 h-4 -mt-1 -mr-1" />
+                      <Link2 className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Connected Account</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>Connected Account</p>
                       {connectedAccounts.length > 0 ? (
                         <div className="flex flex-wrap gap-2 mt-1">
                           {connectedAccounts.map((domain) => {
@@ -1768,10 +1781,10 @@ useEffect(() => {
                   </div>
 
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
-                    <div className="pt-1"><History className="text-gray-700 w-4 h-4 -mt-1 -mr-1" /></div>
+                    <div className="pt-1"><History className={`${selectedVideo ? 'text-gray-500' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} /></div>
                     <div>
-                      <p className="text-xs text-gray-500">Recent Login Activity</p>
-                      <ul className="text-black font-medium text-xs mt-1.5 space-y-1 break-words">
+                      <p className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>Recent Login Activity</p>
+                      <ul className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-xs mt-1.5 space-y-1 break-words`}>
                         {recentLogins.map((login, index) => (
                           <li key={index}>{login}</li>
                         ))}
@@ -1788,7 +1801,7 @@ useEffect(() => {
                 {!publicMode && user?.uid === auth.currentUser?.uid && (
                 <>
                 <div className="mt-8">
-                  <h3 className="text-xl md:text-md font-semibold text-black mb-3">Change Password</h3>
+                  <h3 className={`text-xl md:text-md font-semibold mb-3 ${selectedVideo ? 'text-white' : 'text-black'}`}>Change Password</h3>
                   <>
                     {error && <p className="text-red-500 text-sm mb-4"><span className="bg-red-100 text-sm border border-red-400 rounded-lg px-6 py-2.5 flex gap-2"><AlertCircle size={18} className="mt-[1px]" />{error}</span></p>}
                     {success && <p className="text-green-500 text-sm mb-4"><span className="bg-green-100 text-sm border border-green-400 rounded-lg px-6 py-2.5 flex gap-2"><CheckCircle size={18} className="mt-[1px]" />{success}</span></p>}
@@ -1799,7 +1812,7 @@ useEffect(() => {
                         </p>
                       )}
                       <div className="col-span-2">
-                        <label className="text-xs text-gray-500">Current Password</label>
+                        <label className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>Current Password</label>
                         <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 space-x-3">
                           <Lock className="text-gray-700 w-4 h-4" />
                           <input
@@ -1817,7 +1830,7 @@ useEffect(() => {
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500">New Password</label>
+                        <label className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>New Password</label>
                         <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 space-x-3">
                           <Lock className="text-gray-700 w-4 h-4" />
                           <input
@@ -1832,7 +1845,7 @@ useEffect(() => {
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500">Confirm New Password</label>
+                        <label className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>Confirm New Password</label>
                         <div className="flex items-center border border-gray-200 rounded-xl mb-5 px-4 py-3 space-x-3">
                           <Lock className="text-gray-700 w-4 h-4" />
                           <input
@@ -1849,7 +1862,7 @@ useEffect(() => {
                       <motion.button
                         type="submit"
                         className={`w-full py-3.5 font-semibold rounded-xl col-span-2 md:col-span-1 ${
-                          !isPasswordProvider ? "bg-black/20 text-white/90 cursor-not-allowed" : "bg-black text-white hover:bg-black/90 cursor-custom-pointer"
+                          !isPasswordProvider ? `${selectedVideo ? 'bg-white/10 opacity-50 text-white' : 'bg-black/10 opacity-50 text-white'} cursor-not-allowed` : `${selectedVideo ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'} cursor-custom-pointer`
                         } transition-colors`}
                         whileHover={{ scale: 1.01 }}
                         disabled={!isPasswordProvider}
@@ -1874,7 +1887,7 @@ useEffect(() => {
                   >
                     <Trash2 strokeWidth={3} className="md:w-4 md:h-4 md:mt-1 md:mr-2" /> Delete Account for {user.displayName}
                   </h3>
-                  <p className="text-md text-gray-500 mb-4 col-span-2">
+                  <p className={`text-md ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}  mb-4 col-span-2`}>
                     Permanently delete your account. This action cannot be undone.
                   </p>
                   <motion.button
@@ -1888,18 +1901,18 @@ useEffect(() => {
 
                 </div>
                 <h3
-                  className="text-lg md:text-[17px] mt-12 font-semibold text-black mb-4 flex text-black"
+                  className={`text-lg md:text-[17px] mt-12 font-semibold  mb-4 flex ${selectedVideo ? 'text-white' : 'text-black'}`}
                   style={{ fontFamily: "Poppins" }}
                 >
                   <LogOut strokeWidth={3} className="w-4 h-4 mt-1 mr-2" /> Logout From {deviceName}
                 </h3>
-                <p className="text-md md:text-sm text-gray-500 -mb-3">
+                <p className={`text-md ${selectedVideo ? 'text-gray-400' : 'text-gray-500'} -mb-3`}>
                   Sign out from your current session on this device.
                 </p>
                 <div className="grid grid-cols-2">
                   <motion.button
                     onClick={handleSignOut}
-                    className="w-full py-3.5 -mt-0 cursor-custom-pointer font-semibold rounded-xl flex items-center justify-center gap-2 bg-black text-white hover:bg-black/90 transition-colors mt-8 col-span-2 md:col-span-1"
+                    className={`w-full py-3.5 -mt-0 cursor-custom-pointer font-semibold rounded-xl flex items-center justify-center ${selectedVideo ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'} gap-2 transition-colors mt-8 col-span-2 md:col-span-1`}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                   >
@@ -2304,7 +2317,7 @@ useEffect(() => {
               </h3>
               <span className="flex items-center gap-1 text-sm font-semibold text-black border border-black px-4 py-1 rounded-full">
                 <img src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" alt="Credits" className="w-4 h-4" />
-                {virtualCurrency}
+                {virtualCurrency} <span className="bg-black p-1 rounded-full ml-1"><Plus size={10} className="text-white cursor-custom-pointer"/></span>
               </span>
 
             </div>
