@@ -9,6 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { getAuth } from 'firebase/auth';
 import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 import { Tilt } from 'react-tilt';
+import logo from './mockups/logo.png';
 
 import JapaneseSpring from './Videos/japanese-spring.960x540.mp4';
 import LosSantos from './Videos/sunset-in-los-santos-gta-v.1920x1080.mp4';
@@ -1370,7 +1371,7 @@ useEffect(() => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <a href=""><img src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg" className='cursor-custom-pointer rounded-full' style={{
+          <a href=""><img src={logo} className={`cursor-custom-pointer rounded-full ${selectedVideo ? 'invert' : ''}`} style={{
             width: '60px', height: 'auto', marginBottom: '-5px'
           }}/></a>
         </motion.div>
@@ -1920,7 +1921,7 @@ useEffect(() => {
                       className={`px-5 py-2 rounded-lg mt-3 md:mt-0 cursor-custom-pointer font-semibold text-[12px] transition-colors ${
                         isBiometric2FAEnabled
                         ? "bg-green-50 border border-2 border-green-300 text-green-600 hover:bg-green-100 cursor-not-allowed"
-                        : "bg-black text-white hover:bg-black/90"
+                        : `${selectedVideo ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'}`
                       }`}
                       style={{ fontFamily: "Poppins" }}
                       >
