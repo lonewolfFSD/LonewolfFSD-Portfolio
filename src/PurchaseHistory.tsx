@@ -80,7 +80,7 @@ const PurchaseHistory: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full border border-black">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-gray-100 whitespace-nowrap">
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Item Name</th>
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Amount Paid</th>
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Date & Time</th>
@@ -90,7 +90,7 @@ const PurchaseHistory: React.FC = () => {
               </thead>
               <tbody>
                 {purchases.map((purchase) => (
-                  <tr key={purchase.id} className="border-b border-black">
+                  <tr key={purchase.id} className="border-b border-black whitespace-nowrap">
                     <td className="py-4 px-6 text-sm border-r border-black">{purchase.name}</td>
                     <td className="py-4 px-6 text-sm border-r border-black">
                       {purchase.paymentType === "credits"
