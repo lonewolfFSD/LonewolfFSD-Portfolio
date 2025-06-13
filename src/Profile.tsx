@@ -225,6 +225,7 @@ const [isCreditsOpen, setIsCreditsOpen] = useState(true);
 
   // Replace purchasedCredits with purchaseDetails
   const [purchaseDetails, setPurchaseDetails] = useState<PurchaseDetails | null>(null);
+const [isPurchaseHistoryOpen, setIsPurchaseHistoryOpen] = useState(false);
 
 const [selectedMusic, setSelectedMusic] = useState<string | null>(null);
 const [purchasedMusic, setPurchasedMusic] = useState<string[]>([]);
@@ -272,94 +273,104 @@ useEffect(() => {
 }, [purchaseDetails]);
 
 
+
+
 // Updated handlePayment function
 const handlePayment = async (amount: number, credits: number, image: string) => {
-    // Load Razorpay SDK
-    const res = await loadRazorpayScript();
-    if (!res) {
-      setToast({ message: 'Razorpay SDK failed to load.', type: 'error' });
-      return;
-    }
+  const res = await loadRazorpayScript();
+  if (!res) {
+    setToast({ message: 'Razorpay SDK failed to load.', type: 'error' });
+    return;
+  }
 
-    if (!user || !user.uid) {
-      setToast({ message: 'User not authenticated.', type: 'error' });
-      return;
-    }
+  if (!user || !user.uid) {
+    setToast({ message: 'User not authenticated.', type: 'error' });
+    return;
+  }
 
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_y2c1NPOWRBIcgH', // Use env variable
-      amount: amount * 100, // Amount in paise
-      currency: 'INR',
-      name: 'LonewolfFSD',
-      description: `Purchase ${credits} Credits`,
-      // WARNING: order_id is required for production. Hardcode for testing only or use a backend/Payment Links.
-      // order_id: 'order_XXX', // Uncomment and set for testing; generate via Razorpay Dashboard
-      handler: async function (response: any) {
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          await runTransaction(db, async (transaction) => {
-            const userDoc = await transaction.get(userRef);
-            if (!userDoc.exists()) {
-              throw new Error('User document not found.');
-            }
-            const currentData = userDoc.data();
-            const currentCredits = currentData.virtualCurrency ?? 0;
-            transaction.update(userRef, {
-              virtualCurrency: currentCredits + credits,
-              updatedAt: new Date().toISOString(),
-            });
+  const name = `FSD ${credits} Credits Pack`; // Generate name for purchase history
+  const purchaseDate = new Date().toLocaleString('en-IN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const options = {
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_y2c1NPOWRBIcgH',
+    amount: amount * 100,
+    currency: 'INR',
+    name: 'LonewolfFSD',
+    description: `Purchase ${credits} Credits`,
+    handler: async function (response: any) {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+        await runTransaction(db, async (transaction) => {
+          const userDoc = await transaction.get(userRef);
+          if (!userDoc.exists()) {
+            throw new Error('User document not found.');
+          }
+          const currentData = userDoc.data();
+          const currentCredits = currentData.virtualCurrency ?? 0;
+          transaction.update(userRef, {
+            virtualCurrency: currentCredits + credits,
+            updatedAt: new Date().toISOString(),
           });
-
-          const purchaseDate = new Date().toLocaleString('en-IN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-
-          setPurchaseDetails({
-            credits,
-            amount,
-            date: purchaseDate,
+          transaction.set(purchaseRef, {
+            type: "credits",
+            name,
+            amount: amount,
+            paymentType: "real_money",
             transactionId: response.razorpay_payment_id,
-            image, // ✅ include image here
+            date: purchaseDate,
+            image,
+            createdAt: new Date().toISOString(),
           });
+        });
 
-          setVirtualCurrency((prev) => prev + credits);
-          setToast({ message: `${credits} credits added!`, type: 'success' });
+        setPurchaseDetails({
+          credits,
+          amount,
+          date: purchaseDate,
+          transactionId: response.razorpay_payment_id,
+          image,
+        });
 
-        } catch (error) {
-          console.error('Firestore update error:', error);
-          setToast({ message: 'Failed to update credits. Contact support.', type: 'error' });
-        }
+        setVirtualCurrency((prev) => prev + credits);
+        setToast({ message: `${credits} credits added!`, type: 'success' });
+      } catch (error) {
+        console.error('Firestore update error:', error);
+        setToast({ message: 'Failed to update credits. Contact support.', type: 'error' });
+      }
+    },
+    modal: {
+      ondismiss: () => {
+        setToast({ message: 'Payment cancelled.', type: 'error' });
       },
-      modal: {
-        ondismiss: () => {
-          setToast({ message: 'Payment cancelled.', type: 'error' });
-        },
-      },
-      prefill: {
-        name: user?.displayName || 'Client',
-        email: user?.email || '',
-        contact: user?.phoneNumber || '',
-      },
-      theme: {
-        color: '#000000',
-      },
-    };
-
-    try {
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on('payment.failed', function (response: any) {
-        setToast({ message: `Payment failed: ${response.error.description}`, type: 'error' });
-      });
-      rzp.open();
-    } catch (err) {
-      console.error('Razorpay error:', err);
-      setToast({ message: 'Failed to initiate payment.', type: 'error' });
-    }
+    },
+    prefill: {
+      name: user?.displayName || 'Client',
+      email: user?.email || '',
+      contact: user?.phoneNumber || '',
+    },
+    theme: {
+      color: '#000000',
+    },
   };
+
+  try {
+    const rzp = new (window as any).Razorpay(options);
+    rzp.on('payment.failed', function (response: any) {
+      setToast({ message: `Payment failed: ${response.error.description}`, type: 'error' });
+    });
+    rzp.open();
+  } catch (err) {
+    console.error('Razorpay error:', err);
+    setToast({ message: 'Failed to initiate payment.', type: 'error' });
+  }
+};
 
   const [searchQuery, setSearchQuery] = useState("");
 const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -376,22 +387,23 @@ function toggleCategory(category: string) {
 
 
 const videoOptions = [
-  { id: "none", name: "No Video Background", url: null, categories: ["free"], price: 0, locked: false },
-  { id: "video1", name: "Tranquil Japan Lake", url: Tanquirl, categories: ["nature"], price: 500, locked: true },
-  { id: "video2", name: "Mystical Torii", url: MysticalTorii, categories: ["nature"], price: 1500, locked: true },
-  { id: "video3", name: "Japanese Spring", url: JapaneseSpring, categories: ["nature"], price: 500, locked: true },
-  { id: "video4", name: "Samurai Night", url: Samurai, categories: ["anime"], price: 1500, locked: true  },
-  { id: "video5", name: "Coffee Shop", url: Coffeeshop, categories: ["anime"], price: 2000, locked: true  },
-  { id: "video6", name: "Misty Rain", url: MistyRain, categories: ["nature"], price: 2000, locked: true  },
-  { id: "video7", name: "Evening Drive", url: SunsetDrive, categories: ["nature"], price: 2000, locked: true  },
-  { id: "video8", name: "Neon Skyline", url: "https://motionbgs.com/media/7738/neon-skyline.960x540.mp4", categories: ["neon", "free"], price: 0, locked: false  },
-  { id: "video9", name: "The Nebula", url: Nebula, categories: ["space"], price: 5000, locked: true  },
-  { id: "video10", name: "The Last Of Us", url: LastOfUs, categories: ["games"], price: 5000, locked: true  },
-  { id: "video11", name: "Silent Hill 2", url: SilentHill, categories: ["games"], price: 3500, locked: true  },
-  { id: "video12", name: "Los Santos: GTA V", url: LosSantos, categories: ["games"], price: 3500, locked: true  },
-  { id: "video13", name: "Read Dead: RDR2", url: RedDead, categories: ["games"], price: 5000, locked: true  }, 
-  { id: "video14", name: "Yinlin - WW", url: Yinlin, categories: ["games"], price: 5000, locked: true  }, 
+  { id: "none", name: "No Video Background", url: null, categories: ["free"], price: 0, locked: false, paymentOptions: ["credits"] },
+  { id: "video1", name: "Tranquil Japan Lake", url: Tanquirl, categories: ["nature"], price: 500, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 49 },
+  { id: "video2", name: "Mystical Torii", url: MysticalTorii, categories: ["nature"], price: 1500, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 129 },
+  { id: "video3", name: "Japanese Spring", url: JapaneseSpring, categories: ["nature"], price: 500, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 49 },
+  { id: "video4", name: "Samurai Night", url: Samurai, categories: ["anime"], price: 1500, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 129 },
+  { id: "video5", name: "Coffee Shop", url: Coffeeshop, categories: ["anime"], price: 2000, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 199 },
+  { id: "video6", name: "Misty Rain", url: MistyRain, categories: ["nature"], price: 2000, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 199 },
+  { id: "video7", name: "Evening Drive", url: SunsetDrive, categories: ["nature"], price: 2000, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 199 },
+  { id: "video8", name: "Neon Skyline", url: "https://motionbgs.com/media/7738/neon-skyline.960x540.mp4", categories: ["neon", "free"], price: 0, locked: false, paymentOptions: ["credits"] },
+  { id: "video9", name: "The Nebula", url: Nebula, categories: ["space"], price: 5000, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 399 },
+  { id: "video10", name: "The Last Of Us", url: LastOfUs, categories: ["games"], price: 5000, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 499 },
+  { id: "video11", name: "Silent Hill 2", url: SilentHill, categories: ["games"], price: 3500, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 299 },
+  { id: "video12", name: "Los Santos: GTA V", url: LosSantos, categories: ["games"], price: 3500, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 299 },
+  { id: "video13", name: "Read Dead: RDR2", url: RedDead, categories: ["games"], price: 5000, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 499 },
+  { id: "video14", name: "Yinlin - WW", url: Yinlin, categories: ["games"], price: 5000, locked: true, paymentOptions: ["credits", "real_money"], priceINR: 499 },
 ];
+
 
 const musicOptions = [
   { id: "none", name: "No Music", url: null, categories: ["free"], price: 0, locked: false, image: "https://via.placeholder.com/150?text=None" },
@@ -1231,6 +1243,97 @@ useEffect(() => {
     fetchUserRole();
   }, []);
 
+  const handlePurchaseRealMoneyVideo = async (video: { id: string; name: string; priceINR: number; url: string }) => {
+    if (!user || !user.uid) {
+      setToast({ message: "You must be signed in to purchase videos.", type: "error" });
+      return;
+    }
+
+    const res = await loadRazorpayScript();
+    if (!res) {
+      setToast({ message: "Razorpay SDK failed to load.", type: "error" });
+      return;
+    }
+
+      const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const purchaseDate = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_y2c1NPOWRBIcgH",
+      amount: (video.priceINR || 0) * 100, // Use priceINR, convert to paise
+      currency: "INR",
+      name: "LonewolfFSD",
+      description: `Purchase Video: ${video.name}`,
+      handler: async function (response: any) {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+        await runTransaction(db, async (transaction) => {
+          const userDoc = await transaction.get(userRef);
+          if (!userDoc.exists()) {
+            throw new Error("User document not found.");
+          }
+          transaction.update(userRef, {
+            purchasedVideos: arrayUnion(video.id),
+            updatedAt: new Date().toISOString(),
+          });
+          transaction.set(purchaseRef, {
+            type: "video",
+            name: video.name,
+            amount: video.priceINR,
+            paymentType: "real_money",
+            transactionId,
+            date: purchaseDate,
+            url: video.url,
+            createdAt: new Date().toISOString(),
+          });
+        });
+
+        setPurchasedVideos((prev) => [...prev, video.id]);
+        setVideoPurchaseDetails({
+          id: video.id,
+          name: video.name,
+          url: video.url,
+          priceINR: video.priceINR,
+          paymentType: "real_money",
+          transactionId,
+          date: purchaseDate,
+        });
+        setToast({ message: `Purchased "${video.name}" successfully! 🌟`, type: "success" });
+      } catch (error) {
+        console.error("Firestore update error:", error);
+        setToast({ message: "Failed to save purchase. Contact support.", type: "error" });
+      }
+    },
+    modal: {
+      ondismiss: () => {
+        setToast({ message: "Payment cancelled.", type: "error" });
+      },
+    },
+    prefill: {
+      name: user?.displayName || "Client",
+      email: user?.email || "",
+      contact: user?.phoneNumber || "",
+    },
+    theme: {
+      color: "#000000",
+    },
+  };
+
+  try {
+    const rzp = new (window as any).Razorpay(options);
+    rzp.on("payment.failed", function (response: any) {
+      setToast({ message: `Payment failed: ${response.error.description}`, type: "error" });
+    });
+    rzp.open();
+  } catch (err) {
+    console.error("Razorpay error:", err);
+    setToast({ message: "Failed to initiate payment.", type: "error" });
+  }
+};
+
+
+
   useEffect(() => {
     if (isAuthLoading) return;
     if (!user) {
@@ -1431,6 +1534,27 @@ useEffect(() => {
     }
   };
 
+  const [videoPurchaseDetails, setVideoPurchaseDetails] = useState<{
+  id: string;
+  name: string;
+  url: string;
+  price?: number;
+  priceINR?: number;
+  paymentType: "credits" | "real_money";
+  transactionId: string;
+  date: string;
+} | null>(null);
+
+useEffect(() => {
+  if (videoPurchaseDetails) {
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.6 }
+    });
+  }
+}, [videoPurchaseDetails]);
+
   // Add this useEffect to award a sample achievement on first login, after the useEffect for deviceName
 
   const accountLogos: Record<string, string> = {
@@ -1470,10 +1594,32 @@ useEffect(() => {
 
   const profileOptions = [
     { label: "Profile", icon: User, action: () => navigate("/profile") },
+    { label: "Purchase History", icon: User, action: () => navigate("/purchase-history") },
     { label: "Log Out", icon: LogOut, action: () => signOut(auth).then(() => navigate("/")) },
   ];
 
   if (!user) return null;
+
+    const videoRef = useRef(null);
+
+  useEffect(() => {
+    const handleVideoPlayback = () => {
+      if (videoRef.current) {
+        if (window.innerWidth < 640) {
+          videoRef.current.pause();
+        } else {
+          videoRef.current.play();
+        }
+      }
+    };
+
+    // Run once on mount
+    handleVideoPlayback();
+
+    // Optional: handle resize too
+    window.addEventListener("resize", handleVideoPlayback);
+    return () => window.removeEventListener("resize", handleVideoPlayback);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -2718,7 +2864,7 @@ useEffect(() => {
       >
         {video.url ? (
           <video
-            autoPlay
+            ref={videoRef}
             loop
             muted
             playsInline
@@ -2973,128 +3119,222 @@ useEffect(() => {
 </AnimatePresence>
 
 {isOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:px-4 overflow-y-auto">
-    <div className="min-h-screen flex items-center justify-center md:py-10">
-      <div className="bg-white md:rounded-2xl p-6 sm:p-12 w-full max-w-5xl shadow-2xl relative">
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:px-4">
+    <div className="h-screen flex items-center justify-center md:py-10">
+      <div className="bg-white p-6 sm:p-12 w-full max-w-6xl shadow-2xl relative overflow-y-auto max-h-screen">
         <span className="md:hidden">
           <br /><br />
         </span>
-      <button
-        onClick={() => setIsOpen(false)}
-        className="absolute top-8 right-8 md:top-5 md:right-5 text-gray-400 hover:text-black text-2xl font-bold"
-      >
-        <X />
-      </button>
 
-      <h2 style={{
-        fontFamily: 'Poppins'
-      }} className="text-3xl sm:text-4xl font-bold mb-14 text-left font-poppins">
-        LonewolfFSD Store
-      </h2>
-      
         <button
-  onClick={() => setIsCreditsOpen(!isCreditsOpen)}
-  className="w-full text-left flex justify-between items-center text-xl font-semibold"
->
-  <span className="flex items-center">
-    <img className="h-8 -mt-0.5 mr-2" src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" />
-    FSD Credits
-  </span>
-  {isCreditsOpen ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
-</button>
+          onClick={() => setIsOpen(false)}
+          className="absolute top-8 right-8 text-gray-400 hover:text-black text-2xl font-bold"
+        >
+          <X />
+        </button>
 
-      <hr className="border-black/10 my-3 mb-6" />
-      <div
-  className={`transition-all duration-500 overflow-hidden ${
-    isCreditsOpen ? "max-h-auto" : "max-h-0"
-  }`}
->
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[
-        
-          {
-            name: "FSD Spark Pack",
-            credits: 1000,
-            amount: 60,
-            original: 80,
-            popular: false,
-            image: "https://i.ibb.co/LDnY9KSK/virtual-coin.png",
-          },
-          {
-            name: "FSD Core Pack",
-            credits: 5000,
-            amount: 120,
-            original: 150,
-            popular: false,
-            image: "https://i.ibb.co/rKR9JL9L/pro-pack-removebg-preview-1.png",
-          },
-          {
-            name: "	FSD Boost Pack",
-            credits: 10000,
-            amount: 240,
-            original: 280,
-            popular: false,
-            image: "https://i.ibb.co/Gf6cFdWW/Chat-GPT-Image-Jun-13-2025-02-16-29-PM-removebg-preview.png",
-          },
-          {
-            name: "FSD Surge Pack",
-            credits: 25000,
-            amount: 480,
-            original: 540,
-            popular: false,
-            image: "https://i.ibb.co/DDfYQCGc/Chat-GPT-Image-Jun-13-2025-02-19-42-PM-removebg-preview.png",
-          },
-          {
-            name: "FSD Vault Pack",
-            credits: 50000,
-            amount: 900,
-            original: 1200,
-            popular: false,
-            image: "https://i.ibb.co/T5cqsFN/Chat-GPT-Image-Jun-13-2025-02-25-14-PM-removebg-preview.png",
-          },
-          {
-            name: "FSD Nexus Pack",
-            credits: 100000,
-            amount: 1500,
-            original: 2200,
-            popular: false,
-            image: "https://i.ibb.co/KzphMqf0/Chat-GPT-Image-Jun-13-2025-02-33-40-PM-removebg-preview.png",
-          },
-        ].map(({ name, credits, amount, original, popular, image }) => (
-          <div
-            key={credits}
-            className={`relative bg-gray-100 px-6 py-10 rounded-xl flex flex-col items-center shadow-md hover:shadow-lg transition-all transform border border-black duration-200 ${
-              popular ? "border-2 border-black" : ""
-            }`}
+        <h2
+          style={{
+            fontFamily: "Poppins",
+          }}
+          className="text-3xl sm:text-4xl font-bold mb-14 text-left font-poppins"
+        >
+          LonewolfFSD Store
+        </h2>
+
+        <p className="w-full text-left flex justify-between items-center text-xl font-semibold">
+          <span
+            className="flex items-center font-bold"
+            style={{
+              fontFamily: "Poppins",
+            }}
           >
-            {popular && (
-              <span className="absolute -top-4 right-4 bg-black text-white text-xs font-bold px-5 py-1.5 rounded-full shadow">
-                MOST POPULAR
-              </span>
-            )}
-            <img src={image} alt="Credits" className="w-48 md:w-32 h-auto mb-4 animate-scale" />
-            <p className="text-xl font-semibold mb-1" style={{
-              fontFamily: 'Poppins'
-            }}>{name}</p>
-            <p className="text-sm text-gray-600 mb-1">
-              {credits.toLocaleString()} Credits
-            </p>
-            <div className="mb-3">
-              <span className="text-lg font-bold text-black ml-1">₹{amount}</span>
-              <span className="text-gray-500 line-through text-sm ml-2">₹{original}</span>
-            </div>
-            <button
-              onClick={() => handlePayment(amount, credits, image)}
-              className="bg-black text-sm text-white font-medium px-6 py-3 rounded-lg w-full hover:bg-gray-900 transition"
-              style={{
-                fontFamily: 'Poppins'
+            FSD Credits Packs
+          </span>
+        </p>
+
+        <hr className="border-black/10 my-3 mb-6" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[
+            {
+              name: "FSD Spark Pack",
+              credits: 1000,
+              amount: 60,
+              original: 80,
+              popular: false,
+              image: "https://i.ibb.co/LDnY9KSK/virtual-coin.png",
+            },
+            {
+              name: "FSD Core Pack",
+              credits: 5000,
+              amount: 120,
+              original: 150,
+              popular: false,
+              image: "https://i.ibb.co/rKR9JL9L/pro-pack-removebg-preview-1.png",
+            },
+            {
+              name: "FSD Boost Pack",
+              credits: 10000,
+              amount: 240,
+              original: 280,
+              popular: false,
+              image: "https://i.ibb.co/Gf6cFdWW/Chat-GPT-Image-Jun-13-2025-02-16-29-PM-removebg-preview.png",
+            },
+            {
+              name: "FSD Surge Pack",
+              credits: 25000,
+              amount: 480,
+              original: 540,
+              popular: false,
+              image: "https://i.ibb.co/DDfYQCGc/Chat-GPT-Image-Jun-13-2025-02-19-42-PM-removebg-preview.png",
+            },
+            {
+              name: "FSD Vault Pack",
+              credits: 50000,
+              amount: 900,
+              original: 1200,
+              popular: false,
+              image: "https://i.ibb.co/T5cqsFN/Chat-GPT-Image-Jun-13-2025-02-25-14-PM-removebg-preview.png",
+            },
+            {
+              name: "FSD Nexus Pack",
+              credits: 100000,
+              amount: 1500,
+              original: 2200,
+              popular: false,
+              image: "https://i.ibb.co/KzphMqf0/Chat-GPT-Image-Jun-13-2025-02-33-40-PM-removebg-preview.png",
+            },
+          ].map(({ name, credits, amount, original, popular, image }) => (
+            <Tilt
+              options={{
+                scale: 1.02,
+                speed: 300,
+                perspective: 1000,
+                glare: true,
+                "max-glare": 0.2,
               }}
+              style={{ transformStyle: "preserve-3d" }}
             >
-              Buy "{name}"
-            </button>
-          </div>
-        ))}
+              <div
+                key={credits}
+                className={`relative bg-gray-100 p-6 rounded-xl flex flex-col items-center shadow-md hover:shadow-lg transition-all transform border border-black duration-200 ${
+                  popular ? "border-2 border-black" : ""
+                }`}
+              >
+                {popular && (
+                  <span className="absolute -top-4 right-4 bg-black text-white text-xs font-bold px-5 py-1.5 rounded-full shadow">
+                    MOST POPULAR
+                  </span>
+                )}
+                <img
+                  src={image}
+                  alt="Credits"
+                  className="w-32 md:w-32 h-auto mb-4 animate-scale"
+                />
+                <p
+                  className="text-xl font-semibold mb-1"
+                  style={{
+                    fontFamily: "Poppins",
+                  }}
+                >
+                  {name}
+                </p>
+                <p className="text-sm text-gray-600 mb-1">
+                  {credits.toLocaleString()} Credits
+                </p>
+                <div className="mb-3">
+                  <span className="text-lg font-bold text-black ml-1">
+                    ₹{amount}
+                  </span>
+                  <span className="text-gray-500 line-through text-sm ml-2">
+                    ₹{original}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handlePayment(amount, credits, image)}
+                  className="bg-black text-sm text-white cursor-custom-pointer font-medium px-6 py-3 rounded-lg w-full hover:bg-gray-900 transition"
+                  style={{
+                    fontFamily: "Poppins",
+                  }}
+                >
+                  <span className="hidden md:block">Buy "{name}"</span>
+                  <span className="md:hidden">Purchanse</span>
+                </button>
+              </div>
+            </Tilt>
+          ))}
         </div>
+
+        <br />
+        <br />
+        <br />
+
+        <p className="w-full mb-3 text-left flex justify-between items-center text-xl font-semibold">
+          <span
+            className="flex items-center font-bold"
+            style={{
+              fontFamily: "Poppins",
+            }}
+          >
+            Animated Profile Backgrounds
+          </span>
+        </p>
+        <hr />
+        <br />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {videoOptions
+            .filter((video) => video.locked && video.id !== "none")
+            .map((video) => (
+              <Tilt key={video.id} options={{ max: 15, scale: 1.05 }}>
+                <div className="bg-gray-100 border border-black rounded-xl p-4 flex flex-col justify-between h-full">
+                  <div>
+                    <video
+                      src={video.url}
+                      ref={videoRef}
+                      className="w-full md:h-32 object-cover rounded-lg mb-2"
+                      muted
+                      loop
+                      playsInline
+                    />
+                    <h3 className="text-lg font-semibold" style={{
+                      fontFamily: 'Poppins'
+                    }}>{video.name}</h3>
+                    <p className="text-base font-bold text-gray-800" style={{
+                      fontFamily: 'Poppins'
+                    }}>
+                      ₹{video.priceINR || 0}/-
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    {(purchasedVideos || []).includes(video.id) ? ( // Add fallback
+                      <button
+                            
+                            className="w-full bg-black/20 text-sm text-black py-3 rounded-md"
+                          >
+                            Already Owned
+                          </button>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {(video.paymentOptions || ["credits"]).includes("real_money") && (
+                          <button
+                            onClick={() => handlePurchaseRealMoneyVideo(video)}
+                            className="w-full bg-black text-sm font-semibold text-white py-3 rounded-md hover:bg-black/90"
+                            style={{
+                              fontFamily: 'Poppins'
+                            }}
+                          >
+                            Buy "{video.name}"
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Tilt>
+            ))}
+            <br />
+            <br />
         </div>
       </div>
     </div>
@@ -3153,6 +3393,69 @@ useEffect(() => {
           </div>
         </div>
     )}
+
+    {/* Video Purchase Overlay */}
+{videoPurchaseDetails && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white h-screen sm:h-auto pt-28 sm:pt-16 rounded-lg py-16 px-6 md:p-16 w-full max-w-xl">
+      <h2 className="text-3xl font-bold mb-6 text-center" style={{ fontFamily: 'Poppins' }}>
+        Purchase Successful!
+      </h2>
+      {/* Video Visual */}
+      <div className="flex justify-center mb-4">
+        <video
+          src={videoPurchaseDetails.url}
+          className="w-full h-40 object-cover rounded-lg"
+          muted
+          loop
+          autoPlay
+        />
+      </div>
+      <p className="text-center font-bold text-2xl" style={{
+        fontFamily: 'Poppins'
+      }}>{videoPurchaseDetails.name}</p>
+      <p className="text-center mt-3 text-gray-600">
+        "{videoPurchaseDetails.name}" added to your profile backgrounds successfully
+      </p>
+      <br />
+      <hr />
+      <br />
+      <p className="text-lg font-bold mb-4" style={{ fontFamily: 'Poppins' }}>
+        Purchase Details
+      </p>
+      {/* Purchase Details */}
+      <div className="overflow-x-auto w-full">
+        <div className="flex whitespace-nowrap border border-black">
+          {/* Left column: header labels */}
+          <div className="flex flex-col w-full bg-gray-100 border-r border-black">
+            <div className="py-4 px-4 border-b border-black font-semibold text-sm">Background Name</div>
+            <div className="py-4 px-4 border-b border-black font-semibold text-sm">Amount Paid</div>
+            <div className="py-4 px-4 border-b border-black font-semibold text-sm">Date & Time</div>
+            <div className="py-4 px-4 font-semibold text-sm">Transaction ID</div>
+          </div>
+          {/* Right column: actual data */}
+          <div className="flex flex-col">
+            <div className="py-4 px-6 border-b border-black text-sm">{videoPurchaseDetails.name}</div>
+            <div className="py-4 px-6 border-b border-black text-sm">
+              {videoPurchaseDetails.paymentType === "credits"
+                ? `${videoPurchaseDetails.price} Credits`
+                : `₹${videoPurchaseDetails.priceINR}`}
+            </div>
+            <div className="py-4 px-6 border-b border-black text-sm">{videoPurchaseDetails.date}</div>
+            <div className="py-4 px-6 text-sm">{videoPurchaseDetails.transactionId}</div>
+          </div>
+        </div>
+      </div>
+      {/* Close Button */}
+      <button
+        onClick={() => setVideoPurchaseDetails(null)}
+        className="mt-6 w-full bg-black text-white px-4 py-3 rounded-lg"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 };

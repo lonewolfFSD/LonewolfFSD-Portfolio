@@ -53,6 +53,7 @@ import NotFound from './NotFound';
 import Projects from './Projects';
 import ModernCalendar from './ModernCalendar';
 import Callback from './Callback';
+import PurchaseHistory from './PurchaseHistory';
 
 const override: CSSProperties = {
   display: "block",
@@ -480,6 +481,7 @@ function App() {
       <Route path="/contact" element={<ContactUs />} />
       <Route path="/public-profile/:uid" element={<Profile isDark={isDark} publicMode={true} />} />
       <Route path="*" element={<NotFound />} />
+      <Route path="/purchase-history" element={<PurchaseHistory />} />
       <Route path="/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29" element={<AdminPanel isDark={isDark} user={user} />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route
