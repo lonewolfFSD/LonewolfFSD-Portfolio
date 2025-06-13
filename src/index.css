@@ -54,6 +54,24 @@
   animation: slideOut 0.3s ease-in-out;
 }
 
+@keyframes scalePulse {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px); /* Up */
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+
+.animate-scale {
+  animation: scalePulse 2s ease-in-out infinite;
+}
+
+
 /* Toast expands on hover */
 .expand-toast {
   transition: all 0.3s ease;

@@ -1,0 +1,13 @@
+{
+  "name": "LonewolfFSD",
+  "short_name": "Lonewolf",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "serviceworker": {
+    "src": "/sw.js",
+    "scope": "/",
+    "use_cache": false
+  }
+}

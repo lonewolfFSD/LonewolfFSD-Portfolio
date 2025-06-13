@@ -11,6 +11,11 @@ import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 import { Tilt } from 'react-tilt';
 import logo from './mockups/logo.png';
 
+import confetti from 'canvas-confetti';
+
+// Import required for Razorpay verification (add at top of Profile.tsx if not present)
+import axios from 'axios';
+
 import JapaneseSpring from './Videos/japanese-spring.960x540.mp4';
 import LosSantos from './Videos/sunset-in-los-santos-gta-v.1920x1080.mp4';
 import Tanquirl from './Videos/tranquil-japan-lake-view.3840x2160.mp4';
@@ -27,7 +32,7 @@ import Yinlin from './Videos/yinlin-wuthering-waves.3840x2160.mp4';
 
 import Cropper from "react-easy-crop";
 import { Area } from "react-easy-crop/types";
-import { BadgeCheck, Music, Paintbrush2, PaintBucket, Pause, Play, Plus, RotateCcw, RotateCw } from "lucide-react";
+import { BadgeCheck, ChevronDown, ChevronUp, Music, Paintbrush2, PaintBucket, Pause, Play, Plus, RotateCcw, RotateCw } from "lucide-react";
 
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
@@ -89,6 +94,13 @@ interface Achievement {
   badgeImage: string; // URL to badge image
   earnedDate?: string; // ISO date string or undefined if locked
   status: 'earned' | 'locked';
+}
+
+interface PurchaseDetails {
+  credits: number;
+  amount: number; // Amount in INR
+  date: string; // Formatted date
+  transactionId: string; // Razorpay payment ID
 }
 
 const DeleteAccountModal = ({ isOpen, onClose, onDelete }) => {
@@ -209,6 +221,11 @@ const Profile: React.FC<ProfileProps> = ({ isDark, publicMode = false }) => {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 const [virtualCurrency, setVirtualCurrency] = useState<number>(300);
 
+const [isCreditsOpen, setIsCreditsOpen] = useState(true);
+
+  // Replace purchasedCredits with purchaseDetails
+  const [purchaseDetails, setPurchaseDetails] = useState<PurchaseDetails | null>(null);
+
 const [selectedMusic, setSelectedMusic] = useState<string | null>(null);
 const [purchasedMusic, setPurchasedMusic] = useState<string[]>([]);
 const [isMusicModalOpen, setIsMusicModalOpen] = useState(false);
@@ -217,6 +234,132 @@ const [selectedMusicCategories, setSelectedMusicCategories] = useState<string[]>
 const [playingMusicId, setPlayingMusicId] = useState<string | null>(null);
 const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+// Add state for modal visibility and purchased credits
+const [isOpen, setIsOpen] = useState(false);
+const [purchasedCredits, setPurchasedCredits] = useState(null);
+
+// Function to load Razorpay script dynamically
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
+  // Auto-dismiss toast after 3 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+// Function to handle Razorpay payment
+
+useEffect(() => {
+  if (purchaseDetails) {
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.6 }
+    });
+  }
+}, [purchaseDetails]);
+
+
+// Updated handlePayment function
+const handlePayment = async (amount: number, credits: number, image: string) => {
+    // Load Razorpay SDK
+    const res = await loadRazorpayScript();
+    if (!res) {
+      setToast({ message: 'Razorpay SDK failed to load.', type: 'error' });
+      return;
+    }
+
+    if (!user || !user.uid) {
+      setToast({ message: 'User not authenticated.', type: 'error' });
+      return;
+    }
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_y2c1NPOWRBIcgH', // Use env variable
+      amount: amount * 100, // Amount in paise
+      currency: 'INR',
+      name: 'LonewolfFSD',
+      description: `Purchase ${credits} Credits`,
+      // WARNING: order_id is required for production. Hardcode for testing only or use a backend/Payment Links.
+      // order_id: 'order_XXX', // Uncomment and set for testing; generate via Razorpay Dashboard
+      handler: async function (response: any) {
+        try {
+          const userRef = doc(db, 'users', user.uid);
+          await runTransaction(db, async (transaction) => {
+            const userDoc = await transaction.get(userRef);
+            if (!userDoc.exists()) {
+              throw new Error('User document not found.');
+            }
+            const currentData = userDoc.data();
+            const currentCredits = currentData.virtualCurrency ?? 0;
+            transaction.update(userRef, {
+              virtualCurrency: currentCredits + credits,
+              updatedAt: new Date().toISOString(),
+            });
+          });
+
+          const purchaseDate = new Date().toLocaleString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
+          setPurchaseDetails({
+            credits,
+            amount,
+            date: purchaseDate,
+            transactionId: response.razorpay_payment_id,
+            image, // ✅ include image here
+          });
+
+          setVirtualCurrency((prev) => prev + credits);
+          setToast({ message: `${credits} credits added!`, type: 'success' });
+
+        } catch (error) {
+          console.error('Firestore update error:', error);
+          setToast({ message: 'Failed to update credits. Contact support.', type: 'error' });
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          setToast({ message: 'Payment cancelled.', type: 'error' });
+        },
+      },
+      prefill: {
+        name: user?.displayName || 'Client',
+        email: user?.email || '',
+        contact: user?.phoneNumber || '',
+      },
+      theme: {
+        color: '#000000',
+      },
+    };
+
+    try {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        setToast({ message: `Payment failed: ${response.error.description}`, type: 'error' });
+      });
+      rzp.open();
+    } catch (err) {
+      console.error('Razorpay error:', err);
+      setToast({ message: 'Failed to initiate payment.', type: 'error' });
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
 const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -1493,7 +1636,7 @@ useEffect(() => {
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
           >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMenuOpen ? <X className={`w-5 h-5 ${selectedVideo ? 'text-white' : ''}`} /> : <Menu className={`w-5 h-5 ${selectedVideo ? 'text-white' : ''}`} />}
           </motion.button>
         </motion.div>
 
@@ -2507,7 +2650,7 @@ useEffect(() => {
               </h3>
               <span className="flex items-center gap-1 text-sm font-semibold text-black border border-black px-4 py-1 rounded-full">
                 <img src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" alt="Credits" className="w-4 h-4" />
-                {virtualCurrency} <span className="bg-black p-1 rounded-full ml-1"><Plus size={10} className="text-white cursor-custom-pointer"/></span>
+                {virtualCurrency} <span className="bg-black p-1 rounded-full ml-1"><Plus onClick={() => setIsOpen(true)} size={10} className="text-white cursor-custom-pointer"/></span>
               </span>
 
             </div>
@@ -2671,7 +2814,7 @@ useEffect(() => {
           </h3>
           <span className="flex items-center gap-1 text-sm font-semibold text-black border border-black px-4 py-1 rounded-full">
             <img src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" alt="Credits" className="w-4 h-4" />
-            {virtualCurrency} <span className="bg-black p-1 rounded-full ml-1"><Plus size={10} className="text-white cursor-custom-pointer"/></span>
+            {virtualCurrency} <span className="bg-black p-1 rounded-full ml-1"><Plus onClick={() => setIsOpen(true)} size={10} className="text-white cursor-custom-pointer"/></span>
           </span>
         </div>
         {error && (
@@ -2828,6 +2971,188 @@ useEffect(() => {
     </motion.div>
   )}
 </AnimatePresence>
+
+{isOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:px-4 overflow-y-auto">
+    <div className="min-h-screen flex items-center justify-center md:py-10">
+      <div className="bg-white md:rounded-2xl p-6 sm:p-12 w-full max-w-5xl shadow-2xl relative">
+        <span className="md:hidden">
+          <br /><br />
+        </span>
+      <button
+        onClick={() => setIsOpen(false)}
+        className="absolute top-8 right-8 md:top-5 md:right-5 text-gray-400 hover:text-black text-2xl font-bold"
+      >
+        <X />
+      </button>
+
+      <h2 style={{
+        fontFamily: 'Poppins'
+      }} className="text-3xl sm:text-4xl font-bold mb-14 text-left font-poppins">
+        LonewolfFSD Store
+      </h2>
+      
+        <button
+  onClick={() => setIsCreditsOpen(!isCreditsOpen)}
+  className="w-full text-left flex justify-between items-center text-xl font-semibold"
+>
+  <span className="flex items-center">
+    <img className="h-8 -mt-0.5 mr-2" src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" />
+    FSD Credits
+  </span>
+  {isCreditsOpen ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+</button>
+
+      <hr className="border-black/10 my-3 mb-6" />
+      <div
+  className={`transition-all duration-500 overflow-hidden ${
+    isCreditsOpen ? "max-h-auto" : "max-h-0"
+  }`}
+>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[
+        
+          {
+            name: "FSD Spark Pack",
+            credits: 1000,
+            amount: 60,
+            original: 80,
+            popular: false,
+            image: "https://i.ibb.co/LDnY9KSK/virtual-coin.png",
+          },
+          {
+            name: "FSD Core Pack",
+            credits: 5000,
+            amount: 120,
+            original: 150,
+            popular: false,
+            image: "https://i.ibb.co/rKR9JL9L/pro-pack-removebg-preview-1.png",
+          },
+          {
+            name: "	FSD Boost Pack",
+            credits: 10000,
+            amount: 240,
+            original: 280,
+            popular: false,
+            image: "https://i.ibb.co/Gf6cFdWW/Chat-GPT-Image-Jun-13-2025-02-16-29-PM-removebg-preview.png",
+          },
+          {
+            name: "FSD Surge Pack",
+            credits: 25000,
+            amount: 480,
+            original: 540,
+            popular: false,
+            image: "https://i.ibb.co/DDfYQCGc/Chat-GPT-Image-Jun-13-2025-02-19-42-PM-removebg-preview.png",
+          },
+          {
+            name: "FSD Vault Pack",
+            credits: 50000,
+            amount: 900,
+            original: 1200,
+            popular: false,
+            image: "https://i.ibb.co/T5cqsFN/Chat-GPT-Image-Jun-13-2025-02-25-14-PM-removebg-preview.png",
+          },
+          {
+            name: "FSD Nexus Pack",
+            credits: 100000,
+            amount: 1500,
+            original: 2200,
+            popular: false,
+            image: "https://i.ibb.co/KzphMqf0/Chat-GPT-Image-Jun-13-2025-02-33-40-PM-removebg-preview.png",
+          },
+        ].map(({ name, credits, amount, original, popular, image }) => (
+          <div
+            key={credits}
+            className={`relative bg-gray-100 px-6 py-10 rounded-xl flex flex-col items-center shadow-md hover:shadow-lg transition-all transform border border-black duration-200 ${
+              popular ? "border-2 border-black" : ""
+            }`}
+          >
+            {popular && (
+              <span className="absolute -top-4 right-4 bg-black text-white text-xs font-bold px-5 py-1.5 rounded-full shadow">
+                MOST POPULAR
+              </span>
+            )}
+            <img src={image} alt="Credits" className="w-48 md:w-32 h-auto mb-4 animate-scale" />
+            <p className="text-xl font-semibold mb-1" style={{
+              fontFamily: 'Poppins'
+            }}>{name}</p>
+            <p className="text-sm text-gray-600 mb-1">
+              {credits.toLocaleString()} Credits
+            </p>
+            <div className="mb-3">
+              <span className="text-lg font-bold text-black ml-1">₹{amount}</span>
+              <span className="text-gray-500 line-through text-sm ml-2">₹{original}</span>
+            </div>
+            <button
+              onClick={() => handlePayment(amount, credits, image)}
+              className="bg-black text-sm text-white font-medium px-6 py-3 rounded-lg w-full hover:bg-gray-900 transition"
+              style={{
+                fontFamily: 'Poppins'
+              }}
+            >
+              Buy "{name}"
+            </button>
+          </div>
+        ))}
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+  {/* Purchased Overlay */}
+  {purchaseDetails && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white h-screen sm:h-auto pt-28 sm:pt-16 rounded-lg py-16 px-6 md:p-16 w-full max-w-xl">
+            <h2 className="text-3xl font-bold mb-6 text-center" style={{
+              fontFamily: 'Poppins'
+            }}>Purchase Successful!</h2>
+            {/* Coin Visual */}
+            <div className="flex justify-center mb-4">
+              <img src={purchaseDetails.image} className="w-40 animate-scale" />
+            </div>
+            <p className="text-center font-bold text-2xl">{purchaseDetails.credits} credits</p>
+            <p className="text-center mt-3 text-gray-600">{purchaseDetails.credits} credits added to your account successfully</p>
+            <br />
+            <hr />
+            <br />
+            <p className="text-lg font-bold mb-4" style={{
+              fontFamily: 'Poppins'
+            }}>Purchase Details</p>
+            {/* Purchase Details */}
+              {/* Purchase Details */}
+              <div className="overflow-x-auto w-full">
+                <div className="flex whitespace-nowrap border border-black">
+                  {/* Left column: header labels */}
+                  <div className="flex flex-col w-full bg-gray-100 border-r border-black">
+                    <div className="py-4 px-4 border-b border-black font-semibold text-sm">Credits Added</div>
+                    <div className="py-4 px-4 border-b border-black font-semibold text-sm">Amount Paid</div>
+                    <div className="py-4 px-4 border-b border-black font-semibold text-sm">Date & Time</div>
+                    <div className="py-4 px-4 font-semibold text-sm">Transaction ID</div>
+                  </div>
+
+                  {/* Right column: actual data */}
+                  <div className="flex flex-col">
+                    <div className="py-4 px-6 border-b border-black text-sm">{purchaseDetails.credits}</div>
+                    <div className="py-4 px-6 border-b border-black text-sm">₹{purchaseDetails.amount}</div>
+                    <div className="py-4 px-6 border-b border-black text-sm">{purchaseDetails.date}</div>
+                    <div className="py-4 px-6 text-sm">{purchaseDetails.transactionId}</div>
+                  </div>
+                </div>
+              </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setPurchaseDetails(null)}
+              className="mt-6 w-full bg-black text-white px-4 py-3 rounded-lg"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+    )}
     </div>
   );
 };
