@@ -11,6 +11,9 @@ import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 import { Tilt } from 'react-tilt';
 import logo from './mockups/logo.png';
 
+import FireEffect from './Effects/Cartoon_Fire_7_3997_HD.webm';
+import SmokeEffect from './Effects/Cartoon_Smoke_4_4005_HD.webm';
+import SmokeBlast from './Effects/Cartoon_Smoke_1_4002_HD.webm';
 import confetti from 'canvas-confetti';
 
 // Import required for Razorpay verification (add at top of Profile.tsx if not present)
@@ -94,6 +97,27 @@ interface Achievement {
   badgeImage: string; // URL to badge image
   earnedDate?: string; // ISO date string or undefined if locked
   status: 'earned' | 'locked';
+}
+
+// Assume existing interfaces and imports for videos, credits, toast, etc.
+interface Effect {
+  id: string;
+  name: string;
+  price?: number; // Credits
+  priceINR?: number; // INR
+  url: string;
+  category: string;
+}
+
+interface EffectPurchaseDetails {
+  id: string;
+  name: string;
+  url: string;
+  price?: number;
+  priceINR?: number;
+  paymentType: "credits" | "real_money";
+  transactionId: string;
+  date: string;
 }
 
 interface PurchaseDetails {
@@ -218,8 +242,13 @@ const Profile: React.FC<ProfileProps> = ({ isDark, publicMode = false }) => {
   const [passwordError, setPasswordError] = useState<string>("");
   const [biometricError, setBiometricError] = useState<string>(""); // New state for modal
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    const [isEffectModalOpen, setIsEffectModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 const [virtualCurrency, setVirtualCurrency] = useState<number>(300);
+  const [selectedEffectCategories, setSelectedEffectCategories] = useState<string[]>([]);
+  const [selectedEffect, setSelectedEffect] = useState<string | null>(null);
+  const [isEffectInteractable, setIsEffectInteractable] = useState(false);
+    const [effectPurchaseDetails, setEffectPurchaseDetails] = useState<EffectPurchaseDetails | null>(null);
 
 const [isCreditsOpen, setIsCreditsOpen] = useState(true);
 
@@ -262,6 +291,34 @@ const loadRazorpayScript = () => {
 
 // Function to handle Razorpay payment
 
+  // Sample effects data (replace with your actual URLs)
+  const effects: Effect[] = [
+    {
+      id: "anime-fire-whoosh",
+      name: "Blaze Fire Effect",
+      price: 500,
+      priceINR: 199,
+      url: FireEffect, // Use a transparent video
+      category: "fire",
+    },
+    {
+      id: "mystic-smoke",
+      name: "Mystic Smoke Effect",
+      price: 700,
+      priceINR: 199,
+      url: SmokeEffect,
+      category: "smoke",
+    },
+    {
+      id: "mystic-smoke-blast",
+      name: "Smoke Blast Effect",
+      price: 700,
+      priceINR: 199,
+      url: SmokeBlast,
+      category: "smoke",
+    },
+  ];
+
 useEffect(() => {
   if (purchaseDetails) {
     confetti({
@@ -277,100 +334,97 @@ useEffect(() => {
 
 // Updated handlePayment function
 const handlePayment = async (amount: number, credits: number, image: string) => {
-  const res = await loadRazorpayScript();
-  if (!res) {
-    setToast({ message: 'Razorpay SDK failed to load.', type: 'error' });
-    return;
-  }
-
-  if (!user || !user.uid) {
-    setToast({ message: 'User not authenticated.', type: 'error' });
-    return;
-  }
-
-  const name = `FSD ${credits} Credits Pack`; // Generate name for purchase history
-  const purchaseDate = new Date().toLocaleString('en-IN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-  const options = {
-    key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_y2c1NPOWRBIcgH',
-    amount: amount * 100,
-    currency: 'INR',
-    name: 'LonewolfFSD',
-    description: `Purchase ${credits} Credits`,
-    handler: async function (response: any) {
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
-        await runTransaction(db, async (transaction) => {
-          const userDoc = await transaction.get(userRef);
-          if (!userDoc.exists()) {
-            throw new Error('User document not found.');
-          }
-          const currentData = userDoc.data();
-          const currentCredits = currentData.virtualCurrency ?? 0;
-          transaction.update(userRef, {
-            virtualCurrency: currentCredits + credits,
-            updatedAt: new Date().toISOString(),
-          });
-          transaction.set(purchaseRef, {
-            type: "credits",
-            name,
-            amount: amount,
-            paymentType: "real_money",
-            transactionId: response.razorpay_payment_id,
-            date: purchaseDate,
-            image,
-            createdAt: new Date().toISOString(),
-          });
-        });
-
-        setPurchaseDetails({
-          credits,
-          amount,
-          date: purchaseDate,
-          transactionId: response.razorpay_payment_id,
-          image,
-        });
-
-        setVirtualCurrency((prev) => prev + credits);
-        setToast({ message: `${credits} credits added!`, type: 'success' });
-      } catch (error) {
-        console.error('Firestore update error:', error);
-        setToast({ message: 'Failed to update credits. Contact support.', type: 'error' });
-      }
-    },
-    modal: {
-      ondismiss: () => {
-        setToast({ message: 'Payment cancelled.', type: 'error' });
-      },
-    },
-    prefill: {
-      name: user?.displayName || 'Client',
-      email: user?.email || '',
-      contact: user?.phoneNumber || '',
-    },
-    theme: {
-      color: '#000000',
-    },
-  };
-
-  try {
-    const rzp = new (window as any).Razorpay(options);
-    rzp.on('payment.failed', function (response: any) {
-      setToast({ message: `Payment failed: ${response.error.description}`, type: 'error' });
+    const res = await loadRazorpayScript();
+    if (!res) {
+      setToast({ message: "Razorpay SDK failed to load.", type: "error" });
+      return;
+    }
+    if (!user || !user.uid) {
+      setToast({ message: "User not authenticated.", type: "error" });
+      return;
+    }
+    const name = `FSD ${credits} Credits Pack`;
+    const purchaseDate = new Date().toLocaleString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
-    rzp.open();
-  } catch (err) {
-    console.error('Razorpay error:', err);
-    setToast({ message: 'Failed to initiate payment.', type: 'error' });
-  }
-};
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_y2c1NPOWRBIcgH",
+      amount: amount * 100,
+      currency: "INR",
+      name: "LonewolfFSD",
+      description: `Purchase ${credits} Credits`,
+      handler: async function (response: any) {
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+          await runTransaction(db, async (transaction) => {
+            const userDoc = await transaction.get(userRef);
+            if (!userDoc.exists()) {
+              throw new Error("User document not found.");
+            }
+            const currentData = userDoc.data();
+            const currentCredits = currentData.virtualCurrency ?? 0;
+            transaction.update(userRef, {
+              virtualCurrency: currentCredits + credits,
+              updatedAt: new Date().toISOString(),
+            });
+            transaction.set(purchaseRef, {
+              type: "credits",
+              name,
+              amount,
+              paymentType: "real_money",
+              transactionId: response.razorpay_payment_id,
+              date: purchaseDate,
+              image,
+              createdAt: new Date().toISOString(),
+              paymentMethod: response.razorpay_payment_method || "unknown",
+              contact: response.razorpay_contact || user?.phoneNumber || "unknown",
+              status: "success",
+            });
+          });
+          setPurchaseDetails({
+            credits,
+            amount,
+            date: purchaseDate,
+            transactionId: response.razorpay_payment_id,
+            image,
+          });
+          setVirtualCurrency((prev) => prev + credits);
+          setToast({ message: `${credits} credits added!`, type: "success" });
+        } catch (error) {
+          console.error("Firestore update error:", error);
+          setToast({ message: "Failed to update credits. Contact support.", type: "error" });
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          setToast({ message: "Payment cancelled.", type: "error" });
+        },
+      },
+      prefill: {
+        name: user?.displayName || "Client",
+        email: user?.email || "",
+        contact: user?.phoneNumber || "",
+      },
+      theme: {
+        color: "#000000",
+      },
+    };
+    try {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (err: any) {
+        setToast({ message: `Payment failed: ${err.error.description}`, type: "error" });
+      });
+      rzp.open();
+    } catch (err) {
+      console.error("Razorpay error:", err);
+      setToast({ message: "Failed to initiate payment.", type: "error" });
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
 const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -463,6 +517,8 @@ const handlePurchaseVideo = async (video: { id: string; price: number; url: stri
   }
 };
 
+  const [activeEffect, setActiveEffect] = useState<Effect | null>(null);
+
 const handlePurchaseMusic = async (music: { id: string; price: number; name: string }) => {
   if (!user || !user.uid) {
     setError("You must be signed in to purchase music.");
@@ -516,6 +572,8 @@ const loadUserData = async () => {
       setVirtualCurrency(data.virtualCurrency ?? 300);
       setPurchasedVideos(data.purchasedVideos ?? []);
       setPurchasedMusic(data.purchasedMusic ?? []);
+      setPurchasedEffects(data.purchasedEffects ?? []); // Ensure purchasedEffects sync
+      setActiveEffect(data.activeEffect ?? null);
       setSelectedVideo(data.backgroundVideo);
       setSelectedMusic(data.backgroundMusic);
     } else {
@@ -533,6 +591,8 @@ const loadUserData = async () => {
     setError("Failed to load user data.");
   }
 };
+
+  const allEffectCategories = Array.from(new Set(effects.map((effect) => effect.category)));
 
 useEffect(() => {
   const loadBackgroundMusic = async () => {
@@ -1244,27 +1304,32 @@ useEffect(() => {
   }, []);
 
   const handlePurchaseRealMoneyVideo = async (video: { id: string; name: string; priceINR: number; url: string }) => {
-    if (!user || !user.uid) {
-      setToast({ message: "You must be signed in to purchase videos.", type: "error" });
-      return;
-    }
+  if (!user || !user.uid) {
+    setToast({ message: "You must be signed in to purchase videos.", type: "error" });
+    return;
+  }
 
-    const res = await loadRazorpayScript();
-    if (!res) {
-      setToast({ message: "Razorpay SDK failed to load.", type: "error" });
-      return;
-    }
+  const res = await loadRazorpayScript();
+  if (!res) {
+    setToast({ message: "Razorpay SDK failed to load.", type: "error" });
+    return;
+  }
 
-      const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const purchaseDate = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  const purchaseDate = new Date().toLocaleString('en-IN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_y2c1NPOWRBIcgH",
-      amount: (video.priceINR || 0) * 100, // Use priceINR, convert to paise
-      currency: "INR",
-      name: "LonewolfFSD",
-      description: `Purchase Video: ${video.name}`,
-      handler: async function (response: any) {
+  const options = {
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_y2c1NPOWRBIcgH",
+    amount: (video.priceINR || 0) * 100,
+    currency: "INR",
+    name: "LonewolfFSD",
+    description: `Purchase Video: ${video.name}`,
+    handler: async function (response: any) {
       try {
         const userRef = doc(db, "users", user.uid);
         const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
@@ -1282,10 +1347,13 @@ useEffect(() => {
             name: video.name,
             amount: video.priceINR,
             paymentType: "real_money",
-            transactionId,
+            transactionId: response.razorpay_payment_id,
             date: purchaseDate,
             url: video.url,
             createdAt: new Date().toISOString(),
+            paymentMethod: response.razorpay_payment_method || 'unknown',
+            contact: response.razorpay_contact || user?.phoneNumber || 'unknown',
+            status: 'success',
           });
         });
 
@@ -1296,7 +1364,7 @@ useEffect(() => {
           url: video.url,
           priceINR: video.priceINR,
           paymentType: "real_money",
-          transactionId,
+          transactionId: response.razorpay_payment_id,
           date: purchaseDate,
         });
         setToast({ message: `Purchased "${video.name}" successfully! 🌟`, type: "success" });
@@ -1311,9 +1379,9 @@ useEffect(() => {
       },
     },
     prefill: {
-      name: user?.displayName || "Client",
-      email: user?.email || "",
-      contact: user?.phoneNumber || "",
+      name: user?.displayName || 'Client',
+      email: user?.email || '',
+      contact: user?.phoneNumber || '',
     },
     theme: {
       color: "#000000",
@@ -1555,6 +1623,193 @@ useEffect(() => {
   }
 }, [videoPurchaseDetails]);
 
+  const [purchasedEffects, setPurchasedEffects] = useState<string[]>([]);
+
+useEffect(() => {
+  if (effectPurchaseDetails) {
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.6 }
+    });
+  }
+}, [effectPurchaseDetails]);
+
+const handlePurchaseEffect = async (effect: Effect) => {
+    if (!user || !user.uid) {
+      setToast({ message: "You must be signed in to purchase effects.", type: "error" });
+      return;
+    }
+    if (virtualCurrency < effect.price) {
+      setToast({ message: "Insufficient credits.", type: "error" });
+      return;
+    }
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+      const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const purchaseDate = new Date().toLocaleString("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists()) {
+          throw new Error("User document not found.");
+        }
+        const currentCurrency = userDoc.data().virtualCurrency ?? 0;
+        if (currentCurrency < effect.price) {
+          throw new Error("Insufficient credits.");
+        }
+      });
+      setVirtualCurrency((prev) => prev - effect.price);
+      setPurchasedEffects((prev) => [...prev, effect.id]);
+      setToast({ message: `Purchased "${effect.name}" successfully! 🌟`, type: "success" });
+    } catch (error) {
+      console.error("Purchase effect error:", error);
+      setToast({ message: "Failed to purchase effect. Try again.", type: "error" });
+    }
+  };
+
+  const filteredEffects = effects.filter(
+    (effect) =>
+      effect.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (selectedEffectCategories.length === 0 || selectedEffectCategories.includes(effect.category))
+  );
+
+  const handleEffectSelect = (effect: Effect) => {
+    if (!purchasedEffects.includes(effect.id) && effect.price > 0) {
+      setToast({ message: `Purchase "${effect.name}" first!`, type: "error" });
+      return;
+    }
+    toggleEffect(effect); // Only call toggleEffect, don’t set selectedEffect here
+  };
+
+const toggleEffect = async (effect: Effect | null) => {
+  if (!user || !user.uid) {
+    setToast({ message: "User not authenticated.", type: "error" });
+    return;
+  }
+  if (effect && !purchasedEffects.includes(effect.id) && effect.price > 0) {
+    setToast({ message: `Purchase "${effect.name}" first!`, type: "error" });
+    return;
+  }
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const effectToSave = effect
+      ? { ...effects.find((e) => e.id === effect.id)!, url: effects.find((e) => e.id === effect.id)!.url }
+      : null; // Ensure url is resolved
+    await runTransaction(db, async (transaction) => {
+      transaction.update(userRef, {
+        activeEffect: effectToSave,
+        updatedAt: new Date().toISOString(),
+      });
+    });
+    setActiveEffect(effectToSave);
+    setSelectedEffect(effectToSave ? effectToSave.url : null);
+    setIsEffectInteractable(false);
+    if (effectToSave) {
+      setToast({ message: `Applied "${effectToSave.name}"!`, type: "success" });
+    }
+  } catch (error) {
+    console.error("Toggle effect error:", error);
+    setToast({ message: "Failed to apply effect. Try again.", type: "error" });
+  }
+};
+
+  const handleEffectClick = () => {
+    setIsEffectInteractable(true);
+  };
+
+  const handlePurchaseRealMoneyEffect = async (effect: Effect) => {
+  if (!user || !user.uid) {
+    setToast({ message: "User not authenticated.", type: "error" });
+    return;
+  }
+  if (!effect.priceINR) {
+    setToast({ message: "Price not available.", type: "error" });
+    return;
+  }
+  const res = await loadRazorpayScript();
+  if (!res) {
+    setToast({ message: "Razorpay SDK failed to load.", type: "error" });
+    return;
+  }
+  const purchaseDate = new Date().toLocaleString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const options = {
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_y2c1NPOWRBIcgH",
+    amount: effect.priceINR * 100,
+    currency: "INR",
+    name: "LonewolfFSD",
+    description: `Purchase ${effect.name} Effect`,
+    handler: async function (response: any) {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+        await runTransaction(db, async (transaction) => {
+          transaction.update(userRef, {
+            purchasedEffects: arrayUnion(effect.id),
+            updatedAt: new Date().toISOString(),
+          });
+          transaction.set(purchaseRef, {
+            type: "effect",
+            name: effect.name,
+            amount: effect.priceINR,
+            paymentType: "real_money",
+            transactionId: response.razorpay_payment_id,
+            date: purchaseDate,
+            url: effect.url,
+            createdAt: new Date().toISOString(),
+            paymentMethod: response.razorpay_payment_method || "unknown",
+            contact: response.razorpay_contact || user?.phoneNumber || "unknown",
+            status: "success",
+          });
+        });
+        setPurchasedEffects((prev) => [...prev, effect.id]);
+        setEffectPurchaseDetails({
+          id: effect.id,
+          name: effect.name,
+          url: effect.url,
+          price: effect.priceINR,
+          paymentType: "real_money",
+          transactionId: response.razorpay_payment_id,
+          date: purchaseDate,
+        });
+        setToast({ message: `Purchased "${effect.name}" successfully! 🌟`, type: "success" });
+      } catch (error) {
+        console.error("Purchase effect error:", error);
+        setToast({ message: "Failed to purchase effect. Try again.", type: "error" });
+      }
+    },
+    modal: { ondismiss: () => setToast({ message: "Payment cancelled.", type: "error" }) },
+    prefill: {
+      name: user?.displayName || "Client",
+      email: user?.email || "",
+      contact: user?.phoneNumber || "",
+    },
+    theme: { color: "#000000" },
+  };
+  try {
+    const rzp = new (window as any).Razorpay(options);
+    rzp.on("payment.failed", (err: any) => {
+      setToast({ message: `Payment failed: ${err.error.description}`, type: "error" });
+    });
+    rzp.open();
+  } catch (err) {
+    console.error("Razorpay error:", err);
+    setToast({ message: "Failed to initiate payment.", type: "error" });
+  }
+};
+
   // Add this useEffect to award a sample achievement on first login, after the useEffect for deviceName
 
   const accountLogos: Record<string, string> = {
@@ -1592,11 +1847,25 @@ useEffect(() => {
 
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
+    const handleLoopWithDelay = () => {
+
+  const delayMs = 10000; // 2-second delay
+
+  setTimeout(() => {
+    if (videoEffectRef.current) {
+      videoEffectRef.current.currentTime = 0;
+      videoEffectRef.current.play();
+    }
+  }, delayMs);
+};
+
   const profileOptions = [
     { label: "Profile", icon: User, action: () => navigate("/profile") },
     { label: "Purchase History", icon: User, action: () => navigate("/purchase-history") },
     { label: "Log Out", icon: LogOut, action: () => signOut(auth).then(() => navigate("/")) },
   ];
+
+  const videoEffectRef = useRef<(HTMLVideoElement | null)[]>([]); // Allow null refs
 
   if (!user) return null;
 
@@ -1623,6 +1892,33 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
+{activeEffect && (
+  <video
+    key={activeEffect.url} // Force re-render on URL change
+    preload="auto"
+    autoPlay
+    ref={(el) => (videoEffectRef.current = el)}
+    className="fixed inset-0 w-full h-full object-cover z-50"
+    style={{ pointerEvents: isEffectInteractable ? "auto" : "none" }}
+    muted
+    onEnded={handleLoopWithDelay}
+    onClick={handleEffectClick}
+    onError={(e) => console.error("Video overlay error:", e)}
+    onLoadStart={() => console.log("Overlay video load started:", activeEffect.url)} // Debug
+  >
+    <source src={activeEffect.url} type="video/webm" />
+    <source
+      src={
+        activeEffect.url.endsWith(".webm")
+          ? activeEffect.url.replace(".webm", ".mp4")
+          : activeEffect.url
+      }
+      type="video/webm"
+    />
+    Your browser does not support the video tag.
+  </video>
+)}
+
     {selectedVideo && (
       <video
         autoPlay
@@ -2176,6 +2472,27 @@ useEffect(() => {
                         whileTap={{ scale: 0.95 }}
                       >
                         Change Music
+                      </motion.button>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2 mt-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="pt-1">
+                          <Music className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
+                        </div>
+                        <div>
+                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>Profile Effect</p>
+                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>Customize your profile effect</p>
+                        </div>
+                      </div>
+                      <motion.button
+                        onClick={() => setIsEffectModalOpen(true)}
+                        className={`py-2.5 px-4 font-semibold mt-4 md:mt-0 rounded-lg ${selectedVideo ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-black hover:bg-black/90'} cursor-custom-pointer transition-all text-xs`}
+                        style={{ fontFamily: 'Poppins' }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Change Effect
                       </motion.button>
                     </div>
                     
@@ -3118,6 +3435,190 @@ useEffect(() => {
   )}
 </AnimatePresence>
 
+<AnimatePresence>
+  {isEffectModalOpen && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={() => setIsEffectModalOpen(false)}
+    >
+      <motion.div
+        initial={{ scale: 0.95, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white h-full md:h-auto md:rounded-2xl md:p-20 p-6 pb-14 w-full max-w-4xl relative flex flex-col"
+      >
+        <button
+          onClick={() => setIsEffectModalOpen(false)}
+          className="absolute top-4 right-4 text-gray-500 hover:text-black cursor-custom-pointer"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <div className="flex mt-12 md:mt-0 justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold text-black" style={{ fontFamily: "Poppins" }}>
+            Select Profile Effect
+          </h3>
+          <span
+            className="flex items-center gap-1 text-sm font-semibold text-black border border-black px-4 py-1 rounded-full"
+          >
+            <img
+              src="https://i.ibb.co/LDnY9KSK/virtual-coin.png"
+              alt="Credits"
+              className="w-4 h-4"
+            />
+            {virtualCurrency}{" "}
+            <span className="bg-black p-1 rounded-full ml-1">
+              <Plus
+                onClick={() => {
+                  setIsOpen(true);
+                  setIsEffectModalOpen(false);
+                }}
+                size={10}
+                className="text-white cursor-custom-pointer"
+              />
+            </span>
+          </span>
+        </div>
+        {toast?.type === "error" && (
+          <p
+            className="text-red-500 text-sm mb-4 bg-red-100 px-4 py-2 rounded-lg border border-red-400 flex gap-1.5"
+          >
+            <AlertTriangle size={16} className="mt-0.5" /> {toast.message}
+          </p>
+        )}
+        {toast?.type === "success" && (
+          <p
+            className="text-green-500 text-sm mb-4 bg-green-100 px-4 py-2 rounded-lg border border-green-400 flex gap-1.5"
+          >
+            <CheckCircle size={16} className="mt-0.5" /> {toast.message}
+          </p>
+        )}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <input
+              type="text"
+              placeholder="Search effects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full p-3 rounded-lg text-sm border border-gray-300"
+            />
+          </div>
+          <div
+            className="w-full overflow-x-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
+          >
+            <div className="inline-flex gap-2 whitespace-nowrap px-1 pb-1">
+              {allEffectCategories.map((category) => {
+                const isSelected = selectedCategories.includes(category);
+                return (
+                  <button
+                    key={category}
+                    onClick={() => toggleCategory(category)}
+                    className={`px-5 py-2 rounded-lg cursor-custom-pointer text-xs font-semibold border flex-shrink-0
+                      ${isSelected ? "bg-black text-white" : "bg-gray-100 text-gray-700 border-gray-300"}`}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+          {filteredEffects.map((effect, index) => (
+            <motion.div
+              key={effect.id}
+              className={`rounded-xl p-3 flex items-center gap-3 relative transition-all duration-200 h-32
+                ${activeEffect?.url === effect.url ? "border-black border" : "bg-white border border-gray-200"}
+                ${index === 1 ? "scale-100 z-10" : "scale-100"}
+                cursor-custom-pointer`}
+              whileHover={{ scale: 1 }}
+              whileTap={{ scale: 1 }}
+              onClick={() => handleEffectSelect(effect)}
+            >
+              <div
+                className={`w-24 h-20 rounded-lg overflow-hidden flex-shrink-0 
+                ${!purchasedEffects.includes(effect.id) && effect.price > 0 ? "grayscale" : ""}`}
+              >
+                {effect.url ? (
+                  <video
+                    ref={(el) => {
+                      if (el) videoEffectRef.current[index] = el;
+                    }}
+                    autoPlay
+                    preload="auto"
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover bg-black/80"
+                    onError={(e) => console.error(`Video error for ${effect.name}:`, e)} // Debug
+                  >
+                    <source src={effect.url} type="video/webm" />
+                    <source
+                      src={effect.url.endsWith(".webm") ? effect.url.replace(".webm", ".mp4") : effect.url}
+                      type="video/mp4"
+                    />
+
+                    <source src={effect.url} type="video/webm" />
+                    <source
+                      src={effect.url.endsWith(".webm") ? effect.url.replace(".webm", ".mp4") : effect.url}
+                      type="video/mp4"
+                    />
+                  </video>
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+                    Empty
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 flex flex-col justify-center">
+                <div className={`${!purchasedEffects.includes(effect.id) && effect.price > 0 ? "opacity-100" : ""}`}>
+                  <p className="text-base font-semibold text-black">{effect.name}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    {purchasedEffects.includes(effect.id) ? (
+                      "Owned"
+                    ) : effect.price > 0 ? (
+                      <>
+                        <img src="https://i.ibb.co/LDnY9KSK/virtual-coin.png" alt="Credits" className="w-3.5 h-3.5" />
+                        {effect.price}
+                      </>
+                    ) : (
+                      "Free"
+                    )}
+                  </p>
+                </div>
+                {!purchasedEffects.includes(effect.id) && effect.price > 0 && (
+                  <motion.button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePurchaseEffect(effect);
+                    }}
+                    className={`mt-2 px-3 py-2 text-sm font-semibold rounded-md text-white z-10
+                      ${virtualCurrency < effect.price ? "bg-gray-400 cursor-not-allowed opacity-50" : "bg-black hover:bg-black/90 cursor-pointer"}`}
+                    whileHover={{ scale: virtualCurrency < effect.price ? 1 : 1.01 }}
+                    whileTap={{ scale: virtualCurrency < effect.price ? 1 : 0.95 }}
+                    disabled={virtualCurrency < effect.price}
+                  >
+                    Buy "{effect.name}"
+                  </motion.button>
+                )}
+              </div>
+              {activeEffect?.url === effect.url && (
+                <CheckCircle strokeWidth={3} className="w-4 h-4 text-black absolute top-3 right-3" />
+              )}
+              {!purchasedEffects.includes(effect.id) && effect.price > 0 && (
+                <Lock strokeWidth={3} className="w-4 h-4 text-gray-500 absolute top-3 right-3" />
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
 {isOpen && (
   <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:px-4">
     <div className="h-screen flex items-center justify-center md:py-10">
@@ -3333,9 +3834,56 @@ useEffect(() => {
                 </div>
               </Tilt>
             ))}
-            <br />
-            <br />
+            
+            
         </div>
+        <br />
+            <br />
+                      <div className="mb-8">
+                <h3 style={{ fontFamily: "Poppins" }} className="text-xl font-bold mb-4">
+                  Profile Effects
+                </h3>
+                <hr className="mb-6" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {effects.map((effect) => (
+                    
+                    <Tilt options={{ max: 15, scale: 1.05 }} key={effect.id} className="border border-black rounded-xl p-4">
+                      
+                      <video
+                        src={effect.url}
+                        className="w-full h-32 object-cover rounded-md mt-2"
+                        autoPlay
+                        loop
+                        muted
+                      />
+                      <h4 style={{ fontFamily: "Poppins" }} className="text-lg mt-2 font-semibold">
+                        {effect.name}
+                      </h4>
+                      <p className="text-base font-bold text-gray-800" style={{
+                      fontFamily: 'Poppins'
+                    }}>
+                      ₹{effect.priceINR}/-
+                    </p>
+                      {!purchasedEffects.includes(effect.id) ? (
+                        <div className="mt-4 flex space-x-2">
+                          {effect.priceINR && (
+                            <button
+                              onClick={() => handlePurchaseRealMoneyEffect(effect)}
+                              className="bg-black text-sm font-bold cursor-custom-pointer w-full text-white px-4 py-3 rounded-md hover:bg-black/90"
+                            >
+                              Buy "{effect.name}"
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mt-4 flex space-x-2">
+                        <p className="w-full bg-black/20 text-sm text-center text-black py-3 rounded-md">Already Owned</p>
+                        </div>
+                      )}
+                    </Tilt>
+                  ))}
+                </div>
+              </div>
       </div>
     </div>
   </div>
@@ -3449,6 +3997,67 @@ useEffect(() => {
       {/* Close Button */}
       <button
         onClick={() => setVideoPurchaseDetails(null)}
+        className="mt-6 w-full bg-black text-white px-4 py-3 rounded-lg"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
+
+{effectPurchaseDetails && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white h-screen sm:h-auto pt-28 sm:pt-16 rounded-lg py-16 px-6 md:p-16 w-full max-w-xl">
+      <h2 className="text-3xl font-bold mb-6 text-center" style={{ fontFamily: "Poppins" }}>
+        Purchase Successful!
+      </h2>
+      {/* Video Visual */}
+      <div className="flex justify-center mb-4">
+        <video
+          src={effectPurchaseDetails.url}
+          className="w-full h-40 object-cover rounded-lg bg-black/80"
+          muted
+          loop
+          autoPlay
+        />
+      </div>
+      <p className="text-center font-bold text-2xl" style={{ fontFamily: "Poppins" }}>
+        {effectPurchaseDetails.name}
+      </p>
+      <p className="text-center mt-3 text-gray-600">
+        "{effectPurchaseDetails.name}" added to your profile effects successfully
+      </p>
+      <br />
+      <hr />
+      <br />
+      <p className="text-lg font-bold mb-4" style={{ fontFamily: "Poppins" }}>
+        Purchase Details
+      </p>
+      {/* Purchase Details */}
+      <div className="overflow-x-auto w-full">
+        <div className="flex whitespace-nowrap border border-black">
+          {/* Left column: header labels */}
+          <div className="flex flex-col w-full bg-gray-100 border-r border-black">
+            <div className="py-4 px-4 border-b border-black font-semibold text-sm">Effect Name</div>
+            <div className="py-4 px-4 border-b border-black font-semibold text-sm">Amount Paid</div>
+            <div className="py-4 px-4 border-b border-black font-semibold text-sm">Date & Time</div>
+            <div className="py-4 px-4 font-semibold text-sm">Transaction ID</div>
+          </div>
+          {/* Right column: actual data */}
+          <div className="flex flex-col">
+            <div className="py-4 px-6 border-b border-black text-sm">{effectPurchaseDetails.name}</div>
+            <div className="py-4 px-6 border-b border-black text-sm">
+                  ₹${effectPurchaseDetails.priceINR}
+            </div>
+            <div className="py-4 px-6 border-b border-black text-sm">{effectPurchaseDetails.date}</div>
+            <div className="py-4 px-6 text-sm">{effectPurchaseDetails.transactionId}</div>
+          </div>
+        </div>
+      </div>
+      {/* Close Button */}
+      <button
+        onClick={() => setEffectPurchaseDetails(null)}
         className="mt-6 w-full bg-black text-white px-4 py-3 rounded-lg"
       >
         Close

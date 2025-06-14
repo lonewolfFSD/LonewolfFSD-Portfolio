@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, db } from "../firebase"; // Adjust import path to your Firebase config
+import { auth, db } from "../firebase";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import ScaleLoader from "react-spinners/ScaleLoader";
 import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import { Copy, X } from "lucide-react";
 
 interface Purchase {
   id: string;
-  type: "credits" | "video";
+  type: "credits" | "video" | "effect";
   name: string;
   amount: number;
   paymentType: "credits" | "real_money";
@@ -16,12 +16,17 @@ interface Purchase {
   image?: string;
   date: string;
   url?: string;
+  paymentMethod?: string;
+  contact?: string;
+  status?: string;
 }
 
 const PurchaseHistory: React.FC = () => {
   const [user, loading] = useAuthState(auth);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,9 +63,14 @@ const PurchaseHistory: React.FC = () => {
     );
   }
 
+  const capitalize = (str: string | undefined) => {
+    if (!str) return "-";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto bg-white p-6 sm:p-12 border border-black rounded-xl">
+      <div className="max-w-6xl mx-auto bg-white p-6 sm:p-12 border border-black h-screen">
         <div className="flex justify-between items-center mb-8">
           <h2
             style={{ fontFamily: "Poppins" }}
@@ -68,7 +78,6 @@ const PurchaseHistory: React.FC = () => {
           >
             Purchase History
           </h2>
-
         </div>
         {isLoading ? (
           <div className="flex justify-center">
@@ -85,6 +94,10 @@ const PurchaseHistory: React.FC = () => {
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Amount Paid</th>
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Date & Time</th>
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Transaction ID</th>
+                  <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Payment Method</th>
+                  <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Mobile Number</th>
+                  <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Status</th>
+                  <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Action</th>
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Preview</th>
                 </tr>
               </thead>
@@ -98,12 +111,57 @@ const PurchaseHistory: React.FC = () => {
                         : `₹${purchase.amount}`}
                     </td>
                     <td className="py-4 px-6 text-sm border-r border-black">{purchase.date}</td>
-                    <td className="py-4 px-6 text-sm border-r border-black">{purchase.transactionId}</td>
+                    <td className="py-4 px-6 text-sm border-r border-black">
+                      {purchase.transactionId}
+                      {copiedId === purchase.id ? (
+                        <span className="ml-2 text-black font-bold text-sm">✔</span>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(purchase.transactionId);
+                            setCopiedId(purchase.id);
+                            setTimeout(() => setCopiedId(null), 2000);
+                          }}
+                          className="ml-2 -mb-1 text-black hover:text-gray-800"
+                        >
+                          <Copy size={14} />
+                        </button>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 text-sm border-r border-black">
+                      {purchase.paymentType === "real_money"
+                        ? capitalize(purchase.paymentMethod)
+                        : "-"}
+                    </td>
+                    <td className="py-4 px-6 text-sm border-r border-black">
+                      {purchase.paymentType === "real_money"
+                        ? purchase.contact || "-"
+                        : "-"}
+                    </td>
+                    <td className="py-4 px-6 text-sm border-r border-black">
+                      {purchase.paymentType === "real_money"
+                        ? capitalize(purchase.status)
+                        : "-"}
+                    </td>
+                    <td className="py-4 px-6 text-sm border-r border-black">
+                      {purchase.paymentType === "real_money" && purchase.status === "success" ? (
+                        <a
+                          href="https://forms.gle/your-google-form-link" // Replace with your Google Form URL
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-white bg-black px-4 py-2.5 rounded-md hover:underline text-sm"
+                        >
+                          Request Refund
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                     <td className="py-4 px-6 text-sm">
-                      {purchase.type === "video" && purchase.url ? (
+                      {["video", "effect"].includes(purchase.type) && purchase.url ? (
                         <video
                           src={purchase.url}
-                          className="w-16 h-16 object-cover rounded-lg"
+                          className="w-full h-16 object-cover rounded-lg pointer-events-none"
                           muted
                           loop
                           autoPlay
@@ -112,7 +170,7 @@ const PurchaseHistory: React.FC = () => {
                         <img
                           src={purchase.image}
                           alt={purchase.name}
-                          className="w-16 h-16 object-contain rounded-lg"
+                          className="w-16 h-16 object-contain rounded-lg pointer-events-none"
                         />
                       ) : (
                         "-"
