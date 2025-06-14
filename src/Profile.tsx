@@ -120,6 +120,18 @@ interface EffectPurchaseDetails {
   date: string;
 }
 
+interface UserProfile {
+  displayName: string;
+  photoURL?: string;
+  email: string;
+  emailVerified: boolean;
+  metadata: { creationTime?: string; lastSignInTime?: string };
+  activeEffect?: Effect;
+  selectedVideo?: string;
+  achievements?: Array<{ name: string; description: string; badgeImage: string; status: string; earnedDate?: string }>;
+  region?: string;
+}
+
 interface PurchaseDetails {
   credits: number;
   amount: number; // Amount in INR
@@ -203,16 +215,25 @@ interface ProfileProps {
   uid?: string; // Optional UID for public profiles
 }
 
-const Profile: React.FC<ProfileProps> = ({ isDark, publicMode = false }) => {
+const Profile: React.FC<ProfileProps> = ({ isDark }) => {
   const navigate = useNavigate();
   const { uid } = useParams<{ uid: string }>();
-  const [user, setUser] = useState(auth.currentUser);
+  const [user, setUser] = useState(auth?.currentUser);
+    const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
+  const [publicMode, setPublicMode] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [location, setLocation] = useState<string>("Fetching...");
   const [region, setRegion] = useState<string>("Unknown");
   const [currentTime, setCurrentTime] = useState<string>(() =>
     new Date().toLocaleTimeString()
   );
+
+const [publicUserData, setPublicUserData] = useState<{
+  displayName?: string;
+  photoURL?: string;
+  achievements?: any[];
+  selectedVideo?: string;
+} | null>(null);
   const [password, setPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -251,7 +272,7 @@ const [virtualCurrency, setVirtualCurrency] = useState<number>(300);
     const [effectPurchaseDetails, setEffectPurchaseDetails] = useState<EffectPurchaseDetails | null>(null);
 
 const [isCreditsOpen, setIsCreditsOpen] = useState(true);
-
+const [achievements, setAchievements] = useState<Achievement[]>([]);
   // Replace purchasedCredits with purchaseDetails
   const [purchaseDetails, setPurchaseDetails] = useState<PurchaseDetails | null>(null);
 const [isPurchaseHistoryOpen, setIsPurchaseHistoryOpen] = useState(false);
@@ -263,12 +284,111 @@ const [musicSearchQuery, setMusicSearchQuery] = useState("");
 const [selectedMusicCategories, setSelectedMusicCategories] = useState<string[]>([]);
 const [playingMusicId, setPlayingMusicId] = useState<string | null>(null);
 const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-
+let [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
 // Add state for modal visibility and purchased credits
 const [isOpen, setIsOpen] = useState(false);
 const [purchasedCredits, setPurchasedCredits] = useState(null);
+
+const profileData = publicMode
+  ? publicUserData || {}
+  : { displayName: user?.displayName, photoURL: user?.photoURL, achievements, selectedVideo };
+
+// Then use:
+{profileData.displayName}
+{profileData.photoURL}
+{profileData.achievements}
+const backgroundVideo = profileData.selectedVideo;
+
+const videoEffectRef = useRef<(HTMLVideoElement | null)[]>([]);
+  const videoRef = useRef(null);
+
+  // Determine public mode and fetch profile data
+  useEffect(() => {
+    if (loading) return;
+    if (!user && !uid) {
+      navigate("/login");
+      return;
+    }
+    const targetUid = uid || user?.uid;
+    if (!targetUid) return;
+
+    setPublicMode(!!uid && uid !== user?.uid);
+    const userRef = doc(db, "users", targetUid);
+    const unsubscribe = onSnapshot(userRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setProfileUser({
+          displayName: data.displayName || "Anonymous",
+          photoURL: data.photoURL,
+          email: data.email || "Unknown",
+          emailVerified: data.emailVerified || false,
+          metadata: { creationTime: data.createdAt, lastSignInTime: data.lastLogin },
+          activeEffect: data.activeEffect,
+          selectedVideo: data.selectedVideo,
+          achievements: data.achievements || [],
+          region: data.region || "Unknown",
+        });
+        setVirtualCurrency(data.virtualCurrency ?? 0);
+        setPurchasedVideos(data.purchasedVideos ?? []);
+        setPurchasedEffects(data.purchasedEffects ?? []);
+        setActiveEffect(data.activeEffect ?? null);
+        setSelectedVideo(data.selectedVideo ?? null);
+        setAvatarURL(data.avatarURL || null);
+        setRegion(data.region || "Unknown");
+        setLocation(data.location || "Unknown");
+        setCurrentTime(data.currentTime || "Unknown");
+        setDeviceName(data.deviceName || "Unknown");
+        setUserRole(data.role || "user");
+        setAchievements(data.achievements || []);
+        setConnectedAccounts(data.connectedAccounts || []);
+        setRecentLogins(data.recentLogins || []);
+        setIsBiometric2FAEnabled(data.isBiometric2FAEnabled || false);
+      } else {
+        setToast({ message: "User not found.", type: "error" });
+        if (uid) navigate("/profile");
+      }
+    }, (error) => {
+      console.error("Firestore snapshot error:", error);
+      setToast({ message: "Failed to load profile data.", type: "error" });
+    });
+    return unsubscribe;
+  }, [user, uid, loading, navigate]);
+
+  // Fetch public user data if in publicMode
+useEffect(() => {
+  if (publicMode && uid) {
+    const fetchPublicUser = async () => {
+      try {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          setPublicUserData({
+            displayName: data.displayName,
+            photoURL: data.photoURL,
+            achievements: data.achievements || [],
+            selectedVideo: data.selectedVideo || null,
+          });
+        } else {
+          setToast({ message: "User not found.", type: "error" });
+        }
+      } catch (err) {
+        console.error("Fetch public user error:", err);
+        setToast({ message: "Failed to load profile.", type: "error" });
+      }
+    };
+    fetchPublicUser();
+  }
+}, [publicMode, uid]);
+
+let displayName;
+if (publicMode) {
+  displayName = publicUserData?.displayName;
+} else {
+  displayName = user?.displayName;
+}
 
 // Function to load Razorpay script dynamically
 const loadRazorpayScript = () => {
@@ -339,7 +459,7 @@ const handlePayment = async (amount: number, credits: number, image: string) => 
       setToast({ message: "Razorpay SDK failed to load.", type: "error" });
       return;
     }
-    if (!user || !user.uid) {
+    if (!user || !user?.uid) {
       setToast({ message: "User not authenticated.", type: "error" });
       return;
     }
@@ -359,8 +479,8 @@ const handlePayment = async (amount: number, credits: number, image: string) => 
       description: `Purchase ${credits} Credits`,
       handler: async function (response: any) {
         try {
-          const userRef = doc(db, "users", user.uid);
-          const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+          const userRef = doc(db, "users", user?.uid);
+          const purchaseRef = doc(collection(db, `users/${user?.uid}/purchases`));
           await runTransaction(db, async (transaction) => {
             const userDoc = await transaction.get(userRef);
             if (!userDoc.exists()) {
@@ -482,7 +602,7 @@ const filteredVideos = videoOptions.filter(video => {
 });
 
 const handlePurchaseVideo = async (video: { id: string; price: number; url: string; name: string }) => {
-  if (!user || !user.uid) {
+  if (!user || !user?.uid) {
     setError("You must be signed in to purchase videos.");
     return;
   }
@@ -491,7 +611,7 @@ const handlePurchaseVideo = async (video: { id: string; price: number; url: stri
     return;
   }
   try {
-    const userDocRef = doc(db, "users", user.uid);
+    const userDocRef = doc(db, "users", user?.uid);
     await runTransaction(db, async (transaction) => {
       const userDoc = await transaction.get(userDocRef);
       if (!userDoc.exists()) {
@@ -520,7 +640,7 @@ const handlePurchaseVideo = async (video: { id: string; price: number; url: stri
   const [activeEffect, setActiveEffect] = useState<Effect | null>(null);
 
 const handlePurchaseMusic = async (music: { id: string; price: number; name: string }) => {
-  if (!user || !user.uid) {
+  if (!user || !user?.uid) {
     setError("You must be signed in to purchase music.");
     return;
   }
@@ -531,7 +651,7 @@ const handlePurchaseMusic = async (music: { id: string; price: number; name: str
   }
 
   try {
-    const userDocRef = doc(db, "users", user.uid);
+    const userDocRef = doc(db, "users", user?.uid);
 
     await runTransaction(db, async (transaction) => {
       const userDoc = await transaction.get(userDocRef);
@@ -563,9 +683,9 @@ const handlePurchaseMusic = async (music: { id: string; price: number; name: str
 };
 
 const loadUserData = async () => {
-  if (!user || !user.uid) return;
+  if (!user || !user?.uid) return;
   try {
-    const userDocRef = doc(db, "users", user.uid);
+    const userDocRef = doc(db, "users", user?.uid);
     const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
       const data = docSnap.data();
@@ -596,9 +716,9 @@ const loadUserData = async () => {
 
 useEffect(() => {
   const loadBackgroundMusic = async () => {
-    if (!user || !user.uid) return;
+    if (!user || !user?.uid) return;
     try {
-      const userDocRef = doc(db, "users", user.uid);
+      const userDocRef = doc(db, "users", user?.uid);
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists() && docSnap.data().backgroundMusic) {
         setSelectedMusic(docSnap.data().backgroundMusic);
@@ -625,7 +745,7 @@ useEffect(() => {
 }, [user]);
 
 const handleMusicSelect = async (music: { id: string; url: string | null }) => {
-  if (!user || !user.uid) return;
+  if (!user || !user?.uid) return;
 
   const selectedMusicOption = musicOptions.find(m => m.id === music.id);
   const isLocked = selectedMusicOption?.locked;
@@ -640,7 +760,7 @@ const handleMusicSelect = async (music: { id: string; url: string | null }) => {
   try {
     setSelectedMusic(music.url);
 
-    const userDocRef = doc(db, "users", user.uid);
+    const userDocRef = doc(db, "users", user?.uid);
     await updateDoc(userDocRef, {
       profileMusic: music.url,
       updatedAt: new Date().toISOString(),
@@ -659,10 +779,10 @@ const handleMusicSelect = async (music: { id: string; url: string | null }) => {
 
 // Consolidate loading logic in one useEffect
 useEffect(() => {
-  if (!user || !user.uid) return;
+  if (!user || !user?.uid) return;
   const loadData = async () => {
     try {
-      const userDocRef = doc(db, "users", user.uid);
+      const userDocRef = doc(db, "users", user?.uid);
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -690,14 +810,14 @@ useEffect(() => {
 
 
 const handleVideoSelect = async (video: { id: string; url: string | null }) => {
-  if (!user || !user.uid) return;
+  if (!user || !user?.uid) return;
   if (videoOptions.find(v => v.id === video.id)?.locked && !purchasedVideos.includes(video.id) && videoOptions.find(v => v.id === video.id)?.price !== 0) {
     setError("Please purchase this background first.");
     return;
   }
   try {
     setSelectedVideo(video.url);
-    const userDocRef = doc(db, "users", user.uid);
+    const userDocRef = doc(db, "users", user?.uid);
     await updateDoc(userDocRef, {
       backgroundVideo: video.url,
       updatedAt: new Date().toISOString(),
@@ -720,16 +840,16 @@ const handleVideoSelect = async (video: { id: string; url: string | null }) => {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   // Add this state variable inside the Profile component, after other useState declarations
-const [achievements, setAchievements] = useState<Achievement[]>([]);
+
 
 // Add this useEffect to fetch achievements, after the existing useEffect for auth state
 useEffect(() => {
-  if (!user || !user.uid) {
+  if (!user || !user?.uid) {
     console.log("No user or UID for achievements");
     return;
   }
 
-  const achievementsRef = collection(db, 'users', user.uid, 'achievements');
+  const achievementsRef = collection(db, 'users', user?.uid, 'achievements');
   const unsubscribe = onSnapshot(achievementsRef, (snapshot) => {
     const achievementList: Achievement[] = snapshot.docs.map((doc) => ({
       achievementId: doc.id,
@@ -746,9 +866,9 @@ useEffect(() => {
 
 useEffect(() => {
   const loadBackgroundVideo = async () => {
-    if (!user || !user.uid) return;
+    if (!user || !user?.uid) return;
     try {
-      const userDocRef = doc(db, "users", user.uid);
+      const userDocRef = doc(db, "users", user?.uid);
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists() && docSnap.data().backgroundVideo) {
         setSelectedVideo(docSnap.data().backgroundVideo);
@@ -764,13 +884,13 @@ useEffect(() => {
   // Load avatar from Firestore on mount
 useEffect(() => {
   const loadAvatar = async () => {
-    if (!user || !user.uid) {
+    if (!user || !user?.uid) {
       console.log("No user or UID for avatar load");
       return;
     }
     try {
-      console.log("Loading avatar for UID:", user.uid);
-      const userDoc = doc(db, "users", user.uid, "profile", "avatar");
+      console.log("Loading avatar for UID:", user?.uid);
+      const userDoc = doc(db, "users", user?.uid, "profile", "avatar");
       const docSnap = await getDoc(userDoc);
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -902,11 +1022,11 @@ useEffect(() => {
       if (currentUser) {
         try {
           await currentUser.getIdToken(true);
-          await checkBiometricState(currentUser.uid);
+          await checkBiometricState(currentUser?.uid);
           setUser(currentUser);
 
           // Load avatar for authenticated user
-          const userDoc = doc(db, "users", currentUser.uid, "profile", "avatar");
+          const userDoc = doc(db, "users", currentUser?.uid, "profile", "avatar");
           const docSnap = await getDoc(userDoc);
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -964,9 +1084,9 @@ useEffect(() => {
           challenge: crypto.getRandomValues(new Uint8Array(32)),
           rp: { name: "LonewolfFSD", id: window.location.hostname },
           user: {
-            id: new TextEncoder().encode(user.uid),
+            id: new TextEncoder().encode(user?.uid),
             name: user.email || "user@example.com",
-            displayName: user.displayName || "User",
+            displayName: user?.displayName || "User",
           },
           pubKeyCredParams: [{ alg: -7, type: "public-key" }],
           authenticatorSelection: {
@@ -979,7 +1099,7 @@ useEffect(() => {
       console.log("Passkey created:", credential);
   
       // Only set the enabled flag, no need to store credentialId
-      await setDoc(doc(db, "users", user.uid), {
+      await setDoc(doc(db, "users", user?.uid), {
         biometric2FAEnabled: true,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
@@ -994,11 +1114,11 @@ useEffect(() => {
   };
 
   const verifyBiometric = async () => {
-    if (!auth.currentUser) {
+    if (!auth?.currentUser) {
       console.log("No authenticated user");
       throw new Error("User not authenticated.");
     }
-    const uid = auth.currentUser.uid;
+    const uid = auth?.currentUser?.uid;
     try {
       console.log("Verifying biometric for UID:", uid);
       const credential = await navigator.credentials.get({
@@ -1139,13 +1259,13 @@ useEffect(() => {
   
 
   const handleUpload = async () => {
-  if (!selectedFile || !auth.currentUser || !croppedAreaPixels) {
+  if (!selectedFile || !auth?.currentUser || !croppedAreaPixels) {
     setError("No file selected, not signed in, or image not cropped.");
     return;
   }
   try {
     setUploadProgress(0);
-    console.log("Uploading for UID:", auth.currentUser.uid);
+    console.log("Uploading for UID:", auth?.currentUser?.uid);
 
     // Generate cropped image
     const croppedFile = await getCroppedImg(previewURL, croppedAreaPixels, rotation);
@@ -1163,7 +1283,7 @@ useEffect(() => {
     reader.onload = async () => {
       const base64 = reader.result as string;
       console.log("Base64 length:", base64.length);
-      const userDoc = doc(db, "users", auth.currentUser!.uid, "profile", "avatar");
+      const userDoc = doc(db, "users", auth?.currentUser!.uid, "profile", "avatar");
       await setDoc(userDoc, { avatar: base64 }, { merge: true });
       setAvatarURL(base64);
       setSuccess("Avatar updated! You're rocking a new vibe! 🌟");
@@ -1248,7 +1368,7 @@ useEffect(() => {
       if (currentUser) {
         try {
           await currentUser.getIdToken(true);
-          await checkBiometricState(currentUser.uid);
+          await checkBiometricState(currentUser?.uid);
         } catch (err) {
           console.error("Auth error:", err.code, err.message);
         }
@@ -1260,14 +1380,14 @@ useEffect(() => {
   }, []);
 
 useEffect(() => {
-  if (!user || !user.uid) {
+  if (!user || !user?.uid) {
     console.log("No user or UID for notifications");
     return;
   }
 
   const q = query(
     collection(db, 'notifications'),
-    where('recipient', '==', user.uid)
+    where('recipient', '==', user?.uid)
   );
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const notifs = snapshot.docs.map((doc) => ({
@@ -1285,10 +1405,10 @@ useEffect(() => {
   useEffect(() => {
     const fetchUserRole = async () => {
       const auth = getAuth();
-      const user = auth.currentUser;
+      const user = auth?.currentUser;
       if (user) {
         try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          const userDoc = await getDoc(doc(db, 'users', user?.uid));
           if (userDoc.exists()) {
             setUserRole(userDoc.data().role || 'user');
           } else {
@@ -1304,7 +1424,7 @@ useEffect(() => {
   }, []);
 
   const handlePurchaseRealMoneyVideo = async (video: { id: string; name: string; priceINR: number; url: string }) => {
-  if (!user || !user.uid) {
+  if (!user || !user?.uid) {
     setToast({ message: "You must be signed in to purchase videos.", type: "error" });
     return;
   }
@@ -1331,8 +1451,8 @@ useEffect(() => {
     description: `Purchase Video: ${video.name}`,
     handler: async function (response: any) {
       try {
-        const userRef = doc(db, "users", user.uid);
-        const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+        const userRef = doc(db, "users", user?.uid);
+        const purchaseRef = doc(collection(db, `users/${user?.uid}/purchases`));
         await runTransaction(db, async (transaction) => {
           const userDoc = await transaction.get(userRef);
           if (!userDoc.exists()) {
@@ -1573,28 +1693,32 @@ useEffect(() => {
 
     const [isCopied, setIsCopied] = useState(false);
 
-  const onShareClick = async () => {
-    try {
-      await handleShare();
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
-    } catch (err) {
-      console.error("Share failed:", err);
-    }
-  };
+    const onShareClick = async () => {
+  if (!user?.uid) return;
+  const shareUrl = `${window.location.origin}/profile/${user.uid}`;
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    setIsCopied(true);
+    setToast({ message: "Profile link copied!", type: "success" });
+    setTimeout(() => setIsCopied(false), 3000); // Reset after 3s
+  } catch (err) {
+    console.error("Copy failed:", err);
+    setToast({ message: "Failed to copy link.", type: "error" });
+  }
+};
 
   const handleShare = async () => {
     try {
-      const publicProfileRef = doc(db, "publicProfiles", user.uid);
+      const publicProfileRef = doc(db, "publicProfiles", user?.uid);
       await setDoc(publicProfileRef, {
-        avatar: avatarURL || user.photoURL,
-        displayName: user.displayName,
-        email: user.email,
+        avatar: avatarURL || user?.photoURL,
+        displayName: user?.displayName,
+        email: user?.email,
         region: region,
-        lastSignInTime: user.metadata.lastSignInTime,
+        lastSignInTime: user?.metadata.lastSignInTime,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      const shareLink = `${window.location.origin}/public-profile/${user.uid}`;
+      const shareLink = `${window.location.origin}/public-profile/${user?.uid}`;
       navigator.clipboard.writeText(shareLink);
       setSuccess("Shareable link copied to clipboard!");
     } catch (err) {
@@ -1636,7 +1760,7 @@ useEffect(() => {
 }, [effectPurchaseDetails]);
 
 const handlePurchaseEffect = async (effect: Effect) => {
-    if (!user || !user.uid) {
+    if (!user || !user?.uid) {
       setToast({ message: "You must be signed in to purchase effects.", type: "error" });
       return;
     }
@@ -1645,8 +1769,8 @@ const handlePurchaseEffect = async (effect: Effect) => {
       return;
     }
     try {
-      const userRef = doc(db, "users", user.uid);
-      const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+      const userRef = doc(db, "users", user?.uid);
+      const purchaseRef = doc(collection(db, `users/${user?.uid}/purchases`));
       const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const purchaseDate = new Date().toLocaleString("en-IN", {
         year: "numeric",
@@ -1689,7 +1813,7 @@ const handlePurchaseEffect = async (effect: Effect) => {
   };
 
 const toggleEffect = async (effect: Effect | null) => {
-  if (!user || !user.uid) {
+  if (!user || !user?.uid) {
     setToast({ message: "User not authenticated.", type: "error" });
     return;
   }
@@ -1698,7 +1822,7 @@ const toggleEffect = async (effect: Effect | null) => {
     return;
   }
   try {
-    const userRef = doc(db, "users", user.uid);
+    const userRef = doc(db, "users", user?.uid);
     const effectToSave = effect
       ? { ...effects.find((e) => e.id === effect.id)!, url: effects.find((e) => e.id === effect.id)!.url }
       : null; // Ensure url is resolved
@@ -1725,7 +1849,7 @@ const toggleEffect = async (effect: Effect | null) => {
   };
 
   const handlePurchaseRealMoneyEffect = async (effect: Effect) => {
-  if (!user || !user.uid) {
+  if (!user || !user?.uid) {
     setToast({ message: "User not authenticated.", type: "error" });
     return;
   }
@@ -1753,8 +1877,8 @@ const toggleEffect = async (effect: Effect | null) => {
     description: `Purchase ${effect.name} Effect`,
     handler: async function (response: any) {
       try {
-        const userRef = doc(db, "users", user.uid);
-        const purchaseRef = doc(collection(db, `users/${user.uid}/purchases`));
+        const userRef = doc(db, "users", user?.uid);
+        const purchaseRef = doc(collection(db, `users/${user?.uid}/purchases`));
         await runTransaction(db, async (transaction) => {
           transaction.update(userRef, {
             purchasedEffects: arrayUnion(effect.id),
@@ -1835,7 +1959,7 @@ const toggleEffect = async (effect: Effect | null) => {
 
   const confirmDelete = async () => {
     try {
-      const currentUser = auth.currentUser;
+      const currentUser = auth?.currentUser;
       if (!currentUser) throw new Error("No user signed in");
       await currentUser.getIdToken(true);
       await deleteUser(currentUser);
@@ -1865,11 +1989,6 @@ const toggleEffect = async (effect: Effect | null) => {
     { label: "Log Out", icon: LogOut, action: () => signOut(auth).then(() => navigate("/")) },
   ];
 
-  const videoEffectRef = useRef<(HTMLVideoElement | null)[]>([]); // Allow null refs
-
-  if (!user) return null;
-
-    const videoRef = useRef(null);
 
   useEffect(() => {
     const handleVideoPlayback = () => {
@@ -1890,34 +2009,38 @@ const toggleEffect = async (effect: Effect | null) => {
     return () => window.removeEventListener("resize", handleVideoPlayback);
   }, []);
 
+
+
   return (
     <div className="min-h-screen flex flex-col relative">
-{activeEffect && (
-  <video
-    key={activeEffect.url} // Force re-render on URL change
-    preload="auto"
-    autoPlay
-    ref={(el) => (videoEffectRef.current = el)}
-    className="fixed inset-0 w-full h-full object-cover z-50"
-    style={{ pointerEvents: isEffectInteractable ? "auto" : "none" }}
-    muted
-    onEnded={handleLoopWithDelay}
-    onClick={handleEffectClick}
-    onError={(e) => console.error("Video overlay error:", e)}
-    onLoadStart={() => console.log("Overlay video load started:", activeEffect.url)} // Debug
-  >
-    <source src={activeEffect.url} type="video/webm" />
-    <source
-      src={
-        activeEffect.url.endsWith(".webm")
-          ? activeEffect.url.replace(".webm", ".mp4")
-          : activeEffect.url
-      }
-      type="video/webm"
-    />
-    Your browser does not support the video tag.
-  </video>
-)}
+
+              {activeEffect && (
+                <video
+                  key={activeEffect.url} // Force re-render on URL change
+                  preload="auto"
+                  autoPlay
+                  ref={(el) => (videoEffectRef.current = el)}
+                  className="fixed inset-0 w-full h-full object-cover z-50"
+                  style={{ pointerEvents: isEffectInteractable ? "auto" : "none" }}
+                  muted
+                  onEnded={handleLoopWithDelay}
+                  onClick={handleEffectClick}
+                  onError={(e) => console.error("Video overlay error:", e)}
+                  onLoadStart={() => console.log("Overlay video load started:", activeEffect.url)} // Debug
+                >
+                  <source src={activeEffect.url} type="video/webm" />
+                  <source
+                    src={
+                      activeEffect.url.endsWith(".webm")
+                        ? activeEffect.url.replace(".webm", ".mp4")
+                        : activeEffect.url
+                    }
+                    type="video/webm"
+                  />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+          
 
     {selectedVideo && (
       <video
@@ -1941,6 +2064,8 @@ const toggleEffect = async (effect: Effect | null) => {
         onClose={() => setModalOpen(false)}
         onDelete={confirmDelete}
       />
+
+
 
       {/* Header */}
       <motion.header
@@ -1997,7 +2122,7 @@ const toggleEffect = async (effect: Effect | null) => {
     }
   }}
   className={`${
-    avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
+    avatarURL || auth?.currentUser?.photoURL ? "p-1.5" : "p-2"
   } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
     isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
   } transition-colors`}
@@ -2005,9 +2130,9 @@ const toggleEffect = async (effect: Effect | null) => {
   animate={{ opacity: 1 }}
   transition={{ delay: 0.6, duration: 0.5 }}
 >
-  {avatarURL || auth.currentUser?.photoURL ? (
+  {avatarURL || auth?.currentUser?.photoURL ? (
     <img
-      src={avatarURL || auth.currentUser?.photoURL}
+      src={avatarURL || auth?.currentUser?.photoURL}
       alt="Profile"
       className="w-9 h-9 rounded-full object-cover cursor-custom-pointer"
     />
@@ -2029,9 +2154,9 @@ const toggleEffect = async (effect: Effect | null) => {
                               >
                                 <div className="p-4">
                                   <div className="ml-1 flex">
-                                    {avatarURL || auth.currentUser?.photoURL ? (
+                                    {avatarURL || auth?.currentUser?.photoURL ? (
                                       <img
-                                        src={avatarURL || auth.currentUser?.photoURL}
+                                        src={avatarURL || auth?.currentUser?.photoURL}
                                         alt="Profile"
                                         className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
                                       />
@@ -2039,7 +2164,7 @@ const toggleEffect = async (effect: Effect | null) => {
                                       <User className="w-5 h-5" />
                                     )}
                                     <div className="flex flex-col mb-3.5">
-                                      <p className="text-sm font-semibold ml-2">{user.displayName}</p>
+                                      <p className="text-sm font-semibold ml-2">{user?.displayName}</p>
                                       <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
                                     </div>
                                   </div>
@@ -2148,45 +2273,45 @@ const toggleEffect = async (effect: Effect | null) => {
       className={`text-[30px] font-bold mb-6 text-left ${selectedVideo ? 'text-white' : 'text-black'}  tracking-tight`}
       style={{ fontFamily: "Poppins" }}
     >
-      {user.displayName}'s Profile
+      {publicMode ? publicUserData?.displayName : user?.displayName}'s Profile
       <motion.button
-        onClick={onShareClick}
-        className={`p-2 ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer inline-flex items-center justify-center group ${publicMode ? 'hidden' : 'hidden'}`}
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <span className="flex items-center md:gap-[2px] md:group-hover:gap-1 transition-all duration-300 md:group-hover:px-3 md:group-hover:py-0">
-          {isCopied ? (
-            <>
-              <Check
-                size={19}
-                className="transition-transform duration-300 md:ml-[1px] md:group-hover:ml-0"
-                style={{ transform: "rotate(0deg)" }}
-              />
-              <span
-                className="hidden md:inline overflow-hidden max-w-0 md:group-hover:max-w-[120px] opacity-0 md:group-hover:opacity-100 transition-all duration-300 ease-in-out"
-                style={{ fontFamily: "Inter" }}
-              >
-                <p className="text-[14px] font-semibold whitespace-nowrap">Copied</p>
-              </span>
-            </>
-          ) : (
-            <>
-              <Link2
-                size={19}
-                className="transition-transform duration-300 md:ml-[1px] md:group-hover:ml-0"
-                style={{ transform: "rotate(-45deg)" }}
-              />
-              <span
-                className="hidden md:inline overflow-hidden max-w-0 md:group-hover:max-w-[120px] opacity-0 md:group-hover:opacity-100 transition-all duration-300 ease-in-out"
-                style={{ fontFamily: "Inter" }}
-              >
-                <p className="text-[14px] font-semibold whitespace-nowrap">Share Profile</p>
-              </span>
-            </>
-          )}
+  onClick={onShareClick}
+  className={`p-2 ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer inline-flex items-center justify-center group ${publicMode ? 'hidden' : ''}`}
+  whileHover={{ scale: 1.01 }}
+  whileTap={{ scale: 0.95 }}
+>
+  <span className="flex items-center md:gap-[2px] md:group-hover:gap-1 transition-all duration-300 md:group-hover:px-3 md:group-hover:py-0">
+    {isCopied ? (
+      <>
+        <Check
+          size={19}
+          className="transition-transform duration-300 md:ml-[1px] md:group-hover:ml-0"
+          style={{ transform: "rotate(0deg)" }}
+        />
+        <span
+          className="hidden md:inline overflow-hidden max-w-0 md:group-hover:max-w-[120px] opacity-0 md:group-hover:opacity-100 transition-all duration-300 ease-in-out"
+          style={{ fontFamily: "Inter" }}
+        >
+          <p className="text-[14px] font-semibold whitespace-nowrap">Copied</p>
         </span>
-      </motion.button>
+      </>
+    ) : (
+      <>
+        <Link2
+          size={19}
+          className="transition-transform duration-300 md:ml-[1px] md:group-hover:ml-0"
+          style={{ transform: "rotate(-45deg)" }}
+        />
+        <span
+          className="hidden md:inline overflow-hidden max-w-0 md:group-hover:max-w-[120px] opacity-0 md:group-hover:opacity-100 transition-all duration-300 ease-in-out"
+          style={{ fontFamily: "Inter" }}
+        >
+          <p className="text-[14px] font-semibold whitespace-nowrap">Share Profile</p>
+        </span>
+      </>
+    )}
+  </span>
+</motion.button>
     </h2>
 
           {/* Profile Details */}
@@ -2196,7 +2321,7 @@ const toggleEffect = async (effect: Effect | null) => {
                 <motion.img
                 title={publicMode ? undefined : "Change Avatar"}
                 src={
-                  avatarURL ||
+                  avatarURL || 
                   user?.photoURL ||
                   "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
                 }
@@ -2225,7 +2350,7 @@ const toggleEffect = async (effect: Effect | null) => {
               <div className="pt-1"><User className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
                 <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Name</p>
-                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user.displayName || "Not set"}</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user?.displayName || "Not set"}</p>
               </div>
             </div>
 
@@ -2233,7 +2358,7 @@ const toggleEffect = async (effect: Effect | null) => {
               <div className="pt-1"><Mail className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
                 <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Email</p>
-                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user.email || "Unknown"}</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user?.email || "Unknown"}</p>
               </div>
             </div>
 
@@ -2241,7 +2366,7 @@ const toggleEffect = async (effect: Effect | null) => {
               <div className="pt-1"><ShieldCheck className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
                 <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Email Verified</p>
-                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user.emailVerified ? "Yes" : "No"}</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user?.emailVerified ? "Yes" : "No"}</p>
               </div>
             </div>
 
@@ -2249,7 +2374,7 @@ const toggleEffect = async (effect: Effect | null) => {
               <div className="pt-1"><Calendar className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
                 <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Last Login</p>
-                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{publicMode ? user.metadata?.lastSignInTime || "Unknown" : user.metadata?.lastSignInTime || "Unknown"}</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{publicMode ? user?.metadata?.lastSignInTime || "Unknown" : user?.metadata?.lastSignInTime || "Unknown"}</p>
               </div>
             </div>
 
@@ -2307,7 +2432,7 @@ const toggleEffect = async (effect: Effect | null) => {
                         <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Account Created</p>
                         <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>
                           {user?.metadata?.creationTime
-                            ? new Date(user.metadata.creationTime).toLocaleDateString()
+                            ? new Date(user?.metadata.creationTime).toLocaleDateString()
                             : "Unknown"}
                         </p>
                       </div>
@@ -2326,7 +2451,7 @@ const toggleEffect = async (effect: Effect | null) => {
                     <div className="pt-1"><UserCog className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
                       <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>FSD ID</p>
-                      <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-all`}>{user.uid}</p>
+                      <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-all`}>{user?.uid}</p>
                     </div>
                   </div>
 
@@ -2500,7 +2625,7 @@ const toggleEffect = async (effect: Effect | null) => {
 
 
 
-                                {!publicMode && user?.uid === auth.currentUser?.uid && (
+                                {!publicMode && user?.uid === auth?.currentUser?.uid && (
                 <>
 
                   {/* Privacy & Security Section */}
@@ -2594,7 +2719,7 @@ const toggleEffect = async (effect: Effect | null) => {
                   
 
                 {/* Change Password Section */}
-                {!publicMode && user?.uid === auth.currentUser?.uid && (
+                {!publicMode && user?.uid === auth?.currentUser?.uid && (
                 <>
                 <div className="mt-8">
                   <h3 className={`text-xl md:text-md font-semibold mb-3 ${selectedVideo ? 'text-white' : 'text-black'}`}>Change Password</h3>
@@ -2659,17 +2784,18 @@ const toggleEffect = async (effect: Effect | null) => {
                         type="submit"
                         className={`w-full py-3.5 font-semibold rounded-xl col-span-2 md:col-span-1 ${
                           !isPasswordProvider ? `${selectedVideo ? 'bg-white/10 opacity-50 text-white' : 'bg-black/10 opacity-50 text-white'} cursor-not-allowed` : `${selectedVideo ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'} cursor-custom-pointer`
-                        } transition-colors`}
-                        whileHover={{ scale: 1.01 }}
-                        disabled={!isPasswordProvider}
-                        whileTap={{ scale: 0.99 }}
-                      >
+                          } transition-colors`}
+                          whileHover={{ scale: 1.01 }}
+                          disabled={!isPasswordProvider}
+                          whileTap={{ scale: 0.99 }}
+                          >
                         {!isPasswordProvider ? "Update Disabled" : "Update Password"}
                       </motion.button>
                     </form>
                   </>
                 
                 </div>
+                      
                 
 
                 <hr className="mt-20 mb-14 border-red-400" />
@@ -2681,7 +2807,7 @@ const toggleEffect = async (effect: Effect | null) => {
                     className="text-lg md:text-[17px] font-semibold text-black mb-4 whitespace-nowrap md:whitespace-nowrap flex text-red-600"
                     style={{ fontFamily: "Poppins" }}
                   >
-                    <Trash2 strokeWidth={3} className="md:w-4 md:h-4 md:mt-1 md:mr-2" /> Delete Account for {user.displayName}
+                    <Trash2 strokeWidth={3} className="md:w-4 md:h-4 md:mt-1 md:mr-2" /> Delete Account for {user?.displayName}
                   </h3>
                   <p className={`text-md ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}  mb-4 col-span-2`}>
                     Permanently delete your account. This action cannot be undone.
@@ -2722,6 +2848,7 @@ const toggleEffect = async (effect: Effect | null) => {
 
             </div>
 
+              
       {/* 2FA Modal */}
       <AnimatePresence>
         {showQRCode && totpUri && (
@@ -2777,9 +2904,9 @@ const toggleEffect = async (effect: Effect | null) => {
                   disabled={isVerifying || !verificationCode}
                   className={`w-full py-2 rounded-lg transition-colors ${
                     isVerifying || !verificationCode
-                      ? "bg-gray-400 text-white cursor-not-allowed"
-                      : "bg-black text-white hover:bg-black/90"
-                  }`}
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-black text-white hover:bg-black/90"
+                    }`}
                 >
                   {isVerifying ? "Verifying..." : "Verify and Enable 2FA"}
                 </button>
@@ -2848,6 +2975,7 @@ const toggleEffect = async (effect: Effect | null) => {
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
+            
               onClick={(e) => e.stopPropagation()}
               className="bg-white h-full md:h-auto md:rounded-2xl md:p-12 p-6 pb-14 w-full max-w-2xl relative flex flex-col justify-center"
             >
@@ -3540,7 +3668,7 @@ const toggleEffect = async (effect: Effect | null) => {
             >
               <div
                 className={`w-24 h-20 rounded-lg overflow-hidden flex-shrink-0 
-                ${!purchasedEffects.includes(effect.id) && effect.price > 0 ? "grayscale" : ""}`}
+                ${!purchasedEffects.includes(effect.id) && effect.price > 0 ? "" : ""}`}
               >
                 {effect.url ? (
                   <video
@@ -3824,7 +3952,7 @@ const toggleEffect = async (effect: Effect | null) => {
                             style={{
                               fontFamily: 'Poppins'
                             }}
-                          >
+                            >
                             Buy "{video.name}"
                           </button>
                         )}
@@ -3836,7 +3964,7 @@ const toggleEffect = async (effect: Effect | null) => {
             ))}
             
             
-        </div>
+            </div>
         <br />
             <br />
                       <div className="mb-8">
@@ -3882,12 +4010,12 @@ const toggleEffect = async (effect: Effect | null) => {
                       )}
                     </Tilt>
                   ))}
-                </div>
-              </div>
-      </div>
-    </div>
-  </div>
-)}
+                  </div>
+                  </div>
+                  </div>
+                  </div>
+                  </div>
+                )}
 
 
   {/* Purchased Overlay */}
@@ -4065,6 +4193,7 @@ const toggleEffect = async (effect: Effect | null) => {
     </div>
   </div>
 )}
+
     </div>
   );
 };

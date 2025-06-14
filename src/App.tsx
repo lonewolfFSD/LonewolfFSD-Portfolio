@@ -479,8 +479,10 @@ function App() {
       <Route path="/callback" element={<Callback />} />
       <Route path="/notifications" element={<NotificationPage />} />
       <Route path="/contact" element={<ContactUs />} />
-      <Route path="/public-profile/:uid" element={<Profile isDark={isDark} publicMode={true} />} />
+      <Route path="/profile/:uid" element={<Profile isDark={false} publicMode={true} />} />
+      <Route path="/profile" element={<Profile isDark={false} publicMode={false} />} />
       <Route path="*" element={<NotFound />} />
+      
       <Route path="/purchase-history" element={<PurchaseHistory />} />
       <Route path="/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29" element={<AdminPanel isDark={isDark} user={user} />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
