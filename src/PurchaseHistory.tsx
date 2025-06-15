@@ -98,7 +98,7 @@ const PurchaseHistory: React.FC = () => {
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Mobile Number</th>
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Status</th>
                   <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Action</th>
-                  <th className="py-4 px-6 border-b border-r border-black text-left font-semibold text-sm">Preview</th>
+                  <th className="py-4 px-20 border-b border-r border-black text-left font-semibold text-sm">Preview</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,18 +131,21 @@ const PurchaseHistory: React.FC = () => {
                     <td className="py-4 px-6 text-sm border-r border-black">
                       {purchase.paymentType === "real_money"
                         ? capitalize(purchase.paymentMethod)
-                        : "-"}
+                        : "FSD Credits"}
                     </td>
                     <td className="py-4 px-6 text-sm border-r border-black">
                       {purchase.paymentType === "real_money"
                         ? purchase.contact || "-"
                         : "-"}
                     </td>
-                    <td className="py-4 px-6 text-sm border-r border-black">
-                      {purchase.paymentType === "real_money"
-                        ? capitalize(purchase.status)
-                        : "-"}
-                    </td>
+                
+                      <td className="py-4 px-6 text-sm border-r border-black">
+                        {purchase.paymentType === "real_money"
+                          ? capitalize(purchase.status)
+                          : purchase.paymentType === "credits" && purchase.status === "success"
+                            ? "Success"
+                            : "-"}
+                      </td>
                     <td className="py-4 px-6 text-sm border-r border-black">
                       {purchase.paymentType === "real_money" && purchase.status === "success" ? (
                         <a
@@ -154,14 +157,14 @@ const PurchaseHistory: React.FC = () => {
                           Request Refund
                         </a>
                       ) : (
-                        "-"
+                        "Not Applicable"
                       )}
                     </td>
-                    <td className="py-4 px-6 text-sm">
+                    <td className="py-4 px-3  text-sm border-r border-black"> {/* wider cell */}
                       {["video", "effect"].includes(purchase.type) && purchase.url ? (
                         <video
                           src={purchase.url}
-                          className="w-full h-16 object-cover rounded-lg pointer-events-none"
+                          className="w-full h-24 object-cover rounded-md pointer-events-none" // match width/height
                           muted
                           loop
                           autoPlay
@@ -170,7 +173,7 @@ const PurchaseHistory: React.FC = () => {
                         <img
                           src={purchase.image}
                           alt={purchase.name}
-                          className="w-16 h-16 object-contain rounded-lg pointer-events-none"
+                          className="w-full h-24 object-contain rounded-lg pointer-events-none" // match width/height
                         />
                       ) : (
                         "-"

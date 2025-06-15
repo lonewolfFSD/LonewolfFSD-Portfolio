@@ -435,6 +435,7 @@ function App() {
   const profileOptions = [
     { label: 'Profile', icon: User, action: () => navigate('/profile') },
     { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: "Purchase History", icon: User, action: () => navigate("/purchase-history") },
     { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
@@ -479,8 +480,8 @@ function App() {
       <Route path="/callback" element={<Callback />} />
       <Route path="/notifications" element={<NotificationPage />} />
       <Route path="/contact" element={<ContactUs />} />
-      <Route path="/profile/:uid" element={<Profile isDark={false} publicMode={true} />} />
-      <Route path="/profile" element={<Profile isDark={false} publicMode={false} />} />
+      <Route path="/profile/:uid" element={<Profile isDark={false} />} />
+      <Route path="/profile" element={<Profile isDark={false} />} />
       <Route path="*" element={<NotFound />} />
       
       <Route path="/purchase-history" element={<PurchaseHistory />} />

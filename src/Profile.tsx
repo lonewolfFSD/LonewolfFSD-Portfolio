@@ -603,15 +603,24 @@ const filteredVideos = videoOptions.filter(video => {
 
 const handlePurchaseVideo = async (video: { id: string; price: number; url: string; name: string }) => {
   if (!user || !user?.uid) {
-    setError("You must be signed in to purchase videos.");
+    setToast({ message: "You must be signed in to purchase videos.", type: "error" });
     return;
   }
   if (virtualCurrency < video.price) {
-    setError(`Insufficient credits to purchase "${video.name}". Need ${video.price} credits, but you have ${videoCurrency}.`);
+    setToast({ message: `Insufficient credits to purchase "${video.name}". Need ${video.price} credits, but you have ${virtualCurrency}.`, type: "error" });
     return;
   }
   try {
     const userDocRef = doc(db, "users", user?.uid);
+    const purchaseRef = doc(collection(db, `users/${user?.uid}/purchases`));
+    const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const purchaseDate = new Date().toLocaleString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
     await runTransaction(db, async (transaction) => {
       const userDoc = await transaction.get(userDocRef);
       if (!userDoc.exists()) {
@@ -627,13 +636,33 @@ const handlePurchaseVideo = async (video: { id: string; price: number; url: stri
         purchasedVideos: arrayUnion(video.id),
         updatedAt: new Date().toISOString(),
       });
+      transaction.set(purchaseRef, {
+        type: "video",
+        name: video.name,
+        amount: video.price,
+        paymentType: "credits",
+        transactionId,
+        date: purchaseDate,
+        url: video.url,
+        createdAt: new Date().toISOString(),
+        status: "success",
+      });
     });
     setVirtualCurrency((prev) => prev - video.price);
     setPurchasedVideos((prev) => [...prev, video.id]);
-    setSuccess(`Purchased "${video.name}" successfully! 🌟`);
+    setVideoPurchaseDetails({
+      id: video.id,
+      name: video.name,
+      url: video.url,
+      price: video.price,
+      paymentType: "credits",
+      transactionId,
+      date: purchaseDate,
+    });
+    setToast({ message: `Purchased "${video.name}" successfully! 🌟`, type: "success" });
   } catch (err) {
     console.error("Purchase video error:", err);
-    setError(err.message || "Failed to purchase video background. Please try again.");
+    setToast({ message: err.message || "Failed to purchase video background. Please try again.", type: "error" });
   }
 };
 
@@ -1760,43 +1789,68 @@ useEffect(() => {
 }, [effectPurchaseDetails]);
 
 const handlePurchaseEffect = async (effect: Effect) => {
-    if (!user || !user?.uid) {
-      setToast({ message: "You must be signed in to purchase effects.", type: "error" });
-      return;
-    }
-    if (virtualCurrency < effect.price) {
-      setToast({ message: "Insufficient credits.", type: "error" });
-      return;
-    }
-    try {
-      const userRef = doc(db, "users", user?.uid);
-      const purchaseRef = doc(collection(db, `users/${user?.uid}/purchases`));
-      const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const purchaseDate = new Date().toLocaleString("en-IN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
+  if (!user || !user?.uid) {
+    setToast({ message: "You must be signed in to purchase effects.", type: "error" });
+    return;
+  }
+  if (virtualCurrency < effect.price) {
+    setToast({ message: `Insufficient credits to purchase "${effect.name}". Need ${effect.price} credits, but you have ${virtualCurrency}.`, type: "error" });
+    return;
+  }
+  try {
+    const userRef = doc(db, "users", user?.uid);
+    const purchaseRef = doc(collection(db, `users/${user?.uid}/purchases`));
+    const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const purchaseDate = new Date().toLocaleString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    await runTransaction(db, async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      if (!userDoc.exists()) {
+        throw new Error("User document not found.");
+      }
+      const currentCurrency = userDoc.data().virtualCurrency ?? 0;
+      if (currentCurrency < effect.price) {
+        throw new Error(`Insufficient credits. ${currentCurrency} available, need ${effect.price}`);
+      }
+      transaction.update(userRef, {
+        virtualCurrency: currentCurrency - effect.price,
+        purchasedEffects: arrayUnion(effect.id),
+        updatedAt: new Date().toISOString(),
       });
-      await runTransaction(db, async (transaction) => {
-        const userDoc = await transaction.get(userRef);
-        if (!userDoc.exists()) {
-          throw new Error("User document not found.");
-        }
-        const currentCurrency = userDoc.data().virtualCurrency ?? 0;
-        if (currentCurrency < effect.price) {
-          throw new Error("Insufficient credits.");
-        }
+      transaction.set(purchaseRef, {
+        type: "effect",
+        name: effect.name,
+        amount: effect.price,
+        paymentType: "credits",
+        transactionId,
+        date: purchaseDate,
+        url: effect.url,
+        createdAt: new Date().toISOString(),
+        status: "success",
       });
-      setVirtualCurrency((prev) => prev - effect.price);
-      setPurchasedEffects((prev) => [...prev, effect.id]);
-      setToast({ message: `Purchased "${effect.name}" successfully! 🌟`, type: "success" });
-    } catch (error) {
-      console.error("Purchase effect error:", error);
-      setToast({ message: "Failed to purchase effect. Try again.", type: "error" });
-    }
-  };
+    });
+    setVirtualCurrency((prev) => prev - effect.price);
+    setPurchasedEffects((prev) => [...prev, effect.id]);
+    setEffectPurchaseDetails({
+      id: effect.id,
+      name: effect.name,
+      url: effect.url,
+      price: effect.price,
+      paymentType: "credits",
+      transactionId,
+      date: purchaseDate,
+    });
+    setToast({ message: `Purchased "${effect.name}" successfully! 🌟`, type: "success" });
+  } catch (error) {
+    console.error("Purchase effect error:", error);
+    setToast({ message: error.message || "Failed to purchase effect. Try again.", type: "error" });
+  }
+};
 
   const filteredEffects = effects.filter(
     (effect) =>
@@ -2274,7 +2328,7 @@ const toggleEffect = async (effect: Effect | null) => {
       style={{ fontFamily: "Poppins" }}
     >
       {publicMode ? publicUserData?.displayName : user?.displayName}'s Profile
-      <motion.button
+      {/* <motion.button
   onClick={onShareClick}
   className={`p-2 ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer inline-flex items-center justify-center group ${publicMode ? 'hidden' : ''}`}
   whileHover={{ scale: 1.01 }}
@@ -2311,7 +2365,7 @@ const toggleEffect = async (effect: Effect | null) => {
       </>
     )}
   </span>
-</motion.button>
+</motion.button> */}
     </h2>
 
           {/* Profile Details */}
@@ -4199,5 +4253,3 @@ const toggleEffect = async (effect: Effect | null) => {
 };
 
 export default Profile;
-
-
