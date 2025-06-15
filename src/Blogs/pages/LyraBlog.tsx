@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../../../firebase";
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
 import { useAvatar } from "../../AvatarContext";
+import AdBanner from "../../AdBanner";
 
 import Homepage from './pics/Homepage.png';
 import ChatInterface from './pics/ChatInterface.png';
@@ -286,6 +287,8 @@ function App() {
             Unlike traditional AI models that churn out answers based on patterns, Lyra is built with emotional intelligence at her core. She’s not just here to solve problems—she’s here to share moments, spark creativity, and maybe even make you smile on a rough day. Whether you’re brainstorming ideas, exploring new music, or just venting, Lyra’s there with a response that feels human.
           </p>
 
+          
+
           <h2 className="text-2xl font-medium mt-12 mb-4 text-gray-900">A Companion That Feels</h2>
           <motion.img
             src={ChatInterface}
@@ -305,6 +308,8 @@ function App() {
             For example, if you share that you’re feeling stressed, Lyra might suggest a calming playlist via her LyraTunes feature or offer a thoughtful perspective based on past chats. Over time, she learns what resonates with you—maybe you love witty banter or prefer straight-up advice—and tailors her tone accordingly.
           </p>
 
+          <AdBanner />
+
           <h2 className="text-2xl font-medium mt-12 mb-4 text-gray-900">The Tech Behind the Heart</h2>
           <motion.img
             src={Interface}
@@ -323,6 +328,8 @@ function App() {
           <p className="leading-relaxed mb-8">
             LyraLabsAI also integrated a proprietary “emotion mapping” algorithm. It’s not just about keywords—Lyra analyzes tone, context, and even the rhythm of your messages to gauge mood. This lets her respond with empathy, like suggesting a cheerful distraction when you’re down or matching your excitement when you share good news.
           </p>
+
+          <AdBanner />
 
           <h2 className="text-2xl font-medium mt-12 mb-4 text-gray-900">More Than Words: Visual and Auditory Smarts</h2>
           <motion.img
@@ -379,6 +386,8 @@ function App() {
             What makes LyraTunes special is its emotional intelligence. Lyra cross-references your chats and listening history to suggest tracks that resonate. If you’ve been talking about a tough day, she might slip in a comforting ballad without you asking. It’s like having a DJ who knows your soul.
           </p>
 
+          <AdBanner />
+
           <h2 className="text-2xl font-bold mt-12 mb-4 text-gray-900">The Journey to Lyra</h2>
           <p className="leading-relaxed mb-6">
             Lyra wasn’t born overnight. LonewolfFSD started with a simple idea: what if AI could be more than a tool? Early prototypes were clunky—think stiff responses and no emotional depth. But over years of iteration, the team at LyraLabsAI poured heart into the project, blending Gemini’s raw power with custom algorithms for empathy and creativity.
@@ -408,6 +417,8 @@ function App() {
           <p className="leading-relaxed mb-8">
             Lyra’s transparency extends to her limits. If she’s unsure about a topic or detects sensitive content, she’ll say so upfront, guiding you to resources if needed. It’s all part of building a companion you can rely on without second-guessing.
           </p>
+
+          <AdBanner />
 
           <h2 className="text-2xl font-bold mt-12 mb-4 text-gray-900">Lyra in Your World</h2>
           <p className="leading-relaxed mb-6">
@@ -503,6 +514,8 @@ function App() {
             <p className="leading-relaxed mb-8">
               LyraLabsAI is also exploring partnerships with mental health platforms to offer guided mindfulness exercises, always with user consent. The goal? Make Lyra a positive force in every corner of your life, from work to play to quiet moments of reflection.
             </p>
+
+          <AdBanner />
 
           <h2 className="text-2xl font-bold mt-12 mb-4 text-gray-900">Join the LyraLabsAI Community</h2>
           <motion.img
