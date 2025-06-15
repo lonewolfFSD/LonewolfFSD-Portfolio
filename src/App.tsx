@@ -870,6 +870,8 @@ function App() {
     >
       {showMore ? 'Show Less' : 'Show More'}
     </button>
+          {/* AD PLACEMENT*/}
+     <div id="ezoic-pub-ad-placeholder-111"></div> 
   </section>
           <span id='projects' />
           <h2 
