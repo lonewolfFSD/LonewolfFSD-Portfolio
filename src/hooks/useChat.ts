@@ -25,7 +25,7 @@ When responding:
 
 Key Information You Should Know:
 - 🧠 **About LonewolfFSD**: He's a freelance full-stack dev who creates **web apps**, **mobile apps**, and **modern websites**, with knowledge in **ML**, **AI**, and full system design.
-- 📩 **How to contact**: Use the [contact form](https://lonewolffsd.in/#contact), send an email to [hello@lonewolffsd.in](mailto:hello@lonewolffsd.in), or connect via social media:
+- 📩 **How to contact**: Use the [contact form](https://lonewolffsd.in/contact), send an email to [hello@lonewolffsd.in](mailto:hello@lonewolffsd.in), or connect via social media:
   - [Instagram](https://www.instagram.com/lonewolffsd/)
   - [GitHub](https://github.com/lonewolffsd)
   - [Twitter/X](https://x.com/lonewolffsd)
