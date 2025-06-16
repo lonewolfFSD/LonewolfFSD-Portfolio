@@ -17,15 +17,19 @@ import { ChatBubble } from '../Newcomponents/chat';
 import { ChatInterface } from '../Newcomponents/chat';
 import { Link } from 'react-router-dom';
 
+import { db } from '../../firebase';
+import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
+
 import Project from '../Projects';
 import { auth } from '../../firebase';
-import { Github, Instagram, LogOut, Menu, Twitter, User, X } from 'lucide-react';
+import { Bell, Github, Inbox, Instagram, LogOut, Menu, Settings, Twitter, User, Wallet, X } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState<boolean>(false); // New state for profile dropdown
     const [user, setUser] = useState<FirebaseUser | null>(null); // State for Firebase user
+      const [notifications, setNotifications] = useState<Notification[]>([]);
     const { avatarURL } = useAvatar();
     const navigate = useNavigate();
       const [isDark, setIsDark] = useState(false);
@@ -39,10 +43,32 @@ const HeroSection: React.FC = () => {
         }, []);
 
         // Profile dropdown options
-  const profileOptions = [
-    { label: "Profile", icon: User, action: () => navigate("/profile") },
-    { label: "Log Out", icon: LogOut, action: () => signOut(auth).then(() => navigate("/")) },
+    const profileOptions = [
+    { label: 'Profile', icon: User, action: () => navigate('/profile') },
+    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries") },
+    { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
+
+      useEffect(() => {
+    if (!user) return;
+
+      const q = query(
+        collection(db, 'notifications'),
+        where('recipient', '==', user.uid)
+      );
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const notifs = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Notification[];
+        setNotifications(notifs);
+      });
+
+      return () => unsubscribe();
+    }, [user]);
+
   return (
     <div className="min-h-screen ">
       <video
@@ -90,6 +116,26 @@ const HeroSection: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
+                    {user && (
+  <Link to="/notifications">
+    <motion.button
+      aria-label="notifications"
+      className={`p-2 rounded-full relative cursor-custom-pointer ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'} transition-colors`}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.9 }}
+    >
+      <Bell fill='currentColor' className="w-5 h-5 opacity-80" />
+      {notifications.filter(n => !n.read).length > 0 && (
+        <span
+          className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center transform translate-x-2 -translate-y-1"
+          style={{ minWidth: '1rem' }}
+        >
+          {notifications.filter(n => !n.read).length}
+        </span>
+      )}
+    </motion.button>
+  </Link>
+)}
 <motion.button
   onClick={() => {
     if (user) {
@@ -121,9 +167,9 @@ const HeroSection: React.FC = () => {
                   {/* Dropdown for logged-in users */}
                   {user && isProfileDropdownOpen && (
                               <motion.div
-                                className={`absolute top-full right-60 w-52 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
-                                  isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-                                }`}
+                                className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-50 overflow-hidden ${
+                                                      isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+                                                    }`} 
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
@@ -197,6 +243,7 @@ const HeroSection: React.FC = () => {
                               { label: 'About Me', href: '/about-me' },
                               { label: 'My Blogs', href: '/blogs' },
                               { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                              { label: 'FSD DevSync', href: '/dev-sync' },
                               { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
                             ].map((item, index) => (
                               <Link

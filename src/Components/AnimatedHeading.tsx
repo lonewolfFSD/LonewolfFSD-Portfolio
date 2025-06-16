@@ -7,7 +7,7 @@ const AnimatedHeading: React.FC = () => {
       fontFamily: 'Poppins'
     }}>
       <motion.h2 
-        className="text-[84px] md:text-7xl lg:text-[103px] font-bold tracking-tight text-transparent leading-none"
+        className="text-[98px] md:text-7xl lg:text-[103px] font-bold tracking-tight text-transparent leading-none"
         style={{ WebkitTextStroke: '2px black' }}
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -20,7 +20,7 @@ const AnimatedHeading: React.FC = () => {
       </motion.h2>
       
       <motion.h1 
-        className="text-4xl md:text-8xl lg:text-9xl font-bold tracking-tight text-black leading-none -mt-1 md:mt-[-20px]"
+        className="text-5xl md:text-8xl lg:text-9xl font-bold tracking-tight text-black leading-none -mt-1 md:mt-[-20px]"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ 

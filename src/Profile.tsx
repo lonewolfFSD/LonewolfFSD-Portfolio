@@ -35,7 +35,7 @@ import Yinlin from './Videos/yinlin-wuthering-waves.3840x2160.mp4';
 
 import Cropper from "react-easy-crop";
 import { Area } from "react-easy-crop/types";
-import { BadgeCheck, ChevronDown, ChevronUp, Music, Paintbrush2, PaintBucket, Pause, Play, Plus, RotateCcw, RotateCw } from "lucide-react";
+import { BadgeCheck, ChevronDown, ChevronUp, Inbox, Music, Paintbrush2, PaintBucket, Pause, Play, Plus, RotateCcw, RotateCw, Wallet } from "lucide-react";
 
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
@@ -2037,10 +2037,12 @@ const toggleEffect = async (effect: Effect | null) => {
   }, delayMs);
 };
 
-  const profileOptions = [
-    { label: "Profile", icon: User, action: () => navigate("/profile") },
-    { label: "Purchase History", icon: User, action: () => navigate("/purchase-history") },
-    { label: "Log Out", icon: LogOut, action: () => signOut(auth).then(() => navigate("/")) },
+    const profileOptions = [
+    { label: 'Profile', icon: User, action: () => navigate('/profile') },
+    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries") },
+    { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
 
@@ -2198,9 +2200,9 @@ const toggleEffect = async (effect: Effect | null) => {
                   {/* Dropdown for logged-in users */}
                   {user && isProfileDropdownOpen && (
                               <motion.div
-                                className={`absolute top-full right-20 md:right-60 md:w-52 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
-                                  isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-                                }`}
+                                className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-50 overflow-hidden ${
+                                                      isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+                                                    }`} 
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}

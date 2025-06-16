@@ -13,12 +13,12 @@
   <url>
     <loc>https://lonewolffsd.in/contact</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://lonewolffsd.in/profile</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://lonewolffsd.in/lets-collaborate</loc>
@@ -38,11 +38,11 @@
   <url>
     <loc>https://lonewolffsd.in/blogs/will-ai-take-our-jobs</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
     <url>
     <loc>https://lonewolffsd.in/blogs/best-lang-to-learn-in-2025</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
 </urlset>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, CSSProperties } from 'react';
-import { Menu, ArrowRight, Settings, LogOut, Moon, Sun, Server, Database, Shield, Briefcase, Code, Palette, Send, X, Github, Linkedin, Twitter, Instagram, ArrowDown, ArrowDown01, ArrowDownIcon, ChevronDown, Mail, User, Bell, Scale, Contact } from 'lucide-react';
+import { Menu, ArrowRight, Settings, LogOut, Moon, Sun, Server, Database, Shield, Briefcase, Code, Palette, Send, X, Github, Linkedin, Twitter, Instagram, ArrowDown, ArrowDown01, ArrowDownIcon, ChevronDown, Mail, User, Bell, Scale, Contact, Wallet, Inbox } from 'lucide-react';
 import { motion, transform } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
@@ -54,6 +54,7 @@ import Projects from './Projects';
 import ModernCalendar from './ModernCalendar';
 import Callback from './Callback';
 import PurchaseHistory from './PurchaseHistory';
+import Enquiries from './Enquiries';
 
 const override: CSSProperties = {
   display: "block",
@@ -435,7 +436,8 @@ function App() {
   const profileOptions = [
     { label: 'Profile', icon: User, action: () => navigate('/profile') },
     { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
-    { label: "Purchase History", icon: User, action: () => navigate("/purchase-history") },
+    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries") },
     { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
@@ -478,6 +480,7 @@ function App() {
       <Route path="/profile" element={<Profile isDark={isDark} />} />
       <Route path="/dev-sync" element={<ModernCalendar />} />
       <Route path="/callback" element={<Callback />} />
+      <Route path="/enquiries" element={<Enquiries />} />
       <Route path="/notifications" element={<NotificationPage />} />
       <Route path="/contact" element={<ContactUs />} />
       <Route path="/profile/:uid" element={<Profile isDark={false} />} />
@@ -603,7 +606,7 @@ function App() {
                   {/* Dropdown for logged-in users */}
                   {user && isProfileDropdownOpen && (
                               <motion.div
-                                className={`absolute top-full right-20 md:right-60 md:w-52 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
+                                className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
                                   isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
                                 }`}
                                 initial={{ opacity: 0, y: -10 }}

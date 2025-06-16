@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Github, Instagram, Twitter, Moon, Sun, X, Menu, User, Settings, LogOut, Sparkle, Sparkles, Bell } from 'lucide-react';
+import { Github, Instagram, Twitter, Moon, Sun, X, Menu, User, Settings, LogOut, Sparkle, Sparkles, Bell, Wallet, Inbox } from 'lucide-react';
 import { Calendar, Clock, ChevronRight } from 'lucide-react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import { motion } from 'framer-motion';
@@ -81,9 +81,12 @@ function App() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Profile dropdown options
-  const profileOptions = [
-    { label: "Profile", icon: User, action: () => navigate("/profile") },
-    { label: "Log Out", icon: LogOut, action: () => signOut(auth).then(() => navigate("/")) },
+    const profileOptions = [
+    { label: 'Profile', icon: User, action: () => navigate('/profile') },
+    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries") },
+    { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
 
@@ -209,9 +212,9 @@ function App() {
                     {/* Dropdown for logged-in users */}
                                       {user && isProfileDropdownOpen && (
                                                   <motion.div
-                                                    className={`absolute top-full right-60 w-52 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
+                                                    className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-50 overflow-hidden ${
                                                       isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-                                                    }`}
+                                                    }`} 
                                                     initial={{ opacity: 0, y: -10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     exit={{ opacity: 0, y: -10 }}

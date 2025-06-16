@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Clock, User, Twitter, Facebook, LogOut, Heart, Music, Image as ImageIcon, Mic, Lock, Github, Instagram, X, Menu, MonitorSmartphone, AudioWaveform, SmilePlus, Sparkles, ScanLine, FileText, Globe, Music2, StarHalf, Stars } from "lucide-react";
+import { Calendar, Clock, User, Twitter, Facebook, LogOut, Heart, Music, Image as ImageIcon, Mic, Lock, Github, Instagram, X, Menu, MonitorSmartphone, AudioWaveform, SmilePlus, Sparkles, ScanLine, FileText, Globe, Music2, StarHalf, Stars, Settings, Wallet, Inbox } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../../../firebase";
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
@@ -31,9 +31,14 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const profileOptions = [
-    { label: "Profile", icon: User, action: () => navigate("/profile") },
-    { label: "Log Out", icon: LogOut, action: () => signOut(auth).then(() => navigate("/")) },
+
+  // Profile dropdown options
+    const profileOptions = [
+    { label: 'Profile', icon: User, action: () => navigate('/profile') },
+    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries") },
+    { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
   return (
@@ -123,9 +128,9 @@ function App() {
           {/* Dropdown for logged-in users */}
           {user && isProfileDropdownOpen && (
             <motion.div
-              className={`absolute top-full right-60 w-52 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
-                isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-              }`}
+              className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-50 overflow-hidden ${
+                                                      isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+                                                    }`}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -203,6 +208,7 @@ function App() {
                 { label: "About Me", href: "#about" },
                 { label: "LonewolfFSD Blogs", href: "/blogs" },
                 { label: "The RepoHub", href: "https://github.com/lonewolfFSD?tab=repositories" },
+                { label: 'FSD DevSync', href: '/dev-sync' },
                 { label: "Wanna Collaborate?", href: "/lets-collaborate" },
               ].map((item, index) => (
                 <Link

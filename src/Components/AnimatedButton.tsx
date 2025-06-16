@@ -50,7 +50,7 @@ const AnimatedButton: React.FC = () => {
       {/* Visible button */}
       <a href="https://form.jotform.com/251094738388065">
       <motion.button
-        className="relative cursor-custom-pointer -mt-8 md:mt-0 z-10 flex whitespace-nowrap items-center justify-center space-x-2 bg-black text-white px-32 py-4 rounded-full text-lg font-medium transition-all duration-300 group-hover:bg-transparent group-hover:backdrop-blur-md group-hover:text-black border border-2 border-black"
+        className="relative cursor-custom-pointer -mt-8 md:mt-0 z-10 flex whitespace-nowrap items-center justify-center space-x-2 bg-black text-white px-32 py-3 md:py-4 rounded-full text-lg font-medium transition-all duration-300 group-hover:bg-transparent group-hover:backdrop-blur-md group-hover:text-black border border-2 border-black"
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
       >
