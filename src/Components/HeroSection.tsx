@@ -247,7 +247,7 @@ const HeroSection: React.FC = () => {
         </div>
 
         <div>
-          <p className='text-sm px-10 md:px-0 -mt-4'>Wanna hire LonewolFSD? You are in the wrong place mate! <span className='font-bold underline '><a href="https://form.jotform.com/251094777041054" className='cursor-custom-pointer'>Click here</a></span></p>
+          <p className='text-sm px-10 md:px-0 -mt-4'>Wanna hire LonewolFSD? You are in the wrong place mate! <span className='font-bold underline '><Link to="/contact" className='cursor-custom-pointer'>Click here</Link></span></p>
         </div>
       </motion.div>
 
