@@ -745,7 +745,7 @@ function App() {
 
           {/* Animated Button and Paragraph */}
           <motion.div
-            className="flex flex-col md:flex-row md:justify-between md:items-start"
+            className="flex flex-col md:flex-row md:justify-between md:items-start gap-8 md:gap-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.7 }}
