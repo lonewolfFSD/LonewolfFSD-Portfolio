@@ -1,9 +1,9 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { db } from '../firebase'; // Adjust path to your firebase.ts
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, TimerReset } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FileQuestion, TimerReset } from 'lucide-react';
 import Beams from './Beam';
 import SplashCursor from './SplashCursor';
 
@@ -37,6 +37,8 @@ const ContactForm: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [remarksError, setRemarksError] = useState(false);
+  const [isSplashCursorEnabled, setIsSplashCursorEnabled] = useState(false);
+  const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -58,10 +60,74 @@ const ContactForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Toggle SplashCursor
+  const toggleSplashCursor = () => {
+    setIsSplashCursorEnabled(prev => !prev);
+  };
+
+  // Toggle Screen Reader
+  const toggleScreenReader = () => {
+    setIsScreenReaderEnabled(prev => !prev);
+    if (!isScreenReaderEnabled) {
+      speak('Screen reader enabled. Select text or focus on form fields to hear descriptions.');
+    } else {
+      speak('Screen reader disabled.');
+    }
+  };
+
+  // Web Speech API function
+  const speak = (text: string) => {
+    if (isScreenReaderEnabled && window.speechSynthesis) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.volume = 1;
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      window.speechSynthesis.cancel(); // Cancel any ongoing speech
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Handle text selection
+  useEffect(() => {
+    const handleSelection = () => {
+      if (!isScreenReaderEnabled) return;
+      const selection = window.getSelection();
+      const selectedText = selection?.toString().trim();
+      if (selectedText) {
+        speak(selectedText);
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelection);
+    return () => document.removeEventListener('selectionchange', handleSelection);
+  }, [isScreenReaderEnabled]);
+
+  // Handle input focus
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (!isScreenReaderEnabled) return;
+    const { name } = e.target;
+    const messages: { [key: string]: string } = {
+      firstName: 'First Name: Please write the first word of your name.',
+      lastName: 'Last Name: Please write the last word of your name.',
+      email: 'Email Address: Please enter your email address.',
+      phone: 'Phone Number: Please enter your phone number in the format plus nine one, followed by ten digits.',
+      company: 'Company Name: Please enter the name of your company.',
+      workType: 'Type of Work Required: Please select the type of work you need.',
+      contactMethod: 'Preferred Contact Method: Please select how you would like to be contacted.',
+      contactTime: 'Best Time to Contact: Please select the best time to reach you.',
+      remarks: 'Remarks: Please provide any additional information that may help. This field is optional.'
+    };
+    speak(messages[name] || 'Form field selected.');
+  };
+
   // Handle form submission
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (phoneError || remarksError) return;
+    if (phoneError || remarksError) {
+      speak('Cannot submit. Please correct errors in the form.');
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -78,6 +144,7 @@ const ContactForm: React.FC = () => {
           border: '1px solid #000000',
         }
       });
+      speak('Form submitted successfully. You will be contacted soon.');
 
       setTimeout(() => {
         setIsSubmitted(false);
@@ -103,6 +170,7 @@ const ContactForm: React.FC = () => {
           border: '1px solid #000000',
         }
       });
+      speak('Failed to submit the form. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -118,6 +186,7 @@ const ContactForm: React.FC = () => {
           border: '1px solid #000000',
         }
       });
+      speak('Please fill in all required fields.');
       return;
     }
     if (currentStep === 2 && (!formData.company || !formData.workType)) {
@@ -128,13 +197,20 @@ const ContactForm: React.FC = () => {
           border: '1px solid #000000',
         }
       });
+      speak('Please fill in all required fields.');
       return;
     }
-    if (currentStep < 3) setCurrentStep(prev => prev + 1);
+    if (currentStep < 3) {
+      setCurrentStep(prev => prev + 1);
+      speak(`Moved to step ${currentStep + 1}.`);
+    }
   };
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(prev => prev - 1);
+    if (currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
+      speak(`Moved to step ${currentStep - 1}.`);
+    }
   };
 
   // Animation variants
@@ -170,10 +246,114 @@ const ContactForm: React.FC = () => {
     visible: { scaleX: 1, originX: 0.5, transition: { duration: 0.5, ease: 'easeInOut' } }
   };
 
+  // Text cursor effect animation
+  const textCursorVariants = {
+    blink: {
+      opacity: [1, 0],
+      transition: {
+        repeat: Infinity,
+        duration: 0.5,
+        ease: 'linear'
+      }
+    }
+  };
+
+  // Toggle slider animation
+  const toggleSliderVariants = {
+    off: { x: 2, backgroundColor: '#ffffff' },
+    on: { x: 24, backgroundColor: '#00ffcc', transition: { type: 'spring', stiffness: 300, damping: 20 } }
+  };
+
   return (
     <div className="relative h-screen bg-white">
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-4">
+        {/* Splash Cursor Toggle (lg and above) */}
+        <div className="hidden lg:flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <motion.span
+              className="text-white text-lg font-mono"
+              variants={textCursorVariants}
+              animate="blink"
+              aria-hidden="true"
+            >
+              |
+            </motion.span>
+            <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
+              Splash Effect
+            </span>
+          </div>
+          <motion.div
+            className="relative inline-flex items-center cursor-pointer"
+            whileTap={{ scale: 0.95 }}
+          >
+            <input
+              type="checkbox"
+              checked={isSplashCursorEnabled}
+              onChange={toggleSplashCursor}
+              className="sr-only peer"
+              id="splashToggle"
+              aria-label="Toggle splash cursor effect"
+            />
+            <label
+              htmlFor="splashToggle"
+              className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
+            >
+              <motion.span
+                className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
+                variants={toggleSliderVariants}
+                animate={isSplashCursorEnabled ? 'on' : 'off'}
+              />
+            </label>
+          </motion.div>
+        </div>
+        {/* Screen Reader Toggle (all screens) */}
+        <div className="sm:static fixed bottom-4 left-4 right-4 sm:left-auto sm:right-auto sm:bottom-auto z-50">
+          <p className='text-white text-sm mb-1.5 font-medium flex gap-1.5 mt-2' style={{
+            fontFamily: 'Poppins'
+          }}><FileQuestion size={18} /> Accessibility</p>
+        <hr className='mb-2 opacity-30' />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <motion.span
+              className="text-white text-lg font-mono"
+              variants={textCursorVariants}
+              animate="blink"
+              aria-hidden="true"
+            >
+              |
+            </motion.span>
+            <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
+              Screen Reader
+            </span>
+          </div>
+          <motion.div
+            className="relative inline-flex items-center cursor-pointer"
+            whileTap={{ scale: 0.95 }}
+          >
+            <input
+              type="checkbox"
+              checked={isScreenReaderEnabled}
+              onChange={toggleScreenReader}
+              className="sr-only peer"
+              id="screenReaderToggle"
+              aria-label="Toggle screen reader"
+            />
+            <label
+            htmlFor="screenReaderToggle"
+            className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
+          >
+              <motion.span
+                className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
+                variants={toggleSliderVariants}
+                animate={isScreenReaderEnabled ? 'on' : 'off'}
+                />
+            </label>
+          </motion.div>
+        </div>
+                </div>
+      </div>
       <span className='hidden lg:block'>
-        <SplashCursor />
+        {isSplashCursorEnabled && <SplashCursor />}
       </span>
       <div className="absolute inset-0 z-0">
         <Beams
@@ -190,16 +370,18 @@ const ContactForm: React.FC = () => {
       <div className="relative z-10 flex items-center justify-center min-h-screen">
         <Toaster position="top-right" />
         <motion.div
-          className="w-full h-screen md:h-auto md:max-w-xl bg-black/40 backdrop-blur-md border border-white/60 md:rounded-2xl px-8 py-14 shadow-lg"
+          className="w-full h-screen sm:h-auto sm:max-w-xl bg-black/40 backdrop-blur-md border border-white/60 sm:rounded-2xl px-8 py-14 shadow-lg"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
+          role="form"
+          aria-label="Contact form"
         >
           <AnimatePresence mode="wait">
             {!isSubmitted ? (
               <>
                 {/* Step Tracker */}
-                <div className="mb-8">
+                <div className="mb-8" aria-label={`Form step ${currentStep} of 3`}>
                   <div className="flex items-center justify-center gap-4">
                     <motion.div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
@@ -207,6 +389,7 @@ const ContactForm: React.FC = () => {
                       }`}
                       animate={{ scale: currentStep === 1 ? 1.2 : 1 }}
                       transition={{ duration: 0.3 }}
+                      aria-current={currentStep === 1 ? 'step' : undefined}
                     >
                       1
                     </motion.div>
@@ -223,6 +406,7 @@ const ContactForm: React.FC = () => {
                       }`}
                       animate={{ scale: currentStep === 2 ? 1.2 : 1 }}
                       transition={{ duration: 0.3 }}
+                      aria-current={currentStep === 2 ? 'step' : undefined}
                     >
                       2
                     </motion.div>
@@ -239,6 +423,7 @@ const ContactForm: React.FC = () => {
                       }`}
                       animate={{ scale: currentStep === 3 ? 1.2 : 1 }}
                       transition={{ duration: 0.3 }}
+                      aria-current={currentStep === 3 ? 'step' : undefined}
                     >
                       3
                     </motion.div>
@@ -270,9 +455,11 @@ const ContactForm: React.FC = () => {
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleChange}
+                          onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
                           placeholder="First Name"
+                          aria-required="true"
                         />
                       </div>
                       <div className="mt-4">
@@ -285,9 +472,11 @@ const ContactForm: React.FC = () => {
                           name="lastName"
                           value={formData.lastName}
                           onChange={handleChange}
+                          onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
                           placeholder="Last Name"
+                          aria-required="true"
                         />
                       </div>
                       <div className="mt-4">
@@ -300,6 +489,7 @@ const ContactForm: React.FC = () => {
                           name="email"
                           value={formData.email}
                           onChange={handleChange}
+                          onFocus={handleInputFocus}
                           className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
                           placeholder="example@example.com"
                         />
@@ -320,12 +510,17 @@ const ContactForm: React.FC = () => {
                           value={formData.phone}
                           required
                           onChange={handleChange}
+                          onFocus={handleInputFocus}
                           className={`w-full px-4 py-4 bg-black border ${
                             phoneError ? 'border-red-500' : 'border-white/20'
                           } rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300`}
                           placeholder="+91 98765 43210"
+                          aria-required="true"
+                          aria-describedby={phoneError ? 'phoneError' : undefined}
                         />
-                        {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
+                        {phoneError && (
+                          <p id="phoneError" className="text-red-500 text-xs mt-1">{phoneError}</p>
+                        )}
                       </div>
                       <div className="mt-4">
                         <label htmlFor="company" className="block text-sm font-medium text-white/80 mb-2">
@@ -337,9 +532,11 @@ const ContactForm: React.FC = () => {
                           name="company"
                           value={formData.company}
                           onChange={handleChange}
+                          onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
                           placeholder="Company Name"
+                          aria-required="true"
                         />
                       </div>
                       <div className="mt-4">
@@ -351,8 +548,10 @@ const ContactForm: React.FC = () => {
                           name="workType"
                           value={formData.workType}
                           onChange={handleChange}
+                          onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
+                          aria-required="true"
                         >
                           <option value="">Select Work Type</option>
                           <option value="Web Development">Web Development</option>
@@ -376,8 +575,10 @@ const ContactForm: React.FC = () => {
                           name="contactMethod"
                           value={formData.contactMethod}
                           onChange={handleChange}
+                          onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
+                          aria-required="true"
                         >
                           <option value="">Select Contact Method</option>
                           <option value="Email">Email</option>
@@ -394,8 +595,10 @@ const ContactForm: React.FC = () => {
                           name="contactTime"
                           value={formData.contactTime}
                           onChange={handleChange}
+                          onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
+                          aria-required="true"
                         >
                           <option value="">Select Time</option>
                           <option value="Morning">Morning</option>
@@ -414,13 +617,20 @@ const ContactForm: React.FC = () => {
                             name="remarks"
                             value={formData.remarks}
                             onChange={handleChange}
+                            onFocus={handleInputFocus}
                             className={`w-full text-sm px-4 py-4 bg-black border ${
                               remarksError ? 'border-red-500' : 'border-white/20'
                             } rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300 resize-none`}
                             placeholder="Any additional information that may help"
                             rows={6}
+                            aria-describedby={remarksError ? 'remarksError' : undefined}
                           />
-                          <div className={`absolute bottom-4 right-4 text-xs ${remarksError ? 'text-red-500' : 'text-white/40'}`}>
+                          <div
+                            id="remarksError"
+                            className={`absolute bottom-4 right-4 text-xs ${
+                              remarksError ? 'text-red-500' : 'text-white/40'
+                            }`}
+                          >
                             {formData.remarks.length}/500
                           </div>
                         </div>
@@ -437,6 +647,7 @@ const ContactForm: React.FC = () => {
                         whileHover="hover"
                         whileTap="tap"
                         className="py-4 px-10 flex gap-2 bg-white/5 text-white font-semibold rounded-lg hover:bg-black/20 transition-all duration-300"
+                        aria-label="Go to previous step"
                       >
                         <ArrowLeft size={18} strokeWidth={3} className='mt-0.5' /> Previous
                       </motion.button>
@@ -449,6 +660,7 @@ const ContactForm: React.FC = () => {
                         whileHover="hover"
                         whileTap="tap"
                         className="py-4 px-10 flex gap-2 bg-white text-black font-semibold rounded-lg hover:bg-white/90 transition-all duration-300 md:ml-auto"
+                        aria-label="Go to next step"
                       >
                         Next Step <ArrowRight size={18} strokeWidth={3} className='mt-1' />
                       </motion.button>
@@ -460,6 +672,7 @@ const ContactForm: React.FC = () => {
                         whileHover="hover"
                         whileTap="tap"
                         className="py-4 px-6 bg-white text-black font-semibold rounded-lg hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 md:ml-auto"
+                        aria-label="Submit enquiry form"
                       >
                         {isSubmitting ? (
                           <span className="flex items-center justify-center">
@@ -484,6 +697,8 @@ const ContactForm: React.FC = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.5 }}
+                role="alert"
+                aria-live="polite"
               >
                 <div className="flex justify-center mb-4">
                   <TimerReset className="w-14 h-14 text-yellow-100" />
