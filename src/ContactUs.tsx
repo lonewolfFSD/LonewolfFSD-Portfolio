@@ -45,9 +45,9 @@ const ContactForm: React.FC = () => {
     const { name, value } = e.target;
 
     if (name === 'phone') {
-      const phoneRegex = /^\+91\s\d{5}\s\d{5}$/;
+      const phoneRegex = /^\+\d{1,4}\s\d{5}\s\d{5}$/;
       if (value && !phoneRegex.test(value)) {
-        setPhoneError('Please enter a valid phone number (e.g., +91 98765 43210)');
+        setPhoneError('Please enter a valid phone number (e.g., +00 00000 00000)');
       } else {
         setPhoneError('');
       }
@@ -63,6 +63,11 @@ const ContactForm: React.FC = () => {
   // Toggle SplashCursor
   const toggleSplashCursor = () => {
     setIsSplashCursorEnabled(prev => !prev);
+    if (!isSplashCursorEnabled) {
+      speak('Splash Effect enabled');
+    } else {
+      speak('Splash Effect disabled.');
+    }
   };
 
   // Toggle Screen Reader
@@ -111,7 +116,7 @@ const ContactForm: React.FC = () => {
       firstName: 'First Name: Please write the first word of your name.',
       lastName: 'Last Name: Please write the last word of your name.',
       email: 'Email Address: Please enter your email address.',
-      phone: 'Phone Number: Please enter your phone number in the format plus nine one, followed by ten digits.',
+      phone: 'Phone Number: Please enter your phone number in the format plus country code, followed by five digits with a space and again five digits',
       company: 'Company Name: Please enter the name of your company.',
       workType: 'Type of Work Required: Please select the type of work you need.',
       contactMethod: 'Preferred Contact Method: Please select how you would like to be contacted.',
@@ -514,7 +519,7 @@ const ContactForm: React.FC = () => {
                           className={`w-full px-4 py-4 bg-black border ${
                             phoneError ? 'border-red-500' : 'border-white/20'
                           } rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300`}
-                          placeholder="+91 98765 43210"
+                          placeholder="+00 00000 00000"
                           aria-required="true"
                           aria-describedby={phoneError ? 'phoneError' : undefined}
                         />
