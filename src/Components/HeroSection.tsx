@@ -47,7 +47,7 @@ const HeroSection: React.FC = () => {
     { label: 'Profile', icon: User, action: () => navigate('/profile') },
     { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
     { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
-    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries") },
+    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
     { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
@@ -147,7 +147,7 @@ const HeroSection: React.FC = () => {
   className={`${
     avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
   } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
-    isDark ? "bg-gray-800 text-gray-300" : "bg-transparent border border-black text-gray-600"
+    isDark ? "bg-gray-800 text-gray-300" : "bg-gray-300 text-gray-600"
   } transition-colors`}
   initial={{ opacity: 0 }}
   animate={{ opacity: 1 }}
@@ -231,49 +231,45 @@ const HeroSection: React.FC = () => {
         </motion.div>
 
         {/* Animated Dropdown Menu */}
-        {isMenuOpen && (
-          <motion.div
-            className={`absolute top-full right-6 w-64 mt-[-20px] border border-black/20 rounded-2xl shadow-lg z-10 overflow-hidden transition-all transform origin-top-right ${isDark ? 'bg-gray-800' : 'bg-white'}`}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0, duration: 0.4 }}
-          >
-            <nav className="p-3">
-              {[
-                              { label: 'About Me', href: '/about-me' },
-                              { label: 'My Blogs', href: '/blogs' },
-                              { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
-                              { label: 'FSD DevSync', href: '/dev-sync' },
-                              { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
-                            ].map((item, index) => (
-                              <Link
-                                key={index}
-                                to={item.href}
-                                className={`block px-6 py-2.5 md:py-3 text-[16px] md:text-[15.5px] font-medium cursor-custom-pointer rounded-lg transition-all duration-300 ease-in-out hover:ml-1 hover:font-semibold ${
-                                  isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'
-                                }`}
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                {item.label}
-                              </Link>
-                            ))}
-
-              <div className="border-t mx-6 my-1.5 opacity-10" />
-
-              <div className="px-6 py-3 flex gap-4">
-                <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                  <Github className="w-5 h-5 cursor-custom-pointer" />
-                </a>
-                <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                  <Instagram className="w-5 h-5 cursor-custom-pointer" />
-                </a>
-                <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                  <Twitter className="w-5 h-5 cursor-custom-pointer" />
-                </a>
-              </div>
-            </nav>
-          </motion.div>
-        )}
+       {isMenuOpen && (
+                <motion.div
+                  className={`absolute top-full -mt-5 right-6 w-64  rounded-2xl shadow-lg z-50 border border-gray-300 overflow-hidden transition-all transform origin-top-right ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+                  initial={{ opacity: 0, y: -15, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                >
+                  <nav className="p-3">
+                    {[
+                      { label: 'About Me', href: '/about-me' },
+                      { label: 'LonewolfFSD Blogs', href: '/blogs' },
+                      { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                      { label: 'FSD DevSync', href: '/dev-sync' },
+                      { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
+                    ].map((item, index) => (
+                      <Link
+                        key={index}
+                        to={item.href}
+                        className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                    <div className="border-t border-black/10 mx-4 my-2" />
+                    <div className="px-4 py-3 flex gap-4">
+                      <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                        <Github className="w-5 h-5 cursor-pointer" />
+                      </a>
+                      <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                        <Instagram className="w-5 h-5 cursor-pointer" />
+                      </a>
+                      <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                        <Twitter className="w-5 h-5 cursor-pointer" />
+                      </a>
+                    </div>
+                  </nav>
+                </motion.div>
+              )}
       </motion.header>
       <motion.div 
         className="text-center -mt-10 md:mt-0 max-w-3xl mx-auto relative z-20"
