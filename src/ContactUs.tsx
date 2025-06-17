@@ -40,6 +40,19 @@ const ContactForm: React.FC = () => {
   const [isSplashCursorEnabled, setIsSplashCursorEnabled] = useState(false);
   const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
 
+  const [isAccessibilityWindowOpen, setIsAccessibilityWindowOpen] = useState(false);
+  const accessibilityWindowRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (accessibilityWindowRef.current && !accessibilityWindowRef.current.contains(event.target as Node)) {
+      setIsAccessibilityWindowOpen(false);
+    }
+  };
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => document.removeEventListener('mousedown', handleClickOutside);
+}, []);
+
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -271,91 +284,161 @@ const ContactForm: React.FC = () => {
 
   return (
     <div className="relative h-screen bg-white">
-      <div className="absolute top-4 left-4 z-20 flex flex-col gap-4">
-        {/* Splash Cursor Toggle (lg and above) */}
-        <div className="hidden lg:flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <motion.span
-              className="text-white text-lg font-mono"
-              variants={textCursorVariants}
-              animate="blink"
-              aria-hidden="true"
-            >
-              |
-            </motion.span>
-            <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
-              Splash Effect
-            </span>
-          </div>
-          <motion.div
-            className="relative inline-flex items-center cursor-pointer"
-            whileTap={{ scale: 0.95 }}
-          >
-            <input
-              type="checkbox"
-              checked={isSplashCursorEnabled}
-              onChange={toggleSplashCursor}
-              className="sr-only peer"
-              id="splashToggle"
-              aria-label="Toggle splash cursor effect"
-            />
-            <label
-              htmlFor="splashToggle"
-              className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
-            >
-              <motion.span
-                className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
-                variants={toggleSliderVariants}
-                animate={isSplashCursorEnabled ? 'on' : 'off'}
-              />
-            </label>
-          </motion.div>
-        </div>
-        {/* Screen Reader Toggle (all screens) */}
-        <div className="sm:static fixed bottom-4 left-4 right-4 sm:left-auto sm:right-auto sm:bottom-auto z-50">
-          <p className='text-white text-sm mb-1.5 font-medium flex gap-1.5 mt-2' style={{
-            fontFamily: 'Poppins'
-          }}><FileQuestion size={18} /> Accessibility</p>
-        <hr className='mb-2 opacity-30' />
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <motion.span
-              className="text-white text-lg font-mono"
-              variants={textCursorVariants}
-              animate="blink"
-              aria-hidden="true"
-            >
-              |
-            </motion.span>
-            <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
-              Screen Reader
-            </span>
-          </div>
-          <motion.div
-            className="relative inline-flex items-center cursor-pointer"
-            whileTap={{ scale: 0.95 }}
-          >
-            <input
-              type="checkbox"
-              checked={isScreenReaderEnabled}
-              onChange={toggleScreenReader}
-              className="sr-only peer"
-              id="screenReaderToggle"
-              aria-label="Toggle screen reader"
-            />
-            <label
+<div className="absolute top-4 left-4 z-20 flex flex-col gap-4">
+  {/* Splash Cursor Toggle (lg and above) */}
+  <div className="hidden lg:flex items-center gap-4">
+    <div className="flex items-center gap-2">
+      <motion.span
+        className="text-white text-lg font-mono"
+        variants={textCursorVariants}
+        animate="blink"
+        aria-hidden="true"
+      >
+        |
+      </motion.span>
+      <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
+        Splash Effect
+      </span>
+    </div>
+    <motion.div
+      className="relative inline-flex items-center cursor-pointer"
+      whileTap={{ scale: 0.95 }}
+    >
+      <input
+        type="checkbox"
+        checked={isSplashCursorEnabled}
+        onChange={toggleSplashCursor}
+        className="sr-only peer"
+        id="splashToggle"
+        aria-label="Toggle splash cursor effect"
+      />
+      <label
+        htmlFor="splashToggle"
+        className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
+      >
+        <motion.span
+          className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
+          variants={toggleSliderVariants}
+          animate={isSplashCursorEnabled ? 'on' : 'off'}
+        />
+      </label>
+    </motion.div>
+  </div>
+  {/* Screen Reader Toggle (md and above, top-left) */}
+  <div className="hidden md:block md:static fixed bottom-4 left-4 right-4 md:left-auto md:right-auto md:bottom-auto z-50">
+    <div className="items-center gap-4 justify-between bg-black/70 backdrop-blur-md p-3 rounded-xl md:bg-transparent md:p-0 md:backdrop-blur-none">
+      <p className="text-white text-sm mb-2 font-medium flex gap-1.5 mt-2" style={{ fontFamily: 'Poppins' }}>
+        <FileQuestion size={18} /> Accessibility
+      </p>
+      <hr className="mb-3 opacity-30" />
+      <div className="flex items-center gap-2">
+        <motion.span
+          className="text-white text-lg font-mono"
+          variants={textCursorVariants}
+          animate="blink"
+          aria-hidden="true"
+        >
+          |
+        </motion.span>
+        <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
+          Screen Reader
+        </span>
+        <motion.div
+          className="relative inline-flex items-center cursor-pointer"
+          whileTap={{ scale: 0.95 }}
+        >
+          <input
+            type="checkbox"
+            checked={isScreenReaderEnabled}
+            onChange={toggleScreenReader}
+            className="sr-only peer"
+            id="screenReaderToggle"
+            aria-label="Toggle screen reader"
+          />
+          <label
             htmlFor="screenReaderToggle"
             className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
           >
+            <motion.span
+              className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
+              variants={toggleSliderVariants}
+              animate={isScreenReaderEnabled ? 'on' : 'off'}
+            />
+          </label>
+        </motion.div>
+      </div>
+    </div>
+  </div>
+  {/* Accessibility Bubble and Window (small screens only) */}
+  <div className="sm:hidden fixed bottom-6 right-6 z-50">
+    <motion.button
+      className="w-14 h-14 bg-white/10 border backdrop-blur-md rounded-full flex items-center justify-center text-white"
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      onClick={() => setIsAccessibilityWindowOpen(prev => !prev)}
+      aria-label="Toggle accessibility options"
+      role="button"
+    >
+      <FileQuestion size={26} />
+    </motion.button>
+    <AnimatePresence>
+      {isAccessibilityWindowOpen && (
+        <motion.div
+          ref={accessibilityWindowRef}
+          className="fixed bottom-24 right-4 w-64 bg-black/70 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-lg"
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          role="dialog"
+          aria-label="Accessibility options"
+        >
+          <p className="text-white text-sm mb-2 font-medium flex gap-1.5" style={{ fontFamily: 'Poppins' }}>
+            <FileQuestion size={18} /> Accessibility
+          </p>
+          <hr className="mb-3 opacity-30" />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <motion.span
-                className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
-                variants={toggleSliderVariants}
-                animate={isScreenReaderEnabled ? 'on' : 'off'}
+                className="text-white text-lg font-mono"
+                variants={textCursorVariants}
+                animate="blink"
+                aria-hidden="true"
+              >
+                |
+              </motion.span>
+              <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
+                Screen Reader
+              </span>
+            </div>
+            <motion.div
+              className="relative inline-flex items-center cursor-pointer"
+              whileTap={{ scale: 0.95 }}
+            >
+              <input
+                type="checkbox"
+                checked={isScreenReaderEnabled}
+                onChange={toggleScreenReader}
+                className="sr-only peer"
+                id="screenReaderToggleMobile"
+                aria-label="Toggle screen reader"
+              />
+              <label
+                htmlFor="screenReaderToggleMobile"
+                className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
+              >
+                <motion.span
+                  className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
+                  variants={toggleSliderVariants}
+                  animate={isScreenReaderEnabled ? 'on' : 'off'}
                 />
-            </label>
-          </motion.div>
-        </div>
-                </div>
+              </label>
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
       </div>
       <span className='hidden lg:block'>
         {isSplashCursorEnabled && <SplashCursor />}
