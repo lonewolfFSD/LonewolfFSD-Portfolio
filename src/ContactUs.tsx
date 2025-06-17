@@ -3,7 +3,7 @@ import { db } from '../firebase'; // Adjust path to your firebase.ts
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, TimerReset } from 'lucide-react';
 import Beams from './Beam';
 
 // Interface for form data
@@ -13,6 +13,7 @@ interface FormData {
   email: string;
   phone: string;
   company: string;
+  remarks: string;
   workType: string;
   contactMethod: string;
   contactTime: string;
@@ -25,6 +26,7 @@ const ContactForm: React.FC = () => {
     email: '',
     phone: '',
     company: '',
+    remarks: '',
     workType: '',
     contactMethod: '',
     contactTime: ''
@@ -33,19 +35,23 @@ const ContactForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [phoneError, setPhoneError] = useState('');
+  const [remarksError, setRemarksError] = useState(false);
 
   // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
     if (name === 'phone') {
-      // Validates format like +91 98765 43210
       const phoneRegex = /^\+91\s\d{5}\s\d{5}$/;
       if (value && !phoneRegex.test(value)) {
-        setPhoneError('Please enter a valid phone number (e.g., +00 00000 00000)');
+        setPhoneError('Please enter a valid phone number (e.g., +91 98765 43210)');
       } else {
         setPhoneError('');
       }
+    }
+
+    if (name === 'remarks') {
+      setRemarksError(value.length > 500);
     }
 
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -54,7 +60,7 @@ const ContactForm: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (phoneError) return;
+    if (phoneError || remarksError) return;
     setIsSubmitting(true);
 
     try {
@@ -62,7 +68,7 @@ const ContactForm: React.FC = () => {
         ...formData,
         createdAt: serverTimestamp()
       });
-      
+
       setIsSubmitted(true);
       toast.success('Details saved successfully! LonewolfFSD will contact you soon.', {
         style: {
@@ -71,8 +77,7 @@ const ContactForm: React.FC = () => {
           border: '1px solid #000000',
         }
       });
-      
-      // Reset form after 3 seconds
+
       setTimeout(() => {
         setIsSubmitted(false);
         setFormData({
@@ -81,6 +86,7 @@ const ContactForm: React.FC = () => {
           email: '',
           phone: '',
           company: '',
+          remarks: '',
           workType: '',
           contactMethod: '',
           contactTime: ''
@@ -233,22 +239,19 @@ const ContactForm: React.FC = () => {
                       3
                     </motion.div>
                   </div>
-                    <hr className='my-6 w-20 mx-auto' />
+                  <hr className='my-6 w-20 mx-auto' />
                 </div>
-                
+
                 <motion.h2
                   className="text-3xl lg:text-4xl font-bold text-white mb-6 text-center tracking-wide"
                   variants={itemVariants}
-                  style={{
-                    fontFamily: 'Poppins'
-                  }}
+                  style={{ fontFamily: 'Poppins' }}
                 >
                   Let's Connect
                 </motion.h2>
                 <p className="text-white text-center text-sm md:text-sm mb-8 md:px-6 mx-auto opacity-90" style={{ fontFamily: 'Poppins' }}>
-  Whether you're ready to build your next project or just exploring ideas, I'm here to collaborate and bring your vision to life. Reach out and let's make something remarkable together.
-</p>
-
+                  Whether you're ready to build your next project or just exploring ideas, I'm here to collaborate and bring your vision to life. Reach out and let's make something remarkable together.
+                </p>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {currentStep === 1 && (
@@ -293,7 +296,6 @@ const ContactForm: React.FC = () => {
                           name="email"
                           value={formData.email}
                           onChange={handleChange}
-                          
                           className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
                           placeholder="example@example.com"
                         />
@@ -317,7 +319,7 @@ const ContactForm: React.FC = () => {
                           className={`w-full px-4 py-4 bg-black border ${
                             phoneError ? 'border-red-500' : 'border-white/20'
                           } rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300`}
-                          placeholder="(000) 000-0000"
+                          placeholder="+91 98765 43210"
                         />
                         {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
                       </div>
@@ -371,7 +373,7 @@ const ContactForm: React.FC = () => {
                           value={formData.contactMethod}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-black/50 transition-all duration-300"
+                          className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
                         >
                           <option value="">Select Contact Method</option>
                           <option value="Email">Email</option>
@@ -389,7 +391,7 @@ const ContactForm: React.FC = () => {
                           value={formData.contactTime}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-black/50 transition-all duration-300"
+                          className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
                         >
                           <option value="">Select Time</option>
                           <option value="Morning">Morning</option>
@@ -397,6 +399,27 @@ const ContactForm: React.FC = () => {
                           <option value="Evening">Evening</option>
                           <option value="Anytime">Anytime</option>
                         </select>
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="remarks" className="block text-sm font-medium text-white/80 mb-2">
+                          Remarks <span className='text-xs font-medium opacity-70'>(optional)</span>
+                        </label>
+                        <div className="relative w-full">
+                          <textarea
+                            id="remarks"
+                            name="remarks"
+                            value={formData.remarks}
+                            onChange={handleChange}
+                            className={`w-full text-sm px-4 py-4 bg-black border ${
+                              remarksError ? 'border-red-500' : 'border-white/20'
+                            } rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300 resize-none`}
+                            placeholder="Any additional information that may help"
+                            rows={6}
+                          />
+                          <div className={`absolute bottom-4 right-4 text-xs ${remarksError ? 'text-red-500' : 'text-white/40'}`}>
+                            {formData.remarks.length}/500
+                          </div>
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -428,7 +451,7 @@ const ContactForm: React.FC = () => {
                     ) : (
                       <motion.button
                         type="submit"
-                        disabled={isSubmitting || !!phoneError}
+                        disabled={isSubmitting || !!phoneError || remarksError}
                         variants={buttonVariants}
                         whileHover="hover"
                         whileTap="tap"
@@ -452,15 +475,28 @@ const ContactForm: React.FC = () => {
               </>
             ) : (
               <motion.div
-                className="text-center text-black"
+                className="text-center text-white p-6 rounded-lg bg-black/30"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.5 }}
               >
-                <h2 className="text-2xl font-bold mb-4">Success!</h2>
-                <p>Details saved successfully on queue list.</p>
-                <p>LonewolfFSD will soon contact you for further details.</p>
+                <div className="flex justify-center mb-4">
+                  <TimerReset className="w-14 h-14 text-yellow-100" />
+                </div>
+                <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'Poppins' }}>
+                  Enquiry Submitted!
+                </h2>
+                <p className="text-sm text-white/80">
+                  Your enquiry has been successfully added to the queue.
+                </p>
+                <p className="text-sm text-white/80 mt-1">
+                  LonewolfFSD typically reviews submissions within 24 hours, but in rare cases,
+                  it may take 2–3 business days.
+                </p>
+                <p className="text-sm text-white/60 mt-8">
+                  LonewolfFSD will contact you soon for further information.
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
