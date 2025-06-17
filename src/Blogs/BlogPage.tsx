@@ -85,7 +85,7 @@ function App() {
     { label: 'Profile', icon: User, action: () => navigate('/profile') },
     { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
     { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
-    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries") },
+    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
     { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
