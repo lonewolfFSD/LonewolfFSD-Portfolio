@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Github, Instagram, LogOut, Menu, Twitter, User, X } from 'lucide-react';
+import { Github, Inbox, Instagram, LogOut, Menu, Settings, Twitter, User, Wallet, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -64,8 +64,12 @@ const About: React.FC = () => {
   const { avatarURL } = useAvatar();
   const navigate = useNavigate();
 
-  const profileOptions = [
+  // Profile dropdown options
+    const profileOptions = [
     { label: 'Profile', icon: User, action: () => navigate('/profile') },
+    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries") },
     { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
@@ -74,7 +78,7 @@ const About: React.FC = () => {
     "I thrive on solving real-world problems with practical code, blending functionality with user-centered design. Whether it's building responsive dashboards, crafting intuitive APIs, or automating complex workflows — I focus on clarity, simplicity, and maintainability.",
     "Over time, I've expanded my work into AI and machine learning integrations, exploring intelligent systems that not only automate but also adapt. That curiosity drives me to create digital experiences that evolve, personalize, and empower.",
     "When I'm not coding, I often experiment with micro-interactions, performance optimization, or just reflect on how small design decisions impact a user's entire journey. I value silence, depth, and precision — both in code and in thought.",
-  ];
+  ]; 
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -161,7 +165,7 @@ const About: React.FC = () => {
 
               {user && isProfileDropdownOpen && (
                 <motion.div
-                  className={`absolute top-full right-0 mt-5 w-52 md:w-60 border border-black/20 rounded-2xl shadow-lg z-20 overflow-hidden ${
+                  className={`absolute top-full right-0 mt-5 w-60 border border-black/20 rounded-2xl shadow-lg z-20 overflow-hidden ${
                     isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
                   }`}
                   initial={{ opacity: 0, y: -10 }}
@@ -233,49 +237,46 @@ const About: React.FC = () => {
               </motion.button>
 
               {isMenuOpen && (
-                <motion.div
-                  className={`absolute top-full right-0 mt-6 w-64 border border-black/20 rounded-2xl shadow-lg z-20 overflow-hidden transition-all ${
-                    isDark ? 'bg-gray-800' : 'bg-white'
-                  }`}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0, duration: 0.4 }}
-                >
-                  <nav className="p-3">
-                    {[
-                      { label: 'About Me', href: '/about-me' },
-                      { label: 'LonewolfFSD Blogs', href: '/blogs' },
-                      { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
-                      { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
-                    ].map((item, index) => (
-                      <Link
-                        key={index}
-                        to={item.href}
-                        className={`block cursor-custom-pointer px-6 py-2.5 md:py-3 text-[16px] md:text-[15.5px] font-medium rounded-lg transition-all duration-300 ease-in-out hover:ml-1 hover:font-semibold ${
-                          isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'
-                        }`}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-
-                    <div className="border-t mx-6 my-2=1.5 opacity-10" />
-
-                    <div className="px-6 py-3 flex gap-4">
-                      <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                        <Github className="w-5 h-5 cursor-custom-pointer" />
-                      </a>
-                      <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                        <Instagram className="w-5 h-5 cursor-custom-pointer" />
-                      </a>
-                      <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-opacity">
-                        <Twitter className="w-5 h-5 cursor-custom-pointer" />
-                      </a>
-                    </div>
-                  </nav>
-                </motion.div>
-              )}
+        <motion.div
+          className={`absolute top-full right-0 mt-4 w-64 border border-black/10 rounded-xl shadow-2xl z-20 overflow-hidden backdrop-blur-sm ${
+            isDark ? 'bg-gray-900/95' : 'bg-white/95'
+          }`}
+          initial={{ opacity: 0, y: -15, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+        >
+          <nav className="p-3">
+            {[
+              { label: 'About Me', href: '/about-me' },
+              { label: 'LonewolfFSD Blogs', href: '/blogs' },
+              { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
+              { label: 'FSD DevSync', href: '/dev-sync' },
+              { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
+            ].map((item, index) => (
+              <Link
+                key={index}
+                to={item.href}
+                className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <div className="border-t border-black/10 mx-4 my-2" />
+            <div className="px-4 py-3 flex gap-4">
+              <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                <Github className="w-5 h-5 cursor-pointer" />
+              </a>
+              <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                <Instagram className="w-5 h-5 cursor-pointer" />
+              </a>
+              <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                <Twitter className="w-5 h-5 cursor-pointer" />
+              </a>
+            </div>
+          </nav>
+        </motion.div>
+      )}
             </div>
           </motion.div>
         </motion.header>
