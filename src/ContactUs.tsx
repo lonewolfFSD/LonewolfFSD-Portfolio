@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
 import { ArrowLeft, ArrowRight, TimerReset } from 'lucide-react';
 import Beams from './Beam';
+import SplashCursor from './SplashCursor';
 
 // Interface for form data
 interface FormData {
@@ -171,6 +172,9 @@ const ContactForm: React.FC = () => {
 
   return (
     <div className="relative h-screen bg-white">
+      <span className='hidden lg:block'>
+        <SplashCursor />
+      </span>
       <div className="absolute inset-0 z-0">
         <Beams
           beamWidth={2}
