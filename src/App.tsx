@@ -884,7 +884,7 @@ function App() {
 
           <Projects />
 
-          <section className='mt-32'>
+          <section className='mt-20 md:mt-32'>
             <h2 className="text-3xl font-bold mb-12">Here's What Others Say</h2>
             <Testimonials />
           </section>

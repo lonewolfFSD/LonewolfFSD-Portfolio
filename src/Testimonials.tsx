@@ -107,7 +107,7 @@ const renderStars = (rating: number) => {
     className="group flex-shrink-0 w-full max-w-sm mx-2" // <- `group` goes here
   >
     <div
-      className="backdrop-blur-lg rounded-2xl px-8 py-9 h-[215px] cursor-custom-pointer border border-black shadow-lg transition-all duration-300
+      className="backdrop-blur-lg rounded-2xl px-8 py-9 h-[225px] md:h-[215px] cursor-custom-pointer border border-black shadow-lg transition-all duration-300
                  bg-white hover:bg-black hover:border-white"
     >
       <div className="flex items-center mb-4">
@@ -191,6 +191,8 @@ const renderStars = (rating: number) => {
             ))}
         </div>
       </div>
+
+      
     </div>
   );
 };
