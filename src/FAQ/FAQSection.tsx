@@ -28,7 +28,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({
       <div className="w-full max-w-7xl mx-auto px-0">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-20">
           <div className="md:col-span-5 space-y-3">
-            <h2 className="text-3xl font-bold text-gray-900" style={{
+            <h2 className="text-3xl font-semibold text-gray-900" style={{
               fontFamily: 'Poppins'
             }}>{title}</h2>
             {subtitle && <p className="text-gray-600 leading-relaxed">{subtitle}</p>}

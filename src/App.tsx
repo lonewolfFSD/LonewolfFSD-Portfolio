@@ -798,7 +798,7 @@ function App() {
 
         {/* Skills Section */}
         <section className="mt-32 lg:mt-60" id="skills" style={{ fontFamily: 'Poppins' }}>
-    <h2 className="text-3xl font-bold mb-12">Programming Skills</h2>
+    <h2 className="text-3xl font-semibold mb-12">Programming Skills</h2>
 
     {/* Dropdown Menu */}
     <div className="relative w-52 md:w-64 mb-8">
@@ -876,7 +876,10 @@ function App() {
   </section>
           <span id='projects' />
           <h2 
-            className="text-3xl font-bold -mb-4 mt-36" 
+            className="text-3xl font-semibold -mb-4 mt-36" 
+            style={{
+              fontFamily: 'Poppins'
+            }}
             title="Stuff I built with my own two hands... and maybe a bit of crying. Okay fine, they're just projects. Happy now?"
           >
             A Beautiful Mess of Projects
@@ -885,7 +888,9 @@ function App() {
           <Projects />
 
           <section className='mt-12 md:mt-32'>
-            <h2 className="text-3xl font-bold mb-12">Here's What Others Say</h2>
+            <h2 className="text-3xl font-semibold mb-12" style={{
+              fontFamily: 'Poppins'
+            }}>Here's What Others Say</h2>
             <Testimonials />
           </section>
 
