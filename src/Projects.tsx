@@ -3,6 +3,7 @@ import { Book, Earth, Github } from 'lucide-react';
 import NewsletterForm from './Newsletter';
 import Lyra from './mockups/Lyra.jpg';
 import LonewolfFSD from './mockups/logo.png';
+import { useTranslation } from 'react-i18next';
 
 // Define the Project type for TypeScript
 interface Project {
@@ -18,7 +19,7 @@ interface Project {
 const projects: Project[] = [
   {
     title: 'Lyra: Virtual AI Companion',
-    description: 'A full-stack online store with payment integration and user authentication.',
+    description: 'project.lyra.description', // Added for potential future use
     image: Lyra,
     link: '/blogs/lyralabs/lyra-ai',
     readTime: 'BLOG',
@@ -26,7 +27,7 @@ const projects: Project[] = [
   },
   {
     title: 'LonewolfFSD Portfolio',
-    description: 'A personal portfolio showcasing my projects with a modern, responsive design.',
+    description: 'project.lonewolffsd.description',
     image: LonewolfFSD,
     link: '#',
     readTime: 'WEBSITE',
@@ -38,6 +39,7 @@ const projects: Project[] = [
 const ProjectCard: React.FC<{ project: Project; isNewsletter?: boolean }> = ({ project, isNewsletter = false }) => {
   const [isNewsletterOpen, setIsNewsletterOpen] = useState<boolean>(false);
 
+  const { t, i18n } = useTranslation();
   // Handle click for newsletter card to open overlay
   const handleNewsletterClick = (e: React.MouseEvent) => {
     if (isNewsletter) {
@@ -45,6 +47,7 @@ const ProjectCard: React.FC<{ project: Project; isNewsletter?: boolean }> = ({ p
       setIsNewsletterOpen(true);
     }
   };
+
 
   // Conditionally render as div for newsletter or a for projects
   const CardWrapper = isNewsletter ? 'div' : 'a';
@@ -70,7 +73,7 @@ const ProjectCard: React.FC<{ project: Project; isNewsletter?: boolean }> = ({ p
                 ) : (
                   <Earth size={18} className="text-base" />
                 )}
-                <span>{project.readTime}</span>
+                <span>{t(project.readTime)}</span>
               </div>
             )}
             {isNewsletter && (
@@ -89,13 +92,13 @@ const ProjectCard: React.FC<{ project: Project; isNewsletter?: boolean }> = ({ p
             {isNewsletter ? (
               <>
                 <span className="text-neutral-500 transition-colors duration-500 group-hover:text-black group-hover:font-bold">
-                  Join our
+                  {t('JOIN OUR')}
                 </span>
                 <br />
-                Weekly Newsletter
+                {t('WEEKLY NEWSLETTER')}
               </>
             ) : (
-              project.title
+              t(project.title)
             )}
           </h2>
         </div>
@@ -148,6 +151,8 @@ const ProjectCard: React.FC<{ project: Project; isNewsletter?: boolean }> = ({ p
 
 // Project Showcase Section Component
 const ProjectShowcase: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="bg-white text-neutral-900 py-12">
       <div className="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-neutral-300 border border-neutral-300 lg:grid-cols-3 md:divide-x lg:divide-y-0">
@@ -174,7 +179,7 @@ const ProjectShowcase: React.FC = () => {
               className="relative z-10 text-3xl leading-tight transition-transform duration-500 group-hover:-translate-y-3"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              Upcoming Projects Will Be Available Soon
+              {t("Upcoming Projects Will Be Available Soon")}
             </h2>
           </div>
           {/* Corner border animations */}

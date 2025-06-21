@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Plus, Minus, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface FAQItemProps {
-  question: string;
-  answer: string;
+  question: string; // Translation key (e.g., "faq.services.question")
+  answer: string; // Translation key (e.g., "faq.services.answer")
   isOpen: boolean;
   onClick: () => void;
   onClose?: () => void;
@@ -18,6 +19,8 @@ const FAQItem: React.FC<FAQItemProps> = ({
   onClose,
   showCloseButton = false,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="border-b border-gray-200">
       <button
@@ -25,7 +28,7 @@ const FAQItem: React.FC<FAQItemProps> = ({
         onClick={onClick}
         aria-expanded={isOpen}
       >
-        <h3 className="md:text-md font-medium text-gray-900">{question}</h3>
+        <h3 className="md:text-md font-medium text-gray-900">{t(question)}</h3>
         <div className="flex items-center">
           {showCloseButton && isOpen ? (
             <button
@@ -49,7 +52,7 @@ const FAQItem: React.FC<FAQItemProps> = ({
           isOpen ? 'max-h-96 opacity-100 pb-6' : 'max-h-0 opacity-0'
         }`}
       >
-        <p className="text-[15px] text-gray-700 leading-relaxed">{answer}</p>
+        <p className="text-[15px] text-gray-700 leading-relaxed">{t(answer)}</p>
       </div>
     </div>
   );

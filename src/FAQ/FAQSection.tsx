@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import FAQItem from './FAQItem';
 import { FAQItem as FAQItemType } from '../types/faq';
+import { useTranslation } from 'react-i18next';
 
 interface FAQSectionProps {
-  title: string;
-  subtitle?: string;
+  title: string; // Translation key (e.g., "Frequently Asked Questions")
+  subtitle?: string; // Translation key (e.g., "In a creative workplace...")
   items: FAQItemType[];
-  contactLink?: string;
+  contactLink?: string; // Translation key (e.g., "Contact support")
 }
 
 const FAQSection: React.FC<FAQSectionProps> = ({
@@ -15,6 +16,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({
   items,
   contactLink,
 }) => {
+  const { t } = useTranslation();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const handleToggle = (index: number) => {
@@ -26,19 +28,19 @@ const FAQSection: React.FC<FAQSectionProps> = ({
       fontFamily: 'Inter, sans-serif'
     }}>
       <div className="w-full max-w-7xl mx-auto px-0">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
           <div className="md:col-span-5 space-y-3">
             <h2 className="text-3xl font-semibold text-gray-900" style={{
               fontFamily: 'Poppins'
-            }}>{title}</h2>
-            {subtitle && <p className="text-gray-600 leading-relaxed">{subtitle}</p>}
+            }}>{t(title)}</h2>
+            {subtitle && <p className="text-gray-600 leading-relaxed">{t(subtitle)}</p>}
             {contactLink && (
               <div className="pt-2">
                 <a 
                   href="https://support.lonewolffsd.in" 
                   className="inline-block cursor-custom-pointer text-black font-semibold border-b border-black pb-0.5 transition-colors"
                 >
-                  {contactLink}
+                  {t(contactLink)}
                 </a>
               </div>
             )}

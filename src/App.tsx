@@ -165,7 +165,7 @@ function App() {
 const flags = {
   en: (
     <svg
-      className="w-7 h-[0.875rem] mr-2 shrink-0"
+      className="w-7 h-[0.875rem] shrink-0"
       viewBox="0 0 60 30"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
@@ -180,7 +180,7 @@ const flags = {
   ),
   es: (
     <svg
-      className="w-7 h-[0.875rem] mr-2 shrink-0"
+      className="w-7 h-[0.875rem] shrink-0"
       viewBox="0 0 60 30"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
@@ -193,7 +193,7 @@ const flags = {
   ),
   fr: (
     <svg
-      className="w-7 h-[0.875rem] mr-2 shrink-0"
+      className="w-7 h-[0.875rem] shrink-0"
       viewBox="0 0 60 30"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
@@ -206,7 +206,7 @@ const flags = {
   ),
   it: (
     <svg
-      className="w-7 h-[0.875rem] mr-2 shrink-0"
+      className="w-7 h-[0.875rem] shrink-0"
       viewBox="0 0 60 30"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
@@ -219,7 +219,7 @@ const flags = {
   ),
   pt: (
     <svg
-      className="w-7 h-[0.875rem] mr-2 shrink-0"
+      className="w-7 h-[0.875rem] shrink-0"
       viewBox="0 0 60 30"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
@@ -231,7 +231,7 @@ const flags = {
   ),
   ja: (
     <svg
-      className="w-7 h-[0.875rem] mr-2 shrink-0"
+      className="w-7 h-[0.875rem] shrink-0"
       viewBox="0 0 60 30"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
@@ -243,7 +243,7 @@ const flags = {
   ),
   zh: (
     <svg
-      className="w-7 h-[0.875rem] mr-2 shrink-0"
+      className="w-7 h-[0.875rem] shrink-0"
       viewBox="0 0 60 30"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
@@ -261,7 +261,7 @@ const flags = {
   ),
   ko: (
     <svg
-      className="w-7 h-[0.875rem] mr-2 shrink-0"
+      className="w-7 h-[0.875rem] shrink-0"
       viewBox="0 0 60 30"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
@@ -289,280 +289,280 @@ const languages = [
   { code: 'ko', label: '한국어', flag: flags.ko },
 ];
 
-  const skills = [
-    {
-      name: 'JavaScript',
-      icon: 'fa-brands fa-js-square',
-      description: 'I leverage JavaScript to develop dynamic and interactive web applications, handling both front-end and back-end logic with frameworks like Node.js and libraries like React.',
-      downloadLink: 'https://www.geeksforgeeks.org/javascript/',
-      percentage: 97.5,
-      category: 'programming'
-    },
-    {
-      name: 'React',
-      icon: 'fa-brands fa-react',
-      description: 'I build modern single-page applications using React, utilizing hooks, context API, and state management libraries like Redux for scalable and maintainable codebases.',
-      downloadLink: 'https://react.dev/learn',
-      percentage: 93,
-      category: 'frontend'
-    },
-    {
-      name: 'Node.js',
-      icon: 'fa-brands fa-node',
-      description: 'I create scalable server-side applications and RESTful APIs with Node.js, integrating with databases like MongoDB and utilizing middleware for enhanced functionality.',
-      downloadLink: 'https://nodejs.org/en/learn/getting-started/introduction-to-nodejs',
-      percentage: 78,
-      category: 'backend'
-    },
-    {
-      name: 'HTML',
-      icon: 'fa-brands fa-html5',
-      description: 'I craft well-structured, semantic, and accessible web pages using HTML, ensuring optimal performance and compatibility across various browsers and devices.',
-      downloadLink: 'https://www.w3schools.com/html/',
-      percentage: 99.5,
-      category: 'frontend'
-    },
-    {
-      name: 'CSS',
-      icon: 'fa-brands fa-css3-alt',
-      description: 'I design responsive, visually appealing, and cross-browser compatible web interfaces using CSS, incorporating animations and modern layout techniques like Flexbox and Grid.',
-      downloadLink: 'https://www.w3schools.com/css/',
-      percentage: 97.8,
-      category: 'frontend'
-    },
-    {
-      name: 'PHP',
-      icon: 'fa-brands fa-php',
-      description: 'I utilize PHP for server-side scripting, building dynamic web applications and integrating with databases to create robust backends for content management systems.',
-      downloadLink: 'https://www.geeksforgeeks.org/php-tutorial/',
-      percentage: 97,
-      category: 'backend'
-    },
-    {
-      name: 'MySQL',
-      icon: 'fa-solid fa-database',
-      description: 'I manage and optimize relational databases with MySQL, designing efficient schemas and writing complex queries to ensure fast data retrieval and storage.',
-      downloadLink: 'https://www.w3schools.com/MySQL/default.asp',
-      percentage: 96,
-      category: 'database'
-    },
-    {
-      name: 'MongoDB',
-      icon: 'fa-solid fa-leaf',
-      description: 'I work with MongoDB to manage NoSQL databases, designing flexible schemas and leveraging its scalability for handling large datasets in web applications.',
-      downloadLink: 'https://www.mongodb.com/docs/',
-      percentage: 96,
-      category: 'database'
-    },
-    {
-      name: 'Supabase',
-      icon: 'fa-solid fa-bolt',
-      description: 'I use Supabase as an open-source Firebase alternative, managing authentication, real-time databases, and serverless functions to build scalable and secure applications.',
-      downloadLink: 'https://supabase.com/docs',
-      percentage: 95,
-      category: 'database'
-    },
-    {
-      name: 'Firebase',
-      icon: 'fa-solid fa-fire',
-      description: 'I utilize Firebase for backend services, including Firestore for NoSQL databases, real-time data syncing, user authentication, and cloud functions for serverless logic.',
-      downloadLink: 'https://firebase.google.com/docs',
-      percentage: 98,
-      category: 'database'
-    },    
-    {
-      name: 'Tailwind CSS',
-      icon: 'fa-solid fa-globe',
-      description: 'I employ Tailwind CSS to create highly customizable, utility-first designs, enabling rapid development of responsive and aesthetically pleasing web interfaces.',
-      downloadLink: 'https://tailwindcss.com/docs/installation/using-vite',
-      percentage: 95,
-      category: 'tools'
-    },
-    {
-      name: 'Vercel',
-      icon: 'fa-solid fa-play',
-      description: 'I deploy and manage web applications using Vercel, leveraging its serverless architecture and seamless integration with Next.js for optimized performance.',
-      downloadLink: 'https://vercel.com/docs',
-      percentage: 95,
-      category: 'tools'
-    },
-    {
-      name: 'Vite',
-      icon: 'fa-brands fa-vuejs',
-      description: 'I use Vite as a modern build tool for fast development, leveraging its hot module replacement and optimized production builds for efficient workflows.',
-      downloadLink: 'https://vite.dev/guide/',
-      percentage: 80,
-      category: 'tools'
-    },
-    {
-      name: 'Bootstrap',
-      icon: 'fa-brands fa-bootstrap',
-      description: 'I develop responsive, mobile-first websites using Bootstrap, utilizing its pre-built components and grid system to streamline front-end development.',
-      downloadLink: 'https://getbootstrap.com/docs/5.3/getting-started/introduction/',
-      percentage: 95,
-      category: 'tools'
-    },
-    {
-      name: 'Figma',
-      icon: 'fa-brands fa-figma',
-      description: 'I design intuitive UI/UX prototypes and collaborate with teams using Figma, creating clean, modern, and user-centered designs for web and mobile applications.',
-      downloadLink: 'https://help.figma.com/hc/en-us/categories/360002051613-Get-started',
-      percentage: 62.8,
-      category: 'tools'
-    },
-    {
-      name: 'TypeScript',
-      icon: 'fa-solid fa-code',
-      description: 'I enhance JavaScript projects with TypeScript, adding static typing to improve code reliability, maintainability, and developer experience in large-scale applications.',
-      downloadLink: 'https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html',
-      percentage: 96.7,
-      category: 'frontend'
-    },
-    {
-      name: 'Next.js',
-      icon: 'fa-solid fa-forward',
-      description: 'I build server-rendered React applications with Next.js, optimizing for SEO, performance, and scalability using features like static site generation and API routes.',
-      downloadLink: 'https://nextjs.org/docs',
-      percentage: 70,
-      category: 'frontend'
-    },
-    {
-      name: 'Express.js',
-      icon: 'fa-brands fa-js',
-      description: 'I develop robust server-side applications and APIs with Express.js, integrating middleware and routing to create efficient and scalable backend systems.',
-      downloadLink: 'https://expressjs.com/en/starter/installing.html',
-      percentage: 96,
-      category: 'backend'
-    },
-    {
-      name: 'Git',
-      icon: 'fa-brands fa-git-alt',
-      description: 'I manage version control with Git, collaborating with teams, resolving conflicts, and maintaining organized project histories for efficient development workflows.',
-      downloadLink: 'https://git-scm.com/doc',
-      percentage: 85,
-      category: 'tools'
-    },
-    {
-      name: 'AWS',
-      icon: 'fa-brands fa-aws',
-      description: 'I deploy and manage cloud-based applications using AWS, utilizing services like EC2, S3, and Lambda to ensure scalability, security, and reliability.',
-      downloadLink: 'https://aws.amazon.com/getting-started/',
-      percentage: 85,
-      category: 'tools'
-    },
-    {
-    name: 'Python',
+const skills = [
+  {
+    name: 'skill.JavaScript.name',
+    description: 'skill.JavaScript.description',
+    icon: 'fa-brands fa-js-square',
+    downloadLink: 'https://www.geeksforgeeks.org/javascript/',
+    percentage: 97.5,
+    category: 'programming'
+  },
+  {
+    name: 'skill.React.name',
+    description: 'skill.React.description',
+    icon: 'fa-brands fa-react',
+    downloadLink: 'https://react.dev/learn',
+    percentage: 93,
+    category: 'frontend'
+  },
+  {
+    name: 'skill.Node.js.name',
+    description: 'skill.Node.js.description',
+    icon: 'fa-brands fa-node',
+    downloadLink: 'https://nodejs.org/en/learn/getting-started/introduction-to-nodejs',
+    percentage: 78,
+    category: 'backend'
+  },
+  {
+    name: 'skill.HTML.name',
+    description: 'skill.HTML.description',
+    icon: 'fa-brands fa-html5',
+    downloadLink: 'https://www.w3schools.com/html/',
+    percentage: 99.5,
+    category: 'frontend'
+  },
+  {
+    name: 'skill.CSS.name',
+    description: 'skill.CSS.description',
+    icon: 'fa-brands fa-css3-alt',
+    downloadLink: 'https://www.w3schools.com/css/',
+    percentage: 97.8,
+    category: 'frontend'
+  },
+  {
+    name: 'skill.PHP.name',
+    description: 'skill.PHP.description',
+    icon: 'fa-brands fa-php',
+    downloadLink: 'https://www.geeksforgeeks.org/php-tutorial/',
+    percentage: 97,
+    category: 'backend'
+  },
+  {
+    name: 'skill.MySQL.name',
+    description: 'skill.MySQL.description',
+    icon: 'fa-solid fa-database',
+    downloadLink: 'https://www.w3schools.com/MySQL/default.asp',
+    percentage: 96,
+    category: 'database'
+  },
+  {
+    name: 'skill.MongoDB.name',
+    description: 'skill.MongoDB.description',
+    icon: 'fa-solid fa-leaf',
+    downloadLink: 'https://www.mongodb.com/docs/',
+    percentage: 96,
+    category: 'database'
+  },
+  {
+    name: 'skill.Supabase.name',
+    description: 'skill.Supabase.description',
+    icon: 'fa-solid fa-bolt',
+    downloadLink: 'https://supabase.com/docs',
+    percentage: 95,
+    category: 'database'
+  },
+  {
+    name: 'skill.Firebase.name',
+    description: 'skill.Firebase.description',
+    icon: 'fa-solid fa-fire',
+    downloadLink: 'https://firebase.google.com/docs',
+    percentage: 98,
+    category: 'database'
+  },
+  {
+    name: 'skill.Tailwind CSS.name',
+    description: 'skill.Tailwind CSS.description',
+    icon: 'fa-solid fa-globe',
+    downloadLink: 'https://tailwindcss.com/docs/installation/using-vite',
+    percentage: 95,
+    category: 'tools'
+  },
+  {
+    name: 'skill.Vercel.name',
+    description: 'skill.Vercel.description',
+    icon: 'fa-solid fa-play',
+    downloadLink: 'https://vercel.com/docs',
+    percentage: 95,
+    category: 'tools'
+  },
+  {
+    name: 'skill.Vite.name',
+    description: 'skill.Vite.description',
+    icon: 'fa-brands fa-vuejs',
+    downloadLink: 'https://vite.dev/guide/',
+    percentage: 80,
+    category: 'tools'
+  },
+  {
+    name: 'skill.Bootstrap.name',
+    description: 'skill.Bootstrap.description',
+    icon: 'fa-brands fa-bootstrap',
+    downloadLink: 'https://getbootstrap.com/docs/5.3/getting-started/introduction/',
+    percentage: 95,
+    category: 'tools'
+  },
+  {
+    name: 'skill.Figma.name',
+    description: 'skill.Figma.description',
+    icon: 'fa-brands fa-figma',
+    downloadLink: 'https://help.figma.com/hc/en-us/categories/360002051613-Get-started',
+    percentage: 62.8,
+    category: 'tools'
+  },
+  {
+    name: 'skill.TypeScript.name',
+    description: 'skill.TypeScript.description',
+    icon: 'fa-solid fa-code',
+    downloadLink: 'https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html',
+    percentage: 96.7,
+    category: 'frontend'
+  },
+  {
+    name: 'skill.Next.js.name',
+    description: 'skill.Next.js.description',
+    icon: 'fa-solid fa-forward',
+    downloadLink: 'https://nextjs.org/docs',
+    percentage: 70,
+    category: 'frontend'
+  },
+  {
+    name: 'skill.Express.js.name',
+    description: 'skill.Express.js.description',
+    icon: 'fa-brands fa-js',
+    downloadLink: 'https://expressjs.com/en/starter/installing.html',
+    percentage: 96,
+    category: 'backend'
+  },
+  {
+    name: 'skill.Git.name',
+    description: 'skill.Git.description',
+    icon: 'fa-brands fa-git-alt',
+    downloadLink: 'https://git-scm.com/doc',
+    percentage: 85,
+    category: 'tools'
+  },
+  {
+    name: 'skill.AWS.name',
+    description: 'skill.AWS.description',
+    icon: 'fa-brands fa-aws',
+    downloadLink: 'https://aws.amazon.com/getting-started/',
+    percentage: 85,
+    category: 'tools'
+  },
+  {
+    name: 'skill.Python.name',
+    description: 'skill.Python.description',
     icon: 'fa-brands fa-python',
-    description: 'I develop versatile applications with Python, leveraging its simplicity for web development, data analysis, automation, and machine learning projects with frameworks like Django and Flask.',
     downloadLink: 'https://www.python.org/doc/',
     percentage: 90,
     category: 'programming'
   },
   {
-    name: 'Django',
+    name: 'skill.Django.name',
+    description: 'skill.Django.description',
     icon: 'fa-brands fa-python',
-    description: 'I build secure and scalable web applications using Django, utilizing its robust ORM, authentication systems, and admin interface to streamline backend development.',
     downloadLink: 'https://docs.djangoproject.com/en/stable/',
     percentage: 85,
     category: 'backend'
   },
   {
-    name: 'GraphQL',
+    name: 'skill.GraphQL.name',
+    description: 'skill.GraphQL.description',
     icon: 'fa-solid fa-diagram-project',
-    description: 'I create efficient and flexible APIs with GraphQL, enabling precise data fetching and reducing over- or under-fetching issues in modern web applications.',
     downloadLink: 'https://graphql.org/learn/',
     percentage: 80,
     category: 'backend'
   },
   {
-    name: 'Vue.js',
+    name: 'skill.Vue.js.name',
+    description: 'skill.Vue.js.description',
     icon: 'fa-brands fa-vuejs',
-    description: 'I develop lightweight and reactive front-end applications with Vue.js, leveraging its simplicity and composition API for building dynamic user interfaces.',
     downloadLink: 'https://vuejs.org/guide/introduction.html',
     percentage: 75,
     category: 'frontend'
   },
   {
-    name: 'Svelte',
+    name: 'skill.Svelte.name',
+    description: 'skill.Svelte.description',
     icon: 'fa-solid fa-code',
-    description: 'I build performant and intuitive web applications with Svelte, utilizing its compile-time approach to create fast, reactive, and developer-friendly interfaces.',
     downloadLink: 'https://svelte.dev/docs',
     percentage: 70,
     category: 'frontend'
   },
   {
-    name: 'PostgreSQL',
+    name: 'skill.PostgreSQL.name',
+    description: 'skill.PostgreSQL.description',
     icon: 'fa-solid fa-database',
-    description: 'I manage advanced relational databases with PostgreSQL, optimizing complex queries and leveraging its features for geospatial data and full-text search.',
     downloadLink: 'https://www.postgresql.org/docs/',
     percentage: 90,
     category: 'database'
   },
   {
-    name: 'Docker',
+    name: 'skill.Docker.name',
+    description: 'skill.Docker.description',
     icon: 'fa-brands fa-docker',
-    description: 'I containerize applications with Docker, ensuring consistent environments across development, testing, and production for seamless deployment workflows.',
     downloadLink: 'https://docs.docker.com/get-started/',
     percentage: 85,
     category: 'tools'
   },
   {
-    name: 'Terraform',
+    name: 'skill.Terraform.name',
+    description: 'skill.Terraform.description',
     icon: 'fa-solid fa-cloud',
-    description: 'I manage infrastructure as code with Terraform, provisioning and scaling cloud resources across providers like AWS and GCP for reliable deployments.',
     downloadLink: 'https://www.terraform.io/docs',
     percentage: 80,
     category: 'tools'
   },
   {
-    name: 'Google Cloud Platform',
+    name: 'skill.Google Cloud Platform.name',
+    description: 'skill.Google Cloud Platform.description',
     icon: 'fa-brands fa-google',
-    description: 'I deploy and manage applications on Google Cloud Platform, utilizing services like Compute Engine, Cloud Functions, and BigQuery for scalable solutions.',
     downloadLink: 'https://cloud.google.com/docs',
     percentage: 85,
     category: 'tools'
   },
   {
-    name: 'React Native',
+    name: 'skill.React Native.name',
+    description: 'skill.React Native.description',
     icon: 'fa-brands fa-react',
-    description: 'I develop cross-platform mobile applications with React Native, creating native-like experiences for iOS and Android using a single codebase.',
     downloadLink: 'https://reactnative.dev/docs/getting-started',
     percentage: 70,
     category: 'mobile'
   },
   {
-    name: 'Flutter',
+    name: 'skill.Flutter.name',
+    description: 'skill.Flutter.description',
     icon: 'fa-solid fa-mobile',
-    description: 'I build high-performance mobile and web applications with Flutter, leveraging Dart and its widget-based architecture for visually rich experiences.',
     downloadLink: 'https://docs.flutter.dev/get-started/install',
     percentage: 65,
     category: 'mobile'
   },
   {
-    name: 'TensorFlow',
+    name: 'skill.TensorFlow.name',
+    description: 'skill.TensorFlow.description',
     icon: 'fa-solid fa-brain',
-    description: 'I implement machine learning models with TensorFlow, training and deploying neural networks for tasks like image recognition and natural language processing.',
     downloadLink: 'https://www.tensorflow.org/learn',
     percentage: 70,
     category: 'ai-ml'
   },
   {
-    name: 'Go',
+    name: 'skill.Go.name',
+    description: 'skill.Go.description',
     icon: 'fa-solid fa-code',
-    description: 'I develop high-performance backend services with Go, leveraging its concurrency model and simplicity for building scalable microservices and APIs.',
     downloadLink: 'https://go.dev/doc/',
     percentage: 75,
     category: 'programming'
   },
   {
-    name: 'Rust',
+    name: 'skill.Rust.name',
+    description: 'skill.Rust.description',
     icon: 'fa-solid fa-gears',
-    description: 'I write safe and performant systems-level code with Rust, utilizing its memory safety features for building reliable backend services and tools.',
     downloadLink: 'https://www.rust-lang.org/learn',
     percentage: 70,
     category: 'programming'
   },
-]; 
+];
 
   const skillVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -859,7 +859,7 @@ const languages = [
                 }`}
                 onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
               >
-                {languages.find((lang) => lang.code === selectedLanguage)?.flag}
+                <span className='border border-black mr-2'>{languages.find((lang) => lang.code === selectedLanguage)?.flag}</span>
                 {languages.find((lang) => lang.code === selectedLanguage)?.label}
               </button>
               {isLangDropdownOpen && (
@@ -877,7 +877,7 @@ const languages = [
                       className="px-3 py-2.5 border-b text-[15px] font-semibold cursor-pointer hover:bg-gray-100 flex items-center"
                       onClick={() => handleLanguageChange(lang.code)}
                     >
-                      {lang.flag}
+                      <span className='border border-black mr-2'>{lang.flag}</span>
                       {lang.label}
                     </li>
                   ))}
@@ -985,81 +985,82 @@ const languages = [
 
         {/* Skills Section */}
         <section className="mt-32 lg:mt-60" id="skills" style={{ fontFamily: 'Poppins' }}>
-    <h2 className="text-3xl font-semibold mb-12">Programming Skills</h2>
+<h2 className="text-3xl font-semibold mb-12">{t('Programming Skills')}</h2>
 
-    {/* Dropdown Menu */}
-    <div className="relative w-52 md:w-64 mb-8">
-      <select
-        aria-label="Choose a skill topic"
-        className={`${isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-gray-100 hover:bg-gray-200'} 
-          w-full cursor-custom-pointer px-8 py-3 rounded-xl text-left cursor-pointer shadow-md outline-none transition duration-200 appearance-none`}
-        value={selectedCategory}
-        onChange={(e) => {
-          setSelectedCategory(e.target.value);
-          setShowMore(false);
-        }}
-      >
-        <option value="all" className='hover:bg-black p-2'>All Prog Skills</option>
-        <option value="programming" className='hover:bg-black p-2'>Basic Prog</option>
-        <option value="frontend" className='hover:bg-black p-2'>Frontend Prog</option>
-        <option value="backend" className='hover:bg-black p-2'>Backend Prog</option>
-        <option value="database" className='hover:bg-black p-2'>Database</option>
-        <option value="tools" className='hover:bg-black p-2'>Tools</option>
-      </select>
-
-      {/* Custom Dropdown Arrow */}
-      <div className={`${isDark ? 'text-gray-200' : 'text-gray-800'} absolute inset-y-0 right-4 flex items-center pointer-events-none`}>
-        <ChevronDown />
-      </div>
-    </div>
-
-    <motion.div
-      className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
-      {...(!isMobile && {
-        variants: containerVariants,
-        initial: "hidden",
-        whileInView: "visible",
-        viewport: { once: false, amount: 0.2 },
-      })}
-      key={visibleSkills.length}
-    >
-      {visibleSkills.map((skill, index) => (
-        <motion.div
-          key={index}
-          className={`${
-            isDark ? "bg-gray-800 hover:bg-gray-750" : "bg-gray-100 hover:bg-gray-200"
-          } rounded-2xl shadow-lg p-8 w-full xl:w-[390px]`}
-          {...(!isMobile && {
-            whileHover: { scale: 1.02, rotate: randomRotate },
-            variants: skillVariants,
-          })}
+      {/* Dropdown Menu */}
+      <div className="relative w-52 md:w-64 mb-8">
+        <select
+          aria-label={t('Choose a skill topic')}
+          className={`${isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-gray-100 hover:bg-gray-200'} 
+            w-full cursor-custom-pointer px-8 py-3 rounded-xl text-left cursor-pointer shadow-md outline-none transition duration-200 appearance-none`}
+          value={selectedCategory}
+          onChange={(e) => {
+            setSelectedCategory(e.target.value);
+            setShowMore(false);
+          }}
         >
-          <div className="flex items-center space-x-4 mb-4">
-            <i className={`${skill.icon} text-3xl`} />
-            <h3 className="text-xl font-semibold" style={{ fontFamily: "Poppins, serif" }}>
-              {skill.name}
-            </h3>
-          </div>
-          <p
-            className="text-sm sm:text-[ Preparation: 15px] opacity-60"
-            style={{ fontFamily: "Rubik, sans-serif" }}
-          >
-            {skill.description}
-          </p>
-        </motion.div>
-      ))}
-    </motion.div>
+          <option value="all" className="hover:bg-black p-2">{t('All Prog Skills')}</option>
+          <option value="programming" className="hover:bg-black p-2">{t('Basic Prog')}</option>
+          <option value="frontend" className="hover:bg-black p-2">{t('Frontend Prog')}</option>
+          <option value="backend" className="hover:bg-black p-2">{t('Backend Prog')}</option>
+          <option value="database" className="hover:bg-black p-2">{t('Database')}</option>
+          <option value="tools" className="hover:bg-black p-2">{t('Tools')}</option>
+          <option value="mobile" className="hover:bg-black p-2">{t('Mobile')}</option>
+          <option value="ai-ml" className="hover:bg-black p-2">{t('AI-ML')}</option>
+        </select>
 
-    {/* Show More Button */}
-    <button
-      onClick={() => setShowMore(!showMore)}
-      className="mt-14 cursor-custom-pointer  p-1 font-medium mx-auto block border-b border-b-4"
-      style={{ fontWeight: '500' }}
-    >
-      {showMore ? 'Show Less' : 'Show More'}
-    </button>
-          {/* AD PLACEMENT*/}
-     <div id="ezoic-pub-ad-placeholder-111"></div> 
+        {/* Custom Dropdown Arrow */}
+        <div className={`${isDark ? 'text-gray-200' : 'text-gray-800'} absolute inset-y-0 right-4 flex items-center pointer-events-none`}>
+          <ChevronDown />
+        </div>
+      </div>
+
+      <motion.div
+        className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+        {...(!isMobile && {
+          variants: containerVariants,
+          initial: "hidden",
+          whileInView: "visible",
+          viewport: { once: false, amount: 0.2 },
+        })}
+        key={visibleSkills.length}
+      >
+        {visibleSkills.map((skill, index) => (
+          <motion.div
+            key={index}
+            className={`${
+              isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-gray-100 hover:bg-gray-200'
+            } rounded-2xl shadow-lg p-8 w-full xl:w-[390px]`}
+            {...(!isMobile && {
+              whileHover: { scale: 1.02, rotate: randomRotate },
+              variants: skillVariants,
+            })}
+          >
+            <div className="flex items-center space-x-4 mb-4">
+              <i className={`${skill.icon} text-3xl`} />
+              <h3 className="text-xl font-semibold" style={{ fontFamily: 'Poppins, serif' }}>
+                {t(skill.name)}
+              </h3>
+            </div>
+            <p
+              className="text-sm sm:text-[15px] opacity-60"
+              style={{ fontFamily: 'Rubik, sans-serif' }}
+            >
+              {t(skill.description)}
+            </p>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Show More Button */}
+      <button
+        onClick={() => setShowMore(!showMore)}
+        className="mt-14 cursor-custom-pointer p-1 font-medium mx-auto block border-b border-b-4"
+        style={{ fontWeight: '500' }}
+      >
+        {t(showMore ? 'Show Less' : 'Show More')}
+      </button>
+          
   </section>
           <span id='projects' />
           <h2 
@@ -1069,7 +1070,7 @@ const languages = [
             }}
             title="Stuff I built with my own two hands... and maybe a bit of crying. Okay fine, they're just projects. Happy now?"
           >
-            A Beautiful Mess of Projects
+            {t("A Beautiful Mess of Projects")}
           </h2>
 
           <Projects />
@@ -1077,7 +1078,7 @@ const languages = [
           <section className='mt-12 md:mt-32'>
             <h2 className="text-3xl font-semibold mb-12" style={{
               fontFamily: 'Poppins'
-            }}>Here's What Others Say</h2>
+            }}>{t ("Here's What Others Say")}</h2>
             <Testimonials />
           </section>
 
@@ -1097,7 +1098,7 @@ const languages = [
 
           {/* Center: All Rights Reserved */}
           <p className="opacity-60 text-left md:absolute left-1/2 transform md:-translate-x-1/2 md:static sm:mb-4 mb-6 md:mb-0">
-            © {new Date().getFullYear()} LonewolfFSD.  All rights reserved.
+            {t("© 2025 LonewolfFSD. All rights reserved.")}
           </p>
 
           {/* Right: Policies */}
@@ -1109,7 +1110,7 @@ const languages = [
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="hover:underline cursor-custom-pointer mb-0 md:mb-0 mr-3"
           >
-            Cookie Policy
+            {t("Cookie Policy")}
           </Link>
           
           <Link
@@ -1117,7 +1118,7 @@ const languages = [
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="hover:underline cursor-custom-pointer mb-0 md:mb-0"
           >
-            Privacy Policy
+            {t("Privacy Policy")}
           </Link>
           
           </div>

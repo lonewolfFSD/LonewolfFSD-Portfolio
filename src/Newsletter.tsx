@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, X } from 'lucide-react';
 import Logo from './mockups/logo.png'; // Adjust path to your Lonewolf Accelerate logo
+import { useTranslation } from 'react-i18next';
 
 interface NewsletterFormProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ const NewsletterForm: React.FC<NewsletterFormProps> = ({ isOpen, onClose }) => {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const { t, i18n } = useTranslation();
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -69,15 +72,15 @@ const NewsletterForm: React.FC<NewsletterFormProps> = ({ isOpen, onClose }) => {
           </button>
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-2xl font-bold text-gray-800">
-              Subscribe to Our Weekly Newsletter
+              {t('Subscribe to Our Weekly Newsletter')}
             </h2>
           </div>
           <p className="text-gray-600 mb-6">
-            Join the Lonewolf Accelerate community! Get the latest news, exclusive content, and expert tips delivered to your inbox every week.
+            {t('Join the Lonewolf Accelerate community! Get the latest news, exclusive content, and expert tips delivered to your inbox every week.')}
           </p>
           {success ? (
             <div className="text-green-600 font-semibold mb-4">
-              Thank you for subscribing! Check your inbox soon.
+              {t('Thank you for subscribing! Check your inbox soon.')}
             </div>
           ) : (
             <div>
@@ -91,7 +94,7 @@ const NewsletterForm: React.FC<NewsletterFormProps> = ({ isOpen, onClose }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
+                  placeholder={t('Enter your email address')}
                   className="w-full p-3 pl-10 border rounded-lg border-black/30 text-[15px] mb-4 outline-none"
                   aria-required="true"
                 />
@@ -111,7 +114,7 @@ const NewsletterForm: React.FC<NewsletterFormProps> = ({ isOpen, onClose }) => {
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   </div>
                 ) : (
-                  "I'm Interested"
+                  t("I'm Interested")
                 )}
               </button>
             </div>
