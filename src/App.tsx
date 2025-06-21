@@ -55,6 +55,7 @@ import ModernCalendar from './ModernCalendar';
 import Callback from './Callback';
 import PurchaseHistory from './PurchaseHistory';
 import Enquiries from './Enquiries';
+import Testimonials from './Testimonials';
 
 const override: CSSProperties = {
   display: "block",
@@ -882,6 +883,11 @@ function App() {
           </h2>
 
           <Projects />
+
+          <section className='mt-32'>
+            <h2 className="text-3xl font-bold mb-12">Here's What Others Say</h2>
+            <Testimonials />
+          </section>
 
           <div className='z-10'>
           <FAQSection 
