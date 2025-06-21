@@ -147,19 +147,23 @@ const Blog: React.FC = () => {
                     <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
                   </div>
                 </div>
-                {profileOptions.map((option, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      option.action();
-                      setIsProfileDropdownOpen(false);
-                    }}
-                    className={`w-full text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${isDark ? "hover:bg-gray-750" : "hover:bg-gray-100"}`}
-                  >
-                    <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
-                    {option.label}
-                  </button>
-                ))}
+                {profileOptions
+  .filter((option) => !option.adminOnly || (option.adminOnly && userRole === 'admin'))
+  .map((option, index) => (
+    <button
+      key={index}
+      onClick={() => {
+        option.action();
+        setIsProfileDropdownOpen(false);
+      }}
+      className={`w-full text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${
+        isDark ? "hover:bg-gray-750" : "hover:bg-gray-100"
+      }`}
+    >
+      <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
+      {option.label}
+    </button>
+))}
               </div>
             </motion.div>
           )}
