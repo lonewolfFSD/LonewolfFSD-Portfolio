@@ -371,6 +371,14 @@
       display: flex;
       animation: marquee-right 15s linear infinite;
     }
+    .mobile-animate-marquee-left {
+      display: flex;
+      animation: marquee-left 5s linear infinite;
+    }
+    .mobile-animate-marquee-right {
+      display: flex;
+      animation: marquee-right 5s linear infinite;
+    }
     .animate-marquee-left-slow {
       animation: marquee-left-slow 40s linear infinite;
     }
