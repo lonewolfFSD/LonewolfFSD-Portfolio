@@ -10,6 +10,7 @@ import { getAuth } from 'firebase/auth';
 import * as nsfwjs from "nsfwjs"; // Import nsfwjs
 import { Tilt } from 'react-tilt';
 import logo from './mockups/logo.png';
+import { useTranslation } from 'react-i18next';
 
 import FireEffect from './Effects/Cartoon_Fire_7_3997_HD.webm';
 import SmokeEffect from './Effects/Cartoon_Smoke_4_4005_HD.webm';
@@ -143,6 +144,7 @@ const DeleteAccountModal = ({ isOpen, onClose, onDelete }) => {
 
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const { t, i18n } = useTranslation();
 
   const handleDelete = async () => {
     try {
@@ -173,10 +175,10 @@ const DeleteAccountModal = ({ isOpen, onClose, onDelete }) => {
           transition={{ duration: 0.3 }}
         >
           <h2 className="text-2xl font-bold " style={{ fontFamily: "Poppins" }}>
-            Are you absolutely sure?
+            {t('Are you absolutely sure?')}
           </h2>
           <p className="mt-3 text-gray-600">
-            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+            {t('This action cannot be undone. This will permanently delete your account and remove your data from our servers.')}
           </p>
   
           {error && (
@@ -190,14 +192,14 @@ const DeleteAccountModal = ({ isOpen, onClose, onDelete }) => {
               onClick={handleDelete}
               className="w-full flex items-center justify-center gap-2 py-2.5 px-6 bg-red-500 font-semibold text-white rounded-md hover:bg-red-600"
             >
-              <Trash2 size={17} strokeWidth={3} /> Delete
+              <Trash2 size={17} strokeWidth={3} /> {t('Delete')}
             </button>
 
             <button
               onClick={onClose}
               className="w-full py-2.5 px-6 rounded-md border border-black text-black hover:bg-black hover:text-white transition"
             >
-              Cancel
+              {t('Cancel')}
             </button>
           </div>
 
@@ -286,6 +288,7 @@ const [playingMusicId, setPlayingMusicId] = useState<string | null>(null);
 const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 let [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false); // Minimal state for dropdown
 
 // Add state for modal visibility and purchased credits
 const [isOpen, setIsOpen] = useState(false);
@@ -356,6 +359,133 @@ const videoEffectRef = useRef<(HTMLVideoElement | null)[]>([]);
     return unsubscribe;
   }, [user, uid, loading, navigate]);
 
+  const flags = {
+    en: (
+      <svg
+        className="w-7 h-[0.875rem] shrink-0"
+        viewBox="0 0 60 30"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="60" height="30" fill="#00247d" />
+        <path d="M0 0L60 30M60 0L0 30" stroke="#fff" strokeWidth="6" />
+        <path d="M0 0L60 30M60 0L0 30" stroke="#cf142b" strokeWidth="4" />
+        <path d="M30 0V30M0 15H60" stroke="#fff" strokeWidth="10" />
+        <path d="M30 0V30M0 15H60" stroke="#cf142b" strokeWidth="6" />
+      </svg>
+    ),
+    es: (
+      <svg
+        className="w-7 h-[0.875rem] shrink-0"
+        viewBox="0 0 60 30"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="60" height="7.5" fill="#c60b1e" />
+        <rect y="7.5" width="60" height="15" fill="#ffc107" />
+        <rect y="22.5" width="60" height="7.5" fill="#c60b1e" />
+      </svg>
+    ),
+    fr: (
+      <svg
+        className="w-7 h-[0.875rem] shrink-0"
+        viewBox="0 0 60 30"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="20" height="30" fill="#0055a4" />
+        <rect x="20" width="20" height="30" fill="#fff" />
+        <rect x="40" width="20" height="30" fill="#ef4135" />
+      </svg>
+    ),
+    it: (
+      <svg
+        className="w-7 h-[0.875rem] shrink-0"
+        viewBox="0 0 60 30"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="20" height="30" fill="#009246" />
+        <rect x="20" width="20" height="30" fill="#fff" />
+        <rect x="40" width="20" height="30" fill="#ce2b37" />
+      </svg>
+    ),
+    pt: (
+      <svg
+        className="w-7 h-[0.875rem] shrink-0"
+        viewBox="0 0 60 30"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="24" height="30" fill="#006600" />
+        <rect x="24" width="36" height="30" fill="#ff0000" />
+      </svg>
+    ),
+    ja: (
+      <svg
+        className="w-7 h-[0.875rem] shrink-0"
+        viewBox="0 0 60 30"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="60" height="30" fill="#fff" />
+        <circle cx="30" cy="15" r="10" fill="#bc002d" />
+      </svg>
+    ),
+    zh: (
+      <svg
+        className="w-7 h-[0.875rem] shrink-0"
+        viewBox="0 0 60 30"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="60" height="30" fill="#de2910" />
+        <path
+          d="M15 7.5L16.5 10.5L19.5 12L16.5 13.5L15 16.5L13.5 13.5L10.5 12L13.5 10.5L15 7.5Z"
+          fill="#ffde00"
+        />
+        <path d="M22.5 6L24 9L27 9L24 10.5L25.5 12L24 13.5L22.5 12L21 13.5L19.5 12L21 10.5L19.5 9L21 9L22.5 6Z" fill="#ffde00" />
+        <path d="M25.5 15L27 18L30 18L27 19.5L28.5 21L27 22.5L25.5 21L24 22.5L22.5 21L24 19.5L22.5 18L24 18L25.5 15Z" fill="#ffde00" />
+        <path d="M19.5 15L21 18L24 18L21 19.5L22.5 21L21 22.5L19.5 21L18 22.5L16.5 21L18 19.5L16.5 18L18 18L19.5 15Z" fill="#ffde00" />
+      </svg>
+    ),
+    ko: (
+      <svg
+        className="w-7 h-[0.875rem] shrink-0"
+        viewBox="0 0 60 30"
+        preserveAspectRatio="xMidYMid meet"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="60" height="30" fill="#fff" />
+        <circle cx="30" cy="15" r="7.5" fill="#cd2e3a" />
+        <circle cx="30" cy="15" r="7.5" transform="rotate(180 30 15)" fill="#0047a0" />
+        <path d="M20 7H22V9H20V7Z M20 11H22V13H20V11Z M20 15H22V17H20V15Z" fill="#000" />
+        <path d="M38 7H40V9H38V7Z M38 11H40V13H38V11Z M38 15H40V17H38V15Z" fill="#000" />
+        <path d="M24 19H26V21H24V19Z M24 23H26V25H24V23Z" fill="#000" />
+        <path d="M34 19H36V21H34V19Z M34 23H36V25H34V23Z" fill="#000" />
+      </svg>
+    ),
+  };
+  
+  const languages = [
+    { code: 'en', label: 'English', flag: flags.en },
+    { code: 'es', label: 'Español', flag: flags.es },
+    { code: 'fr', label: 'Français', flag: flags.fr },
+    { code: 'it', label: 'Italiano', flag: flags.it },
+    { code: 'pt', label: 'Português', flag: flags.pt },
+    { code: 'ja', label: '日本語', flag: flags.ja },
+    { code: 'zh', label: '中文', flag: flags.zh },
+    { code: 'ko', label: '한국어', flag: flags.ko },
+  ];
+
   // Fetch public user data if in publicMode
 useEffect(() => {
   if (publicMode && uid) {
@@ -389,6 +519,29 @@ if (publicMode) {
 } else {
   displayName = user?.displayName;
 }
+
+  const { t, i18n } = useTranslation();
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+
+  // Sync language with localStorage and i18next on change
+  // Sync language with localStorage and i18next on change
+  const handleLanguageChange = (lang) => {
+    setSelectedLanguage(lang);
+    i18n.changeLanguage(lang);
+    localStorage.setItem('i18nextLng', lang);
+    setIsLangDropdownOpen(false); // Close dropdown after selection
+    setIsMenuOpen(false); // Close menu after selection
+  };
+
+
+  // Ensure language is loaded from localStorage on mount
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('i18nextLng');
+    if (savedLanguage && savedLanguage !== i18n.language) {
+      i18n.changeLanguage(savedLanguage);
+      setSelectedLanguage(savedLanguage);
+    }
+  }, [i18n]);
 
 // Function to load Razorpay script dynamically
 const loadRazorpayScript = () => {
@@ -2037,12 +2190,12 @@ const toggleEffect = async (effect: Effect | null) => {
   }, delayMs);
 };
 
-    const profileOptions = [
-    { label: 'Profile', icon: User, action: () => navigate('/profile') },
-    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
-    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
-    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
-    { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
+  const profileOptions = [
+    { label: t('Profile'), icon: User, action: () => navigate('/profile') },
+    { label: t('Admin Panel'), icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: t('Purchase History'), icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: t("Enquiry Listing"), icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
+    { label: t('Log Out'), icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
 
@@ -2124,7 +2277,7 @@ const toggleEffect = async (effect: Effect | null) => {
 
 
       {/* Header */}
-      <motion.header
+            <motion.header
         className="container mx-auto px-6 py-8 flex justify-between items-center relative"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -2137,10 +2290,17 @@ const toggleEffect = async (effect: Effect | null) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <a href=""><img src={logo} className={`cursor-custom-pointer rounded-full ${selectedVideo ? 'invert' : ''}`} style={{
-            width: '60px', height: 'auto', marginBottom: '-5px'
-          }}/></a>
+          <a href="/">
+            <img
+              src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg"
+              className="rounded-full"
+              style={{ width: '60px', height: 'auto', marginBottom: '-5px' }}
+              alt="Logo"
+            />
+          </a>
         </motion.div>
+
+
 
         {/* Animated Action Buttons */}
         <motion.div
@@ -2152,6 +2312,7 @@ const toggleEffect = async (effect: Effect | null) => {
           {user && (
   <Link to="/notifications">
     <motion.button
+      aria-label="notifications"
       className={`p-2 rounded-full relative cursor-custom-pointer ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'} transition-colors`}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.9 }}
@@ -2168,7 +2329,6 @@ const toggleEffect = async (effect: Effect | null) => {
     </motion.button>
   </Link>
 )}
-
 <motion.button
   onClick={() => {
     if (user) {
@@ -2178,7 +2338,7 @@ const toggleEffect = async (effect: Effect | null) => {
     }
   }}
   className={`${
-    avatarURL || auth?.currentUser?.photoURL ? "p-1.5" : "p-2"
+    avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
   } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
     isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
   } transition-colors`}
@@ -2186,9 +2346,9 @@ const toggleEffect = async (effect: Effect | null) => {
   animate={{ opacity: 1 }}
   transition={{ delay: 0.6, duration: 0.5 }}
 >
-  {avatarURL || auth?.currentUser?.photoURL ? (
+  {avatarURL || auth.currentUser?.photoURL ? (
     <img
-      src={avatarURL || auth?.currentUser?.photoURL}
+      src={avatarURL || auth.currentUser?.photoURL}
       alt="Profile"
       className="w-9 h-9 rounded-full object-cover cursor-custom-pointer"
     />
@@ -2196,113 +2356,147 @@ const toggleEffect = async (effect: Effect | null) => {
     <User className="w-5 h-5 cursor-custom-pointer" />
   )}
 </motion.button>
-
-                  {/* Dropdown for logged-in users */}
-                  {user && isProfileDropdownOpen && (
-                              <motion.div
-                                className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-50 overflow-hidden ${
+                    {/* Dropdown for logged-in users */}
+                                      {user && isProfileDropdownOpen && (
+                                                  <motion.div
+                                                    className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-50 overflow-hidden ${
                                                       isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
                                                     }`} 
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3 }}
-                              >
-                                <div className="p-4">
-                                  <div className="ml-1 flex">
-                                    {avatarURL || auth?.currentUser?.photoURL ? (
-                                      <img
-                                        src={avatarURL || auth?.currentUser?.photoURL}
-                                        alt="Profile"
-                                        className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
-                                      />
-                                    ) : (
-                                      <User className="w-5 h-5" />
-                                    )}
-                                    <div className="flex flex-col mb-3.5">
-                                      <p className="text-sm font-semibold ml-2">{user?.displayName}</p>
-                                      <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
-                                    </div>
-                                  </div>
-                                  {profileOptions
-                                   
-                                    .map((option, index) => (
-                                      <button
-                                        key={index}
-                                        onClick={() => {
-                                          option.action();
-                                          setIsProfileDropdownOpen(false);
-                                        }}
-                                        className={`w-full cursor-custom-pointer text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'}`}
-                                      >
-                                        <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
-                                        {option.label}
-                                      </button>
-                                    ))}
-                                </div>
-                              </motion.div>
-                            )}
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    transition={{ duration: 0.3 }}
+                                                  >
+                                                    <div className="p-4">
+                                                      <div className="ml-1 flex">
+                                                        {avatarURL || auth.currentUser?.photoURL ? (
+                                                          <img
+                                                            src={avatarURL || auth.currentUser?.photoURL}
+                                                            alt="Profile"
+                                                            className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
+                                                          />
+                                                        ) : (
+                                                          <User className="w-5 h-5" />
+                                                        )}
+                                                        <div className="flex flex-col mb-3.5">
+                                                          <p className="text-sm font-semibold ml-2">{user.displayName}</p>
+                                                          <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
+                                                        </div>
+                                                      </div>
+                                                      {profileOptions.map((option, index) => (
+                                                        <button
+                                                          key={index}
+                                                          onClick={() => {
+                                                            option.action();
+                                                            setIsProfileDropdownOpen(false);
+                                                          }}
+                                                          className={`w-full text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${
+                                                            isDark ? "hover:bg-gray-750" : "hover:bg-gray-100"
+                                                          }`}
+                                                        >
+                                                          <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
+                                                          {option.label}
+                                                        </button>
+                                                      ))}
+                                                    </div>
+                                                  </motion.div>
+                                                )}
           <Link to="/contact">
-          <motion.button
-            className={`px-6 hover:px-8 hidden md:block cursor-custom-pointer transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-          >
-            Let's Connect
-          </motion.button>
-          </Link>
+                    <motion.button
+                      className={`px-6 hidden md:block hover:px-8 transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8, duration: 0.5 }}
+                    >
+                      {t("Let's Connect")}
+                    </motion.button>
+                    </Link>
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`p-2 cursor-custom-pointer rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-10`}
+            className={`p-2 rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-50`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
           >
-            {isMenuOpen ? <X className={`w-5 h-5 ${selectedVideo ? 'text-white' : ''}`} /> : <Menu className={`w-5 h-5 ${selectedVideo ? 'text-white' : ''}`} />}
+            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </motion.button>
         </motion.div>
 
         {/* Animated Dropdown Menu */}
-        {isMenuOpen && (
-                <motion.div
-                  className={`absolute top-full -mt-5 right-6 w-64  rounded-2xl shadow-lg z-50 border border-gray-300 overflow-hidden transition-all transform origin-top-right ${isDark ? 'bg-gray-800' : 'bg-white'}`}
-                  initial={{ opacity: 0, y: -15, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                >
-                  <nav className="p-3">
-                    {[
-                      { label: 'About Me', href: '/about-me' },
-                      { label: 'LonewolfFSD Blogs', href: '/blogs' },
-                      { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
-                      { label: 'FSD DevSync', href: '/dev-sync' },
-                      { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
-                    ].map((item, index) => (
-                      <Link
-                        key={index}
-                        to={item.href}
-                        className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                    <div className="border-t border-black/10 mx-4 my-2" />
-                    <div className="px-4 py-3 flex gap-4">
-                      <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Github className="w-5 h-5 cursor-pointer" />
-                      </a>
-                      <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Instagram className="w-5 h-5 cursor-pointer" />
-                      </a>
-                      <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Twitter className="w-5 h-5 cursor-pointer" />
-                      </a>
-                    </div>
-                  </nav>
-                </motion.div>
-              )}
+                      {isMenuOpen && (
+                              <motion.div
+                                className={`absolute top-full right-6 w-64 mt-[-20px] border border-black/20 rounded-2xl shadow-lg z-10 transition-all transform origin-top-right ${
+                                  isDark ? 'bg-gray-800' : 'bg-white'
+                                }`}
+                                initial={{ opacity: 0, y: -15, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ duration: 0.25, ease: 'easeOut' }}
+                              >
+                                <nav className="p-3">
+                                  {[
+                                    { label: t('About Me'), href: '/about-me' },
+                                    { label: t('LonewolfFSD Blogs'), href: '/blogs' },
+                                    { label: t('The RepoHub'), href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                                    { label: t('FSD DevSync'), href: '/dev-sync' },
+                                    { label: t('Wanna Collaborate?'), href: '/lets-collaborate' },
+                                  ].map((item, index) => (
+                                    <Link
+                                      key={index}
+                                      to={item.href}
+                                      className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                                      onClick={() => setIsMenuOpen(false)}
+                                    >
+                                      {item.label}
+                                    </Link>
+                                  ))}
+                                  <div className="border-t border-black/10 mx-4 my-2" />
+                                  <div className="px-4 py-3 relative">
+                                    <button
+                                      className={`w-full px-3 py-2.5 text-[15px] font-semibold rounded-md border border-black/20 text-left flex items-center ${
+                                        isDark ? 'bg-gray-700 text-white' : 'bg-white text-black'
+                                      }`}
+                                      onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                                    >
+                                      <span className='border border-black mr-2'>{languages.find((lang) => lang.code === selectedLanguage)?.flag}</span>
+                                      {languages.find((lang) => lang.code === selectedLanguage)?.label}
+                                    </button>
+                                    {isLangDropdownOpen && (
+                                      <motion.ul
+                                        className={`absolute top-full left-4 w-full border border-black/40 rounded-lg shadow-lg z-50 ${
+                                          isDark ? 'bg-gray-800' : 'bg-white'
+                                        }`}
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                      >
+                                        {languages.map((lang) => (
+                                          <li
+                                            key={lang.code}
+                                            className="px-3 py-2.5 border-b text-[15px] font-semibold cursor-pointer hover:bg-gray-100 flex items-center"
+                                            onClick={() => handleLanguageChange(lang.code)}
+                                          >
+                                            <span className='border border-black mr-2'>{lang.flag}</span>
+                                            {lang.label}
+                                          </li>
+                                        ))}
+                                      </motion.ul>
+                                    )}
+                                  </div>
+                                  <div className="border-t border-black/10 mx-4 my-2" />
+                                  <div className="px-4 py-3 flex gap-4">
+                                    <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                      <Github className="w-5 h-5 cursor-pointer" />
+                                    </a>
+                                    <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                      <Instagram className="w-5 h-5 cursor-pointer" />
+                                    </a>
+                                    <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                      <Twitter className="w-5 h-5 cursor-pointer" />
+                                    </a>
+                                  </div>
+                                </nav>
+                              </motion.div>
+                            )}
       </motion.header>
 
             <div className="absolute inset-0 z-50 pointer-events-none">
@@ -2325,7 +2519,7 @@ const toggleEffect = async (effect: Effect | null) => {
       className={`text-[30px] font-bold mb-6 text-left ${selectedVideo ? 'text-white' : 'text-black'}  tracking-tight`}
       style={{ fontFamily: "Poppins" }}
     >
-      {publicMode ? publicUserData?.displayName : user?.displayName}'s Profile
+      {publicMode ? publicUserData?.displayName : user?.displayName}'s {t('Profile')}
       {/* <motion.button
   onClick={onShareClick}
   className={`p-2 ml-2.5 bg-gray-400/20 shadow-md border border-gray-500 rounded-full cursor-custom-pointer inline-flex items-center justify-center group ${publicMode ? 'hidden' : ''}`}
@@ -2396,12 +2590,12 @@ const toggleEffect = async (effect: Effect | null) => {
               </div>
           </div>
 
-            <h3 className={`text-2xl md:text-lg font-bold md:mt-3 mt-8 ${publicMode ? 'col-span-2' : 'col-span-2'} ${selectedVideo ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Poppins'}}>Personal Details</h3>
+            <h3 className={`text-2xl md:text-lg font-bold md:mt-3 mt-8 ${publicMode ? 'col-span-2' : 'col-span-2'} ${selectedVideo ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Poppins'}}>{t('Personal Details')}</h3>
 
             <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1`}>
               <div className="pt-1"><User className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Name</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Name')}</p>
                 <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user?.displayName || "Not set"}</p>
               </div>
             </div>
@@ -2409,7 +2603,7 @@ const toggleEffect = async (effect: Effect | null) => {
             <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
               <div className="pt-1"><Mail className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Email</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Email')}</p>
                 <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user?.email || "Unknown"}</p>
               </div>
             </div>
@@ -2417,15 +2611,15 @@ const toggleEffect = async (effect: Effect | null) => {
             <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
               <div className="pt-1"><ShieldCheck className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Email Verified</p>
-                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user?.emailVerified ? "Yes" : "No"}</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Email Verified')}</p>
+                <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{user?.emailVerified ? t("Yes") : t("No")}</p>
               </div>
             </div>
 
             <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
               <div className="pt-1"><Calendar className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Last Login</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Last Login')}</p>
                 <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{publicMode ? user?.metadata?.lastSignInTime || "Unknown" : user?.metadata?.lastSignInTime || "Unknown"}</p>
               </div>
             </div>
@@ -2433,7 +2627,7 @@ const toggleEffect = async (effect: Effect | null) => {
             <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
               <div className="pt-1"><Globe className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
               <div>
-                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Region</p>
+                <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Region')}</p>
                 <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{region}</p>
               </div>
             </div>
@@ -2443,7 +2637,7 @@ const toggleEffect = async (effect: Effect | null) => {
                 <div className={`flex items-start border border-gray-200 ${publicMode ? 'hidden' : 'block'}  rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1`}>
                     <div className="pt-1"><LocateFixed className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
-                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Location</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Location')}</p>
                       <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{location}</p>
                     </div>
                   </div>
@@ -2451,7 +2645,7 @@ const toggleEffect = async (effect: Effect | null) => {
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
                     <div className="pt-1"><Clock className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
-                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Current Time</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Current Time')}</p>
                       <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{currentTime}</p>
                     </div>
                   </div>
@@ -2472,7 +2666,7 @@ const toggleEffect = async (effect: Effect | null) => {
                       )}
                     </div>
                     <div>
-                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Device</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Device')}</p>
                       <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>{deviceName}</p>
                     </div>
                   </div>
@@ -2481,7 +2675,7 @@ const toggleEffect = async (effect: Effect | null) => {
                     <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1">
                       <div className="pt-1"><Calendar className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                       <div>
-                        <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Account Created</p>
+                        <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t('Account Created')}</p>
                         <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-words`}>
                           {user?.metadata?.creationTime
                             ? new Date(user?.metadata.creationTime).toLocaleDateString()
@@ -2494,7 +2688,7 @@ const toggleEffect = async (effect: Effect | null) => {
                   <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 md:col-span-1 ${publicMode ? 'hidden' : 'block'}`}>
                     <div className="pt-1"><BadgeCheck className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
-                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>Member Status</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t("Member Status")}</p>
                       <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-all`}>{userRole || "user"}</p>
                     </div>
                   </div>
@@ -2502,7 +2696,7 @@ const toggleEffect = async (effect: Effect | null) => {
                   <div className={`flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2 ${publicMode ? 'hidden' : 'block'}`}>
                     <div className="pt-1"><UserCog className={`${selectedVideo ? 'text-white' : 'text-gray-700'} w-5 h-5`} /></div>
                     <div>
-                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>FSD ID</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-500'}`}>{t("FSD ID")}</p>
                       <p className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-sm break-all`}>{user?.uid}</p>
                     </div>
                   </div>
@@ -2545,7 +2739,7 @@ const toggleEffect = async (effect: Effect | null) => {
                   
                   <div className="mt-8 col-span-2">
                     <h1 className={`${selectedVideo ? 'text-white' : 'text-black'} text-2xl md:text-lg font-bold col-span-2`} style={{ fontFamily: 'Poppins' }}>
-                      Achievements
+                      {t("Achievements")}
                     </h1>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                       {achievements.length > 0 ? (
@@ -2598,14 +2792,14 @@ const toggleEffect = async (effect: Effect | null) => {
                           </Tilt>
                         ))
                       ) : (
-                        <p className={`text-sm  col-span-2 border p-4 rounded-xl ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>No achievements yet. Keep exploring!</p>
+                        <p className={`text-sm  col-span-2 border p-4 rounded-xl ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>{t('No achievements yet. Keep exploring!')}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-8 col-span-2">
                     <h1 className={`text-2xl md:text-lg font-bold col-span-2 mb-5 ${selectedVideo ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Poppins' }}>
-                      Personalization
+                      {t('Personalization')}
                     </h1>
                     <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2">
                       <div className="flex items-start space-x-3">
@@ -2613,8 +2807,8 @@ const toggleEffect = async (effect: Effect | null) => {
                           <Paintbrush2 className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
                         </div>
                         <div>
-                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>Background Appearance</p>
-                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>Customize your profile background</p>
+                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>{t('Background Appearance')}</p>
+                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>{t('Customize your profile background')}</p>
                         </div>
                       </div>
                         
@@ -2627,7 +2821,7 @@ const toggleEffect = async (effect: Effect | null) => {
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        Change Background
+                        {t('Change Background')}
                       </motion.button>
                     </div>
 
@@ -2637,8 +2831,8 @@ const toggleEffect = async (effect: Effect | null) => {
                           <Music className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
                         </div>
                         <div>
-                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>Profile Music</p>
-                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>Customize your profile music</p>
+                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>{t('Profile Music')}</p>
+                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>{t('Customize your profile music')}</p>
                         </div>
                       </div>
                       <motion.button
@@ -2648,7 +2842,7 @@ const toggleEffect = async (effect: Effect | null) => {
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        Change Music
+                        {t('Change Music')}
                       </motion.button>
                     </div>
 
@@ -2658,8 +2852,8 @@ const toggleEffect = async (effect: Effect | null) => {
                           <Music className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
                         </div>
                         <div>
-                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>Profile Effect</p>
-                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>Customize your profile effect</p>
+                          <p className={`text-xs ${selectedVideo ? 'text-white' : 'text-gray-700'}`}>{t('Profile Effect')}</p>
+                          <p className={`${selectedVideo ? 'text-gray-200' : 'text-black'} font-medium text-sm`}>{t('Customize your profile effect')}</p>
                         </div>
                       </div>
                       <motion.button
@@ -2669,7 +2863,7 @@ const toggleEffect = async (effect: Effect | null) => {
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        Change Effect
+                        {t('Change Effect')}
                       </motion.button>
                     </div>
                     
@@ -2681,9 +2875,9 @@ const toggleEffect = async (effect: Effect | null) => {
                 <>
 
                   {/* Privacy & Security Section */}
-                  <h1 className={`text-2xl md:text-lg font-bold mt-8 col-span-2 ${selectedVideo ? 'text-white' : 'text-black'}`} style={{ fontFamily:'Poppins'}}>Privacy & Security</h1>
+                  <h1 className={`text-2xl md:text-lg font-bold mt-8 col-span-2 ${selectedVideo ? 'text-white' : 'text-black'}`} style={{ fontFamily:'Poppins'}}>{t('Privacy & Security')}</h1>
                   
-                  <h3 className={`text-lg md:text-sm font-semibold ${selectedVideo ? 'text-white' : 'text-black'} mb-1 mt-3 col-span-2`}>Two-Factor Authentication (2FA)</h3>
+                  <h3 className={`text-lg md:text-sm font-semibold ${selectedVideo ? 'text-white' : 'text-black'} mb-1 mt-3 col-span-2`}>{t('Two-Factor Authentication (2FA)')}</h3>
                   {biometricError && <p className="text-red-500 text-sm mb-4"><span className="bg-red-100 text-sm border border-red-400 rounded-lg px-6 py-2.5 flex gap-2"><AlertCircle size={18} className="mt-[1px]" />{biometricError}</span></p>}
                     {success && <p className="text-green-500 text-sm mb-4"><span className="bg-green-100 text-sm border border-green-400 rounded-lg px-6 py-2.5 flex gap-2"><CheckCircle size={18} className="mt-[1px]" />{success}</span></p>}
                   <div className="flex flex-col md:flex-row items-left md:items-center justify-left md:justify-between border border-gray-200 rounded-xl px-4 py-3.5 col-span-2">
@@ -2692,9 +2886,9 @@ const toggleEffect = async (effect: Effect | null) => {
                         <Fingerprint className={`w-6 h-6 ${selectedVideo ? 'text-white' : 'text-black'}`} />
                       </div>
                       <div className="-mt-1.5 md:mt-0">
-                        <h3 className={`font-medium mt-2 md:mt-0 ${selectedVideo ? 'text-white' : 'text-black'}`}>Biometric Authentication</h3>
+                        <h3 className={`font-medium mt-2 md:mt-0 ${selectedVideo ? 'text-white' : 'text-black'}`}>{t('Biometric Authentication')}</h3>
                         <p className={`text-sm ${selectedVideo ? 'text-gray-300' : 'text-gray-500'}`}>
-                          {isBiometric2FAEnabled ? "Enabled" : "Not enabled"}
+                          {isBiometric2FAEnabled ? t("Enabled") : t("Not Enabled")}
                         </p>
                       </div>
                     </div>
@@ -2708,28 +2902,26 @@ const toggleEffect = async (effect: Effect | null) => {
                       }`}
                       style={{ fontFamily: "Poppins" }}
                       >
-                      {isBiometric2FAEnabled ? "Biometric 2FA Enabled" : "Enable Biometric 2FA"}
+                      {isBiometric2FAEnabled ? t("Biometric 2FA Enabled") : t("Enable Biometric 2FA")}
                     </motion.button>
                   </div>
                   <span className={`bg-yellow-50 ${isBiometric2FAEnabled ? '' : 'hidden'}  col-span-2 text-sm border border-yellow-400 rounded-lg text-yellow-600 px-5 py-3 flex items-start space-x-2`}>
                     <AlertCircle className="w-12 -mt-0.5 md:block  md:w-6 md:h-6 md:-mt-0.5" />
                     <span className="font-semibold">
-                      <span style={{ fontFamily: 'Poppins' }}>Biometric 2FA</span> is enabled for your security. Disabling it without a proper reason may put your account at risk. 
-                      
-                      <span style={{ fontFamily: 'Poppins' }}> LonewolfFSD</span> does not allow disabling 2FA unless there's a valid justification.
+                      {t("Biometric 2FA is enabled for your security. Disabling it without a proper reason may put your account at risk. LonewolfFSD does not allow disabling 2FA unless there's a valid justification.")}
                       <br /><br />
-                      <a href="/request-disable-2fa" className="underline text-yellow-600 flex gap-0.5">Click here to request and state your reason. <ExternalLink size={12} className="" /></a>
+                      <a href="/request-disable-2fa" className="underline text-yellow-600 flex gap-0.5">{t("Click here to request and state your reason.")} <ExternalLink size={12} className="" /></a>
                     </span>
                   </span>
 
                   <hr className="col-span-2 my-3" />
-                  <h3 className={`text-xl md:text-md font-semibold ${selectedVideo ? 'text-white' : 'text-black'} `}>Connections & Activities</h3>
+                  <h3 className={`text-xl md:text-md font-semibold ${selectedVideo ? 'text-white' : 'text-black'} `}>{t('Connections & Activities')}</h3>
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
                     <div className="pt-1">
                       <Link2 className={`${selectedVideo ? 'text-gray-400' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} />
                     </div>
                     <div>
-                      <p className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>Connected Account</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>{t('Connected Account')}</p>
                       {connectedAccounts.length > 0 ? (
                         <div className="flex flex-wrap gap-2 mt-1">
                           {connectedAccounts.map((domain) => {
@@ -2756,7 +2948,7 @@ const toggleEffect = async (effect: Effect | null) => {
                   <div className="flex items-start border border-gray-200 rounded-xl px-4 py-3.5 space-x-3 col-span-2">
                     <div className="pt-1"><History className={`${selectedVideo ? 'text-gray-500' : 'text-gray-700'} w-4 h-4 -mt-1 -mr-1`} /></div>
                     <div>
-                      <p className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>Recent Login Activity</p>
+                      <p className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>{t('Recent Login Activity')}</p>
                       <ul className={`${selectedVideo ? 'text-white' : 'text-black'} font-medium text-xs mt-1.5 space-y-1 break-words`}>
                         {recentLogins.map((login, index) => (
                           <li key={index}>{login}</li>
@@ -2774,23 +2966,23 @@ const toggleEffect = async (effect: Effect | null) => {
                 {!publicMode && user?.uid === auth?.currentUser?.uid && (
                 <>
                 <div className="mt-8">
-                  <h3 className={`text-xl md:text-md font-semibold mb-3 ${selectedVideo ? 'text-white' : 'text-black'}`}>Change Password</h3>
+                  <h3 className={`text-xl md:text-md font-semibold mb-3 ${selectedVideo ? 'text-white' : 'text-black'}`}>{t('Change Password')}</h3>
                   <>
                     {error && <p className="text-red-500 text-sm mb-4"><span className="bg-red-100 text-sm border border-red-400 rounded-lg px-6 py-2.5 flex gap-2"><AlertCircle size={18} className="mt-[1px]" />{error}</span></p>}
                     {success && <p className="text-green-500 text-sm mb-4"><span className="bg-green-100 text-sm border border-green-400 rounded-lg px-6 py-2.5 flex gap-2"><CheckCircle size={18} className="mt-[1px]" />{success}</span></p>}
                     <form onSubmit={handleChangePassword} className="space-y-2 gap-x-3 grid grid-cols-2">
                       {!isPasswordProvider && (
                         <p className="text-sm flex text-red-500 bg-red-100 col-span-2 px-4 py-2.5 rounded-lg border border-red-500">
-                          <AlertTriangle size={18} className="mr-2" /> Password changes are not available for accounts using Google, GitHub or Microsoft login.
+                          <AlertTriangle size={18} className="mr-2" /> {t('Password changes are not available for accounts using Google, GitHub or Microsoft login.')}
                         </p>
                       )}
                       <div className="col-span-2">
-                        <label className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>Current Password</label>
+                        <label className={`text-xs ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}`}>{t('Current Password')}</label>
                         <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 space-x-3">
                           <Lock className="text-gray-700 w-4 h-4" />
                           <input
                             type="password"
-                            placeholder="Enter your current password"
+                            placeholder={t("Enter your current password")}
                             value={password}
                             disabled={!isPasswordProvider}
                             onChange={(e) => {
@@ -2809,7 +3001,7 @@ const toggleEffect = async (effect: Effect | null) => {
                           <input
                             type="password"
                             value={newPassword}
-                            placeholder="Enter your new password"
+                            placeholder={t("Enter your new password")}
                             disabled={!isPasswordProvider}
                             onChange={(e) => setNewPassword(e.target.value)}
                             className="w-full outline-none text-sm text-black"
@@ -2824,7 +3016,7 @@ const toggleEffect = async (effect: Effect | null) => {
                           <input
                             type="password"
                             value={confirmPassword}
-                            placeholder="Re-enter your new password"
+                            placeholder={t("Re-enter your new password")}
                             disabled={!isPasswordProvider}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             className="w-full outline-none text-sm text-black"
@@ -2841,7 +3033,7 @@ const toggleEffect = async (effect: Effect | null) => {
                           disabled={!isPasswordProvider}
                           whileTap={{ scale: 0.99 }}
                           >
-                        {!isPasswordProvider ? "Update Disabled" : "Update Password"}
+                        {!isPasswordProvider ? t("Update Disabled") : "Update Password"}
                       </motion.button>
                     </form>
                   </>
@@ -2852,17 +3044,17 @@ const toggleEffect = async (effect: Effect | null) => {
 
                 <hr className="mt-20 mb-14 border-red-400" />
                 <h1 className="text-3xl font-bold text-red-600" style={{ fontFamily: "Poppins" }}>
-                  DANGER ZONE
+                  {t('DANGER ZONE')}
                 </h1>
                 <div className="mt-8 grid grid-cols-2">
                   <h3
                     className="text-lg md:text-[17px] font-semibold text-black mb-4 whitespace-nowrap md:whitespace-nowrap flex text-red-600"
                     style={{ fontFamily: "Poppins" }}
                   >
-                    <Trash2 strokeWidth={3} className="md:w-4 md:h-4 md:mt-1 md:mr-2" /> Delete Account for {user?.displayName}
+                    <Trash2 strokeWidth={3} className="md:w-4 md:h-4 md:mt-1 md:mr-2" /> {t('Delete Account for')} {user?.displayName}
                   </h3>
                   <p className={`text-md ${selectedVideo ? 'text-gray-400' : 'text-gray-500'}  mb-4 col-span-2`}>
-                    Permanently delete your account. This action cannot be undone.
+                    {t('Permanently delete your account. This action cannot be undone.')}
                   </p>
                   <motion.button
                     onClick={handleDeleteAccount}
@@ -2870,7 +3062,7 @@ const toggleEffect = async (effect: Effect | null) => {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                   >
-                    Delete Account
+                    {t('Delete Account')}
                   </motion.button>
 
                 </div>
@@ -2878,10 +3070,10 @@ const toggleEffect = async (effect: Effect | null) => {
                   className={`text-lg md:text-[17px] mt-12 font-semibold  mb-4 flex ${selectedVideo ? 'text-white' : 'text-black'}`}
                   style={{ fontFamily: "Poppins" }}
                 >
-                  <LogOut strokeWidth={3} className="w-4 h-4 mt-1 mr-2" /> Logout From {deviceName}
+                  <LogOut strokeWidth={3} className="w-4 h-4 mt-1 mr-2" /> {t('Logout From')} {deviceName}
                 </h3>
                 <p className={`text-md ${selectedVideo ? 'text-gray-400' : 'text-gray-500'} -mb-3`}>
-                  Sign out from your current session on this device.
+                  {t('Sign out from your current session on this device.')}
                 </p>
                 <div className="grid grid-cols-2">
                   <motion.button
@@ -2890,7 +3082,7 @@ const toggleEffect = async (effect: Effect | null) => {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                   >
-                    Log Out
+                    {t('Log Out')}
                   </motion.button>
                 </div>
                 </>
@@ -2987,9 +3179,9 @@ const toggleEffect = async (effect: Effect | null) => {
                   onClick={(e) => e.stopPropagation()}
                   className="bg-white h-full md:h-auto w-full max-w-md p-6 md:p-8 rounded-none md:rounded-2xl flex flex-col justify-center"
                 >
-              <h3 className="text-xl font-semibold mb-4">Enable Biometric Two-Factor Authentication</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('Enable Biometric Two-Factor Authentication')}</h3>
               <p className="text-sm text-gray-600 mb-6">
-                Register your fingerprint or face to enable secure sign-in.
+                {t('Register your fingerprint or face to enable secure sign-in.')}
               </p>
               {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
               
@@ -2998,13 +3190,13 @@ const toggleEffect = async (effect: Effect | null) => {
                   onClick={registerBiometric}
                   className="w-full py-2 rounded-lg bg-black text-white hover:bg-black/90 transition-colors"
                 >
-                  Register Biometric
+                  {t('Register Biometric')}
                 </button>
                 <button
                   onClick={() => setShowBiometricSetup(false)}
                   className="w-full py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors"
                 >
-                  Cancel
+                  {t('Cancel')}
                 </button>
               </div>
             </motion.div>
@@ -3038,7 +3230,7 @@ const toggleEffect = async (effect: Effect | null) => {
                 <X className="w-5 h-5" />
               </button>
               <h3 className="text-2xl font-bold mb-4 text-black" style={{ fontFamily: "Poppins" }}>
-                Upload Your Avatar
+                {t('Upload Your Avatar')}
               </h3>
               {error && <p className="text-red-500 text-sm mt-4 px-4 py-2 bg-red-100 mb-4 rounded-lg border border-red-400 flex gap-1.5"><AlertTriangle size={16} className="mt-0.5"/> {error}</p>}
               {success && <p className="text-green-500 text-sm mt-4 px-4 py-2 bg-green-100 mb-4 rounded-lg border border-red-400 flex gap-1.5"><CheckCircle size={16} className="mt-0.5"/> {success}</p>}
@@ -3157,7 +3349,7 @@ const toggleEffect = async (effect: Effect | null) => {
                 >
                   <Upload className="w-10 h-10 mx-auto mb-4 text-gray-400" />
                   <p className="text-sm text-gray-500 mb-4">
-                    Drag and drop or click to upload (JPEG/JPG/PNG/WEBP, max 5MB)
+                    {t('Drag and drop or click to upload (JPEG/JPG/PNG/WEBP, max 5MB)')}
                   </p>
                   <input
                     type="file"
@@ -3173,7 +3365,7 @@ const toggleEffect = async (effect: Effect | null) => {
                     whileTap={{ scale: 0.95 }}
                     disabled={isDragging}
                   >
-                    {isDragging ? "Drop Here" : "Choose File"}
+                    {isDragging ? t("Drop Here") : t("Choose File")}
                   </motion.button>
                 </div>
               )}
@@ -3197,7 +3389,7 @@ const toggleEffect = async (effect: Effect | null) => {
                     whileTap={{ scale: 0.95 }}
                     disabled={!croppedAreaPixels}
                   >
-                    Upload Avatar
+                    {t("Upload Avatar")}
                   </motion.button>
                   <hr className="my-2 md:hidden" />
                   <motion.button
@@ -3214,7 +3406,7 @@ const toggleEffect = async (effect: Effect | null) => {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    Choose Another
+                    {t("Choose Another")}
                   </motion.button>
                 </div>
               )}
@@ -3240,12 +3432,12 @@ const toggleEffect = async (effect: Effect | null) => {
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-2xl font-bold mb-8 text-center text-black" style={{ fontFamily: "Poppins" }}>
-                Verify Your Identity
+                {t('Verify Your Identity')}
               </h3>
               <div className="text-center">
                 <Fingerprint className="w-14 h-14 mx-auto mb-4 text-black" />
                 <p className="text-sm text-gray-500 mb-6">
-                  Please verify with your biometric credentials to change your password.
+                  {t('Please verify with your biometric credentials to change your password.')}
                 </p>
                 <motion.button
                   onClick={handleBiometricVerify}
@@ -3256,7 +3448,7 @@ const toggleEffect = async (effect: Effect | null) => {
                   whileTap={{ scale: isVerifying ? 1 : 0.95 }}
                   disabled={isVerifying}
                 >
-                  {isVerifying ? "Verifying..." : "Verify Biometrics"}
+                  {isVerifying ? t("Verifying...") : t("Verify Biometrics")}
                 </motion.button>
                 {biometricError && setIsBiometricModalOpen(false)}
               </div>

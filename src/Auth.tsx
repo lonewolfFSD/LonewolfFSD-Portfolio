@@ -39,6 +39,9 @@ interface AuthPageProps {
   isDark: boolean;
 }
 
+import { useTranslation } from 'react-i18next';
+import '../i18n'; // Import i18n configuration
+
 const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +56,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
   const navigate = useNavigate();
   const { avatarURL } = useAvatar();
+
+
 
   // Listen for auth state changes
   useEffect(() => {
@@ -225,6 +230,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
       }
     }
   };
+
+    const { t, i18n } = useTranslation();
 
   const handleMicrosoftLogin = async () => {
     setError("");
@@ -417,7 +424,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
           transition={{ duration: 0.5 }}
           style={{ fontFamily: "Poppins" }}
         >
-          {isLogin ? "Welcome Back" : "Create Account"}
+          {isLogin ? t("Welcome Back") : t("Create Account")}
         </motion.h2>
 
         <AnimatePresence mode="wait">
@@ -460,7 +467,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
                   <User strokeWidth={2} className="w-5 h-5 mr-3 text-gray-600" />
                   <input
                     type="text"
-                    placeholder="Full Name"
+                    placeholder={t("Full Name")}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full bg-transparent outline-none text-black placeholder-gray-400"
@@ -475,7 +482,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
             <Mail strokeWidth={2} className="w-5 h-5 mr-3 text-gray-500" />
             <input
               type="email"
-              placeholder="Email"
+              placeholder={t("Email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-transparent outline-none text-black placeholder-gray-400"
@@ -488,7 +495,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
               <Lock strokeWidth={2} className="w-5 h-5 mr-3 text-gray-500" />
               <input
                 type="password"
-                placeholder="Password"
+                placeholder={t("Password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-transparent outline-none text-black placeholder-gray-400"
@@ -503,7 +510,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
                   className="lg:text-[11px] text-[13px] cursor-custom-pointer text-gray-500 hover:text-black underline hover:underline transition-colors"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                 >
-                  Forgot Password?
+                  {t('Forgot Password?')}
                 </Link>
               </div>
             )}
@@ -512,7 +519,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
           <div className="">
             {!isLogin && (
               <div className="-mt-4">
-                <p className="text-xs mb-1.5 text-gray-500">Password Strength: {label}</p>
+                <p className="text-xs mb-1.5 text-gray-500">{t('Password Strength')}: {label}</p>
                 <div className="h-1 rounded-full bg-gray-200 overflow-hidden">
                   <div
                     className={`h-full transition-all duration-300 rounded-full ${color}`}
@@ -524,19 +531,19 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
                   style={{ fontFamily: "Inter, system-ui, sans-serif" }}
                 >
                   <li className={/[a-z]/.test(password) ? "text-green-600 line-through" : ""}>
-                    • Lowercase letter
+                    • {t('Lowercase letter')}
                   </li>
                   <li className={/[A-Z]/.test(password) ? "text-green-600 line-through" : ""}>
-                    • Uppercase letter
+                    • {t('Uppercase letter')}
                   </li>
                   <li className={/[0-9]/.test(password) ? "text-green-600 line-through" : ""}>
-                    • Numeric character
+                    • {t('Numeric character')}
                   </li>
                   <li className={/[^A-Za-z0-9]/.test(password) ? "text-green-600 line-through" : ""}>
-                    • Special character
+                    • {t('Special character')}
                   </li>
                   <li className={password.length >= 6 ? "text-green-600 line-through" : ""}>
-                    • Minimum 6 characters
+                    • {t('Minimum 6 characters')}
                   </li>
                 </ul>
               </div>
@@ -557,7 +564,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
             {isBiometricPrompt ? (
               <span className="flex items-center justify-center">
                 <Loader2 strokeWidth={3} className="w-4 h-4 ml-1.5 mt-0.5 animate-spin" />
-                Verifying biometric...
+                {t('Verifying biometric...')}
               </span>
             ) : isLoading ? (
               <span className="flex items-center justify-center">
@@ -566,7 +573,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
               </span>
             ) : (
               <span className="flex items-center justify-center">
-                {isLogin ? "Sign In" : "Create Account"}
+                {isLogin ? t("Sign In") : t("Create Account")}
               </span>
             )}
           </motion.button>
@@ -577,7 +584,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">or continue with</span>
+            <span className="px-4 bg-white text-gray-500">{t('or continue with')}</span>
           </div>
         </div>
 
@@ -597,7 +604,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
                   <path fill="#FBBC05" d="M119.3 322.8c-10.4-30.6-10.4-63.6 0-94.2V158H27.8c-38.4 76.9-38.4 166.3 0 243.2l91.5-70.4z"/>
                   <path fill="#EA4335" d="M272 107.7c39.8-.6 78.2 14.1 107.2 41.1l80.3-80.3C421.9 24.3 348.3-1.1 272 0 165.3 0 72.6 62.2 27.8 158l91.5 70.6C140.7 155.7 200.9 107.7 272 107.7z"/>
                 </svg>
-                Continue with Google
+                {t('Continue with Google')}
           </motion.button>
 
           <motion.button
@@ -609,7 +616,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
-            <Github className="w-5 h-5" /> Continue with GitHub
+            <Github className="w-5 h-5" /> {t('Continue with GitHub')}
           </motion.button>
 
           <motion.button
@@ -627,18 +634,18 @@ const AuthPage: React.FC<AuthPageProps> = ({ isDark }) => {
                     <path fill="#00A4EF" d="M2 13h9v9H2z" />
                     <path fill="#FFB900" d="M13 13h9v9h-9z" />
                   </svg>
-                  Continue with Microsoft
+                  {t('Continue with Microsoft')}
           </motion.button>
         </div>
 
         <p className="mt-8 text-sm text-center text-gray-500">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          {isLogin ? t("Don't have an account?") : t("Already have an account?")}{" "}
           <button
             onClick={() => setIsLogin(!isLogin)}
             className="font-semibold text-black hover:underline transition-colors"
             disabled={isLoading || isBiometricPrompt}
           >
-            {isLogin ? "Sign Up" : "Sign In"}
+            {isLogin ? t("Sign Up") : t("Sign In")}
           </button>
         </p>
       </motion.div>

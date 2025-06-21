@@ -587,11 +587,11 @@ const skills = [
 
   // Profile dropdown options
   const profileOptions = [
-    { label: 'Profile', icon: User, action: () => navigate('/profile') },
-    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
-    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
-    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
-    { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
+    { label: t('Profile'), icon: User, action: () => navigate('/profile') },
+    { label: t('Admin Panel'), icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: t('Purchase History'), icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: t("Enquiry Listing"), icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
+    { label: t('Log Out'), icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
   const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
