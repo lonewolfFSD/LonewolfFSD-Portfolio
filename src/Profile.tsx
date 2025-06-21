@@ -2199,6 +2199,7 @@ const toggleEffect = async (effect: Effect | null) => {
   ];
 
 
+
   useEffect(() => {
     const handleVideoPlayback = () => {
       if (videoRef.current) {
