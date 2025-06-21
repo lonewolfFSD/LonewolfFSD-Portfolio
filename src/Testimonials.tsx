@@ -92,7 +92,7 @@ const renderStars = (rating: number) => {
     <div>
       {/* Top Marquee - Moves Left */}
       <div className="relative overflow-hidden py-2">
-  <div className="flex mobile-animate-marquee-left md:animate-marquee-left hover:animate-marquee-left-slow">
+  <div className="flex animate-marquee-left hover:animate-marquee-left-slow">
     {[...testimonials, ...testimonials].map((testimonial, index) => (
   <Tilt
     key={`${testimonial.id}-${index}`} // <- Move key here
@@ -142,7 +142,7 @@ const renderStars = (rating: number) => {
 
       {/* Bottom Marquee - Moves Right */}
       <div className="relative overflow-hidden py-2">
-        <div className="flex mobile-animate-marquee-right md:animate-marquee-right hover:animate-marquee-right-slow">
+        <div className="flex animate-marquee-right hover:animate-marquee-right-slow">
            {[...testimonials, ...testimonials].map((testimonial, index) => (
             <Tilt
     key={`${testimonial.id}-${index}`} // <- Move key here
