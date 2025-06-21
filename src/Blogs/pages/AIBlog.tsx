@@ -25,6 +25,25 @@ const Blog: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    setUser(currentUser);
+    if (currentUser) {
+      // Fetch user role from Firestore
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        setUserRole(userDoc.data().role); // e.g., 'admin' or 'user'
+      }
+    } else {
+      setUserRole(null);
+    }
+  });
+  return () => unsubscribe();
+}, []);
+
+const [userRole, setUserRole] = useState<string | null>(null);
+
   // Profile dropdown options
     const profileOptions = [
     { label: 'Profile', icon: User, action: () => navigate('/profile') },
