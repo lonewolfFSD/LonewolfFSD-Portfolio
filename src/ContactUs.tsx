@@ -427,7 +427,7 @@ const ContactForm: React.FC = () => {
                       |
                     </motion.span>
                     <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
-                      Screen Reader
+                      {t('Screen Reader')}
                     </span>
                   </div>
                   <motion.div
