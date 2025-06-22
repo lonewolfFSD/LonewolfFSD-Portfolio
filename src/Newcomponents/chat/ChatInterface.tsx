@@ -4,12 +4,15 @@ import { useChat } from '../../hooks/useChat';
 import ChatHeader from './ChatHeader';
 import ChatMessage from './ChatMessage';
 import ConversationStarters from './ConversationStarters';
+import { useTranslation } from 'react-i18next';
 
 const ChatInterface: React.FC = () => {
   const { isOpen, messages, showStarters, sendMessage } = useChat();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isOpen && messagesEndRef.current) {
@@ -33,7 +36,7 @@ const ChatInterface: React.FC = () => {
 
   // Define the initial message
   const initialMessage = {
-    text: "Hello! I'm your AI Assistant. How can I help you today?",
+    text: t("Hello! I'm your AI Assistant. How can I help you today?"),
     isUser: false,
   };
 
@@ -55,7 +58,7 @@ const ChatInterface: React.FC = () => {
           <>
             <ChatMessage 
               key="initial"
-              message={initialMessage}
+              message={t(initialMessage)}
               isLatest={true}
             />
             {/* Show ConversationStarters if showStarters is true */}
@@ -91,7 +94,7 @@ const ChatInterface: React.FC = () => {
           style={{
             fontFamily: 'Poppins'
           }}
-          placeholder="How can Lyra help?"
+          placeholder={t("How can Lyra help?")}
           className="flex-1 py-3 px-3 rounded-b-lg outline-none text-[13px]"
         />
         <button

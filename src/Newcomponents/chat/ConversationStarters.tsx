@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useChat } from '../../hooks/useChat';
+import { useTranslation } from 'react-i18next';
 
 // Define 20 unique starter questions related to LonewolfFSD and the portfolio
 const starters = [
@@ -22,7 +23,6 @@ const starters = [
   "Where can I learn more about LonewolfFSD’s journey and projects?"
 ];
 
-
 // Function to randomly select 4 questions
 const getRandomStarters = (starters: string[]): string[] => {
   const shuffled = [...starters].sort(() => Math.random() - 0.5); // Shuffle array
@@ -31,21 +31,28 @@ const getRandomStarters = (starters: string[]): string[] => {
 
 const ConversationStarters: React.FC = () => {
   const { sendMessage } = useChat();
+  const { t } = useTranslation();
 
-  // Use useMemo to memoize the random selection and prevent re-selection on every render
-  const randomStarters = useMemo(() => getRandomStarters(starters), []);
+  // Use useMemo to memoize the random selection and translate the starters
+  const randomStarters = useMemo(() => {
+    const selectedStarters = getRandomStarters(starters);
+    return selectedStarters.map(starter => ({
+      original: starter,
+      translated: t(starter)
+    }));
+  }, [t]); // Re-run if translation function changes (e.g., language switch)
 
   return (
     <div className="py-4 px-0 animate-fadeIn z-50">
-      <p className="text-xs text-gray-500 mb-2">Suggestions:</p>
+      <p className="text-xs text-gray-500 mb-2">{t('Suggestions: ')}</p>
       <div className="flex flex-wrap gap-2 text-left">
         {randomStarters.map((starter, index) => (
           <button
             key={index}
             className="px-3 py-1.5 text-xs text-left bg-gray-100 border hover:border-black hover:bg-gray-200 rounded-lg transition-colors duration-200"
-            onClick={() => sendMessage(starter)}
+            onClick={() => sendMessage(starter.translated)} // Send translated text
           >
-            {starter}
+            {starter.translated} {/* Display translated text */}
           </button>
         ))}
       </div>

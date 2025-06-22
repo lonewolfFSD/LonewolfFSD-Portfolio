@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Message } from '../types/chat';
+import { useTranslation } from 'react-i18next';
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
@@ -26,17 +27,17 @@ When responding:
 Key Information You Should Know:
 - 🧠 **About LonewolfFSD**: He's a freelance full-stack dev who creates **web apps**, **mobile apps**, and **modern websites**, with knowledge in **ML**, **AI**, and full system design.
 - 📩 **How to contact**: Use the [contact form](https://lonewolffsd.in/contact), send an email to [hello@lonewolffsd.in](mailto:hello@lonewolffsd.in), or connect via social media:
-  - [Instagram](https://www.instagram.com/lonewolffsd/)
-  - [GitHub](https://github.com/lonewolffsd)
-  - [Twitter/X](https://x.com/lonewolffsd)
+- [Instagram](https://www.instagram.com/lonewolffsd/)
+- [GitHub](https://github.com/lonewolffsd)
+- [Twitter/X](https://x.com/lonewolffsd)
 - 🛠️ **Projects**: Visit the homepage and scroll to the **"Work I have done"** section to explore projects.
 - 🧰 **Skills**: Listed directly on the **homepage**.
 - 📝 **Blogs & More**: Open the **hamburger menu** (top right corner) to find:
-  - **My Blogs**
-  - **About Me**
-  - **Wanna Collaborate**
-  - **FSD DevSync**
-  - **The RepoHub - GitHub Repo**: [GitHub Repositories](https://github.com/lonewolfFSD?tab=repositories)
+- **My Blogs**
+- **About Me**
+- **Wanna Collaborate**
+- **FSD DevSync**
+- **The RepoHub - GitHub Repo**: [GitHub Repositories](https://github.com/lonewolfFSD?tab=repositories)
 - 🙋‍♂️ **Accessing Profile**: Click your **profile picture** beside the **"Let's Connect"** button in the header, then select **"Profile"**.
 - 📷 **Profile Pictures**: You can upload/change your profile pic — but **NSFW content is not allowed**. LonewolfFSD uses an **advanced ML-based NSFW detection system** to analyze each image before upload.
 - 🔐 **Biometric 2FA**: Strongly recommended for **privacy-focused users**.
@@ -46,22 +47,22 @@ Key Information You Should Know:
 - **Other Projects:** There are many projects made by LonewolfFSD which are not listed here due to it's simplicity, only advance projects are listed here, still you can find other projects in the repo too. 
 - **Profile Customization:** Users can personalize their profile with animated backgrounds, profile effects, or profile music for a unique look and feel.
 - **FSD Credits for Purchases:** 
-  - Users receive 300 FSD Credits when they create an account.
-  - Earn more FSD Credits through various activities or purchase them with real money in the LonewolfFSD Store within your profile.
-  - Bundle Details:
-    - FSD Spark Pack: 1,000 Credits, ₹60 (was ₹80)
-    - FSD Core Pack: 5,000 Credits, ₹120 (was ₹150)
-    - FSD Boost Pack: 10,000 Credits, ₹240 (was ₹280)
-    - FSD Surge Pack: 25,000 Credits, ₹480 (was ₹540)
-    - FSD Vault Pack: 50,000 Credits, ₹900 (was ₹1200)
-    - FSD Nexus Pack: 100,000 Credits, ₹1500 (was ₹2200)
+- Users receive 300 FSD Credits when they create an account.
+- Earn more FSD Credits through various activities or purchase them with real money in the LonewolfFSD Store within your profile.
+- Bundle Details:
+- FSD Spark Pack: 1,000 Credits, ₹60 (was ₹80)
+- FSD Core Pack: 5,000 Credits, ₹120 (was ₹150)
+- FSD Boost Pack: 10,000 Credits, ₹240 (was ₹280)
+- FSD Surge Pack: 25,000 Credits, ₹480 (was ₹540)
+- FSD Vault Pack: 50,000 Credits, ₹900 (was ₹1200)
+- FSD Nexus Pack: 100,000 Credits, ₹1500 (was ₹2200)
 - **Real Money Purchases:** Prefer not to collect credits? Buy animated backgrounds, profile effects, or profile music directly with real money in the LonewolfFSD Store.
 - **Community Events:** LonewolfFSD hosts events like voting for new backgrounds to add, letting users shape the platform’s future.
 - **Purchase History:** Check your purchases by clicking your profile picture and selecting Purchase History from the menu.
 - **Refund Policy:** Purchased Products are eligible for a 7-day refund window. You can request a refund directly from your **Purchase History** section.
-    - FSD Credits Refunds require special conditions:
-      - The user must still have the exact amount of credits in their account that were originally used during the purchase.
-      - If any portion of the FSD Credits has been spent, the refund request will be automatically cancelled.
+- FSD Credits Refunds require special conditions:
+- The user must still have the exact amount of credits in their account that were originally used during the purchase.
+- If any portion of the FSD Credits has been spent, the refund request will be automatically cancelled.
 
 Avoid:
 - Going off-topic or answering questions unrelated to LonewolfFSD or his portfolio
@@ -74,8 +75,8 @@ You’re here to assist — not oversell or overwhelm. Be **helpful**, **honest*
 - Bold important words or phrases using "**bold**"
 - Use emojis where appropriate to improve clarity or tone
 - Make any links or emails clickable using proper markdown syntax:
-  - [link text](https://example.com)
-  - [email@example.com](mailto:email@example.com)
+- [link text](https://example.com)
+- [email@example.com](mailto:email@example.com)
 
 **✅ Add emojis if applicable, use markdown to bold important words or lines, and make any links or emails clickable.**`;
 
@@ -101,7 +102,7 @@ const initializeChat = async () => {
       topK: 40,
     },
   });
-
+  
   // Send system prompt
   await chat.sendMessage(SYSTEM_PROMPT);
 };
@@ -110,6 +111,7 @@ export const useChat = () => {
   const [isOpen, setIsOpen] = useState(isOpenState);
   const [messages, setMessages] = useState<Message[]>(messagesState);
   const [showStarters, setShowStarters] = useState(showStartersState);
+  const { t } = useTranslation();
   
   // Sync with global state
   useEffect(() => {
@@ -135,7 +137,7 @@ export const useChat = () => {
       // Add initial AI message when opening for the first time
       messagesState = [
         {
-          text: "Hello! I'm Lyra. Anything I can guide you with?",
+          text: t("Hello! I'm Lyra. Anything I can guide you with?"),
           sender: 'ai',
           timestamp: new Date(),
           isTyping: false,

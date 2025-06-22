@@ -2,14 +2,17 @@ import React from 'react';
 import { X } from 'lucide-react';
 import Lyra from '../../mockups/Lyra.jpg';
 import { useChat } from '../../hooks/useChat'; // Import useChat
+import { useTranslation } from 'react-i18next';
 
 interface ChatHeaderProps {
   name: string;
   role: string;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ name, role }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = () => {
   const { toggleChat } = useChat(); // Access toggleChat
+  const { t } = useTranslation();
+
 
   return (
     <div className="flex items-center justify-between p-4  border-b border-b-gray-200">
@@ -18,8 +21,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, role }) => {
           <img className="w-full h-full object-cover pointer-events-none" src={Lyra} alt="Lyra" />
         </div>
         <div className="flex flex-col">
-          <h3 className="font-medium text-gray-900 text-[14px]">Lyra Mini</h3>
-          <p className="text-xs text-gray-500">Virtual AI Assistant</p>
+          <h3 className="font-medium text-gray-900 text-[14px]">{t('Lyra Mini')}</h3>
+          <p className="text-xs text-gray-500">{t('Virtual AI Assistant')}</p>
         </div>
       </div>
 
