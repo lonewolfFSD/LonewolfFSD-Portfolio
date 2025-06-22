@@ -1,9 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import '../../i18n'; // Import i18n configuration
 
-const paragraph = "LonewolfFSD is looking to collaborate with forward-thinking individuals to create meaningful digital experiences that push boundaries and inspire change. My approach ensures your vision stays at the forefront while I leverage my expertise to bring it to life.";
+
 
 const AnimatedParagraph: React.FC = () => {
+  const { t, i18n } = useTranslation();
+const paragraph = t('collab_body');
+
   const words = paragraph.split(' ');
   
   const container = {

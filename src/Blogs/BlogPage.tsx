@@ -8,6 +8,8 @@ import { Link } from 'react-router-dom';
 import { useAvatar } from '../AvatarContext';
 import { auth } from '../../firebase';
 
+import { useTranslation } from 'react-i18next';
+
 import { db } from '../../firebase';
 import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
 
@@ -19,36 +21,37 @@ import Lyra from '../mockups/Lyra.jpg';
 
 import { ChatBubble } from '../Newcomponents/chat';
 import { ChatInterface } from '../Newcomponents/chat';
+import { t } from 'i18next';
 
 // Mock data for blog posts
 const featuredPost = {
-  title: "Building the Next-Gen AI Companion: Lyra's Evolution in 2025",
-  excerpt: "A deep dive into the design and technology behind Lyra — from adaptive personality systems to real-time emotion sensing, shaping the future of human-AI interaction.",
-  date: "April 10, 2025",
-  readTime: "6 min read",
+  title: t('spotlight_heading'),
+  excerpt: t('spotlight_description'),
+  date: t('spotlight_date'),
+  readTime: t('spotlight_read_time'),
   image: {Lyra}
 };
 
 const blogPosts = [
   {
-    title: "Building the Next-Gen AI Companion: Lyra's Evolution in 2025",
-    excerpt: "A deep dive into the design and technology behind Lyra — from adaptive personality systems to real-time emotion sensing, shaping the future of human-AI interaction.",
-    date: "April 10, 2024",
-    readTime: "6 min read",
+    title: t('spotlight_heading'),
+    excerpt: t('spotlight_description'),
+    date: t('spotlight_date'),
+    readTime: t('spotlight_read_time'),
     link: "lyralabs/lyra-ai"
   },
   {
-    title: "Best Programming Language to Learn in 2025",
-    excerpt: "A deep dive into the top programming languages in 2025 based on career growth, community, and future potential.",
-    date: "March 18, 2025",
-    readTime: "7 min read",
+    title: t('article_1_title'),
+    excerpt: t('article_1_desc'),
+    date: t('article_1_date'),
+    readTime: t('article_1_time'),
     link: "/blogs/best-lang-to-learn-in-2025"
   },
   {
-    title: "Will AI Take Our Jobs? The Truth Behind the Fear",
-    excerpt: "Explore how artificial intelligence is reshaping the job market, the roles most at risk, and why the future may not be as bleak as it seems.",
-    date: "March 10, 2025",
-    readTime: "7 min read",
+    title: t('article_2_title'),
+    excerpt: t('article_2_desc'),
+    date: t('article_2_date'),
+    readTime: t('article_2_time'),
     link: "/blogs/will-ai-take-our-jobs"
   }
 ];
@@ -69,6 +72,80 @@ const staggerContainer = {
   }
 };
 
+const flags = {
+  en: (
+    <img
+      src="https://flagcdn.com/w40/gb.png"
+      alt="English"
+      className="w-7 h-5 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  es: (
+    <img
+      src="https://flagcdn.com/w40/es.png"
+      alt="Spanish"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  fr: (
+    <img
+      src="https://flagcdn.com/w40/fr.png"
+      alt="French"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  it: (
+    <img
+      src="https://flagcdn.com/w40/it.png"
+      alt="Italian"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  pt: (
+    <img
+      src="https://flagcdn.com/w40/pt.png"
+      alt="Portuguese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  ja: (
+    <img
+      src="https://flagcdn.com/w40/jp.png"
+      alt="Japanese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  zh: (
+    <img
+      src="https://flagcdn.com/w40/cn.png"
+      alt="Chinese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  ko: (
+    <img
+      src="https://flagcdn.com/w40/kr.png"
+      alt="Korean"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+};
+
+
+
+const languages = [
+  { code: 'en', label: 'English', flag: flags.en },
+  { code: 'es', label: 'Español', flag: flags.es },
+  { code: 'fr', label: 'Français', flag: flags.fr },
+  { code: 'it', label: 'Italiano', flag: flags.it },
+  { code: 'pt', label: 'Português', flag: flags.pt },
+  { code: 'ja', label: '日本語', flag: flags.ja },
+  { code: 'zh', label: '中文', flag: flags.zh },
+  { code: 'ko', label: '한국어', flag: flags.ko },
+];
+
+
+
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -76,36 +153,69 @@ function App() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState<boolean>(false); // New state for profile dropdown
   const [user, setUser] = useState<FirebaseUser | null>(null); // State for Firebase user
   const { avatarURL } = useAvatar();
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false); // Minimal state for dropdown
   const navigate = useNavigate();
+
+    const { t, i18n } = useTranslation();
+      const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+    
+      // Sync language with localStorage and i18next on change
+      // Sync language with localStorage and i18next on change
+      const handleLanguageChange = (lang) => {
+        setSelectedLanguage(lang);
+        i18n.changeLanguage(lang);
+        localStorage.setItem('i18nextLng', lang);
+        setIsLangDropdownOpen(false); // Close dropdown after selection
+        setIsMenuOpen(false); // Close menu after selection
+
+        window.location.reload();
+      };
+
+        // Ensure language is loaded from localStorage on mount
+      useEffect(() => {
+        const savedLanguage = localStorage.getItem('i18nextLng');
+        const defaultLanguage = 'en'; // Default to English
+      
+        if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
+          // Use saved language if it exists and is valid
+          if (savedLanguage !== i18n.language) {
+            i18n.changeLanguage(savedLanguage);
+            setSelectedLanguage(savedLanguage);
+          }
+        } else {
+          // Set default to English only if no valid language is found
+          i18n.changeLanguage(defaultLanguage);
+          setSelectedLanguage(defaultLanguage);
+          localStorage.setItem('i18nextLng', defaultLanguage);
+        }
+      }, [i18n]);
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-    setUser(currentUser);
-    if (currentUser) {
-      // Fetch user role from Firestore
-      const userDocRef = doc(db, 'users', currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        setUserRole(userDoc.data().role); // e.g., 'admin' or 'user'
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        setUser({
+          ...currentUser,
+          role: userDoc.exists() ? userDoc.data().role : 'user',
+        });
+      } else {
+        setUser(null);
       }
-    } else {
-      setUserRole(null);
-    }
-  });
-  return () => unsubscribe();
-}, []);
+    });
+    return () => unsubscribe();
+  }, []);
 
 const [userRole, setUserRole] = useState<string | null>(null);
 
   // Profile dropdown options
-    const profileOptions = [
-    { label: 'Profile', icon: User, action: () => navigate('/profile') },
-    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
-    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
-    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
-    { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
+  const profileOptions = [
+    { label: t('Profile'), icon: User, action: () => navigate('/profile') },
+    { label: t('Admin Panel'), icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+    { label: t('Purchase History'), icon: Wallet, action: () => navigate("/purchase-history") },
+    { label: t("Enquiry Listing"), icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
+    { label: t('Log Out'), icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
   ];
 
 
@@ -135,6 +245,8 @@ const [userRole, setUserRole] = useState<string | null>(null);
       return () => unsubscribe();
     }, [user]);
 
+    const currentLanguage = languages.find((lang) => lang.code === selectedLanguage) || languages.find((lang) => lang.code === 'en');
+
   return (
     <motion.div
       className="min-h-screen bg-white"
@@ -150,193 +262,224 @@ const [userRole, setUserRole] = useState<string | null>(null);
       </Helmet>
       {/* Header */}
       <motion.header
-        className="container mx-auto px-6 py-8 flex justify-between items-center relative"
+              className="container mx-auto px-6 py-8 flex justify-between items-center relative"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* Animated Logo */}
+              <motion.div
+                className="text-xl font-medium flex"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <a href=""><img alt="logo" src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg" className='cursor-custom-pointer rounded-full' style={{
+                  width: '60px', height: 'auto', marginBottom: '-5px'
+                }}/></a>
+              </motion.div>
+      
+              {/* Animated Action Buttons */}
+              <motion.div
+                className="flex items-center gap-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
+                {user && (
+        <Link to="/notifications">
+          <motion.button
+            aria-label="notifications"
+            className={`p-2 rounded-full relative cursor-custom-pointer ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'} transition-colors`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <Bell fill='currentColor' className="w-5 h-5 opacity-80" />
+            {notifications.filter(n => !n.read).length > 0 && (
+              <span
+                className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center transform translate-x-2 -translate-y-1"
+                style={{ minWidth: '1rem' }}
+              >
+                {notifications.filter(n => !n.read).length}
+              </span>
+            )}
+          </motion.button>
+        </Link>
+      )}
+      
+      <motion.button
+        onClick={() => {
+          if (user) {
+            setIsProfileDropdownOpen(!isProfileDropdownOpen); // Toggle dropdown for logged-in users
+          } else {
+            navigate("/auth"); // Navigate to auth for guests
+          }
+        }}
+        aria-label="profile"
+        className={`${
+          avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
+        } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
+          isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
+        } transition-colors`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
       >
-        {/* Animated Logo */}
-        <motion.div
-          className="text-xl font-medium flex"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          <a href="/">
-            <img
-              src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg"
-              className="rounded-full"
-              style={{ width: '60px', height: 'auto', marginBottom: '-5px' }}
-              alt="Logo"
-            />
-          </a>
-        </motion.div>
-
-
-
-        {/* Animated Action Buttons */}
-        <motion.div
-          className="flex items-center gap-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
-          {user && (
-  <Link to="/notifications">
-    <motion.button
-      aria-label="notifications"
-      className={`p-2 rounded-full relative cursor-custom-pointer ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-600'} transition-colors`}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.9 }}
-    >
-      <Bell fill='currentColor' className="w-5 h-5 opacity-80" />
-      {notifications.filter(n => !n.read).length > 0 && (
-        <span
-          className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center transform translate-x-2 -translate-y-1"
-          style={{ minWidth: '1rem' }}
-        >
-          {notifications.filter(n => !n.read).length}
-        </span>
-      )}
-    </motion.button>
-  </Link>
-)}
-<motion.button
-  onClick={() => {
-    if (user) {
-      setIsProfileDropdownOpen(!isProfileDropdownOpen); // Toggle dropdown for logged-in users
-    } else {
-      navigate("/auth"); // Navigate to auth for guests
-    }
-  }}
-  className={`${
-    avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
-  } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
-    isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
-  } transition-colors`}
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.6, duration: 0.5 }}
->
-  {avatarURL || auth.currentUser?.photoURL ? (
-    <img
-      src={avatarURL || auth.currentUser?.photoURL}
-      alt="Profile"
-      className="w-9 h-9 rounded-full object-cover cursor-custom-pointer"
-    />
-  ) : (
-    <User className="w-5 h-5 cursor-custom-pointer" />
-  )}
-</motion.button>
-                    {/* Dropdown for logged-in users */}
-                                      {user && isProfileDropdownOpen && (
-                                                  <motion.div
-                                                    className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-50 overflow-hidden ${
-                                                      isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-                                                    }`} 
-                                                    initial={{ opacity: 0, y: -10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    transition={{ duration: 0.3 }}
-                                                  >
-                                                    <div className="p-4">
-                                                      <div className="ml-1 flex">
-                                                        {avatarURL || auth.currentUser?.photoURL ? (
-                                                          <img
-                                                            src={avatarURL || auth.currentUser?.photoURL}
-                                                            alt="Profile"
-                                                            className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
-                                                          />
-                                                        ) : (
-                                                          <User className="w-5 h-5" />
-                                                        )}
-                                                        <div className="flex flex-col mb-3.5">
-                                                          <p className="text-sm font-semibold ml-2">{user.displayName}</p>
-                                                          <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
-                                                        </div>
-                                                      </div>
-                                                      {profileOptions
-  .filter((option) => !option.adminOnly || (option.adminOnly && userRole === 'admin'))
-  .map((option, index) => (
-    <button
-      key={index}
-      onClick={() => {
-        option.action();
-        setIsProfileDropdownOpen(false);
-      }}
-      className={`w-full text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${
-        isDark ? "hover:bg-gray-750" : "hover:bg-gray-100"
-      }`}
-    >
-      <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
-      {option.label}
-    </button>
-))}
-                                                    </div>
-                                                  </motion.div>
-                                                )}
-          <Link to="/contact">
-                    <motion.button
-                      className={`px-6 hidden md:block hover:px-8 transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.8, duration: 0.5 }}
-                    >
-                      Let's Connect
-                    </motion.button>
-                    </Link>
-          <motion.button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`p-2 rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-50`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.5 }}
-          >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </motion.button>
-        </motion.div>
-
-        {/* Animated Dropdown Menu */}
-                      {isMenuOpen && (
-                <motion.div
-                  className={`absolute top-full -mt-5 right-6 w-64  rounded-2xl shadow-lg z-50 border border-gray-300 overflow-hidden transition-all transform origin-top-right ${isDark ? 'bg-gray-800' : 'bg-white'}`}
-                  initial={{ opacity: 0, y: -15, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
+        {avatarURL || auth.currentUser?.photoURL ? (
+          <img
+            src={avatarURL || auth.currentUser?.photoURL}
+            alt="Profile"
+            className="w-9 h-9 rounded-full object-cover cursor-custom-pointer"
+          />
+        ) : (
+          <User className="w-5 h-5 cursor-custom-pointer" />
+        )}
+      </motion.button>
+      
+                        {/* Dropdown for logged-in users */}
+                        {user && isProfileDropdownOpen && (
+                                    <motion.div
+                                      className={`absolute top-full right-20 z-50 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
+                                        isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+                                      }`}
+                                      initial={{ opacity: 0, y: -10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                      transition={{ duration: 0.3 }}
+                                    >
+                                      <div className="p-4">
+                                        <div className="ml-1 flex">
+                                          {avatarURL || auth.currentUser?.photoURL ? (
+                                            <img
+                                              src={avatarURL || auth.currentUser?.photoURL}
+                                              alt="Profile"
+                                              className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
+                                            />
+                                          ) : (
+                                            <User className="w-5 h-5" />
+                                          )}
+                                          <div className="flex flex-col mb-3.5">
+                                            <p className="text-sm font-semibold ml-2">{user.displayName}</p>
+                                            <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
+                                          </div>
+                                        </div>
+                                        {profileOptions
+                                          .filter((option) => !option.adminOnly || (option.adminOnly && user?.role === 'admin'))
+                                          .map((option, index) => (
+                                            <button
+                                              key={index}
+                                              onClick={() => {
+                                                option.action();
+                                                setIsProfileDropdownOpen(false);
+                                              }}
+                                              className={`w-full cursor-custom-pointer text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'}`}
+                                            >
+                                              <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
+                                              {option.label}
+                                            </button>
+                                          ))}
+                                      </div>
+                                    </motion.div>
+                                  )}
+                <a href="/contact">
+                <motion.button
+                  aria-label="contact"
+                  className={`px-6 hover:px-8 hidden md:block cursor-custom-pointer transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8, duration: 0.5 }}
                 >
-                  <nav className="p-3">
-                    {[
-                      { label: 'About Me', href: '/about-me' },
-                      { label: 'LonewolfFSD Blogs', href: '/blogs' },
-                      { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
-                      { label: 'FSD DevSync', href: '/dev-sync' },
-                      { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
-                    ].map((item, index) => (
-                      <Link
-                        key={index}
-                        to={item.href}
-                        className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                    <div className="border-t border-black/10 mx-4 my-2" />
-                    <div className="px-4 py-3 flex gap-4">
-                      <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Github className="w-5 h-5 cursor-pointer" />
-                      </a>
-                      <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Instagram className="w-5 h-5 cursor-pointer" />
-                      </a>
-                      <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Twitter className="w-5 h-5 cursor-pointer" />
-                      </a>
-                    </div>
-                  </nav>
-                </motion.div>
-              )}
-      </motion.header>
+                  {t("Let's Connect")}
+                </motion.button>
+                </a>
+                <motion.button
+                  aria-label="Open menu"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className={`p-2 cursor-custom-pointer rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-10`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1, duration: 0.5 }}
+                >
+                  {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </motion.button>
+              </motion.div>
+      
+              {/* Animated Dropdown Menu */}
+                          {isMenuOpen && (
+                           <motion.div
+                             className={`absolute top-full right-6 w-64 mt-[-20px] border border-black/20 rounded-2xl shadow-lg z-50 transition-all transform origin-top-right ${
+                               isDark ? 'bg-gray-800' : 'bg-white'
+                             }`}
+                             initial={{ opacity: 0, y: -15, scale: 0.95 }}
+                             animate={{ opacity: 1, y: 0, scale: 1 }}
+                             transition={{ duration: 0.25, ease: 'easeOut' }}
+                           >
+                             <nav className="p-3">
+                               {[
+                                 { label: t('About Me'), href: '/about-me' },
+                                 { label: t('LonewolfFSD Blogs'), href: '/blogs' },
+                                 { label: t('The RepoHub'), href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                                 { label: t('FSD DevSync'), href: '/dev-sync' },
+                                 { label: t('Wanna Collaborate?'), href: '/lets-collaborate' },
+                               ].map((item, index) => (
+                                 <Link
+                                   key={index}
+                                   to={item.href}
+                                   className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                                   onClick={() => setIsMenuOpen(false)}
+                                 >
+                                   {item.label}
+                                 </Link>
+                               ))}
+                               <div className="border-t border-black/10 mx-4 my-2" />
+                               <div className="px-4 py-3 relative">
+                                 <button
+                                   className={`w-full px-3 py-2.5 text-[15px] font-semibold rounded-md border border-black/20 text-left flex items-center ${
+                                     isDark ? 'bg-gray-700 text-white' : 'bg-white text-black'
+                                   }`}
+                                   onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                                 >
+                                   <span className="border border-gray-300 rounded-md mr-2">{currentLanguage.flag}</span>
+                                   {currentLanguage.label}
+                                 </button>
+                                 {isLangDropdownOpen && (
+                                   <motion.ul
+                                     className={`absolute top-full left-4 z-10 w-full border border-black/40 rounded-lg shadow-lg ${
+                                       isDark ? 'bg-gray-800' : 'bg-white'
+                                     }`}
+                                     initial={{ opacity: 0, y: -10 }}
+                                     animate={{ opacity: 1, y: 0 }}
+                                     transition={{ duration: 0.2 }}
+                                   >
+                                     {languages.map((lang) => (
+                                       <li
+                                         key={lang.code}
+                                         className="px-3 py-2.5 border-b text-[15px] font-semibold cursor-pointer hover:bg-gray-100 flex items-center"
+                                         onClick={() => handleLanguageChange(lang.code)}
+                                       >
+                                         <span className='border border-gray-300 rounded-md mr-2'>{lang.flag}</span>
+                                         {lang.label}
+                                       </li>
+                                     ))}
+                                   </motion.ul>
+                                 )}
+                               </div>
+                               <div className="border-t border-black/10 mx-4 my-2" />
+                               <div className="px-4 py-3 flex gap-4">
+                                 <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                   <Github className="w-5 h-5 cursor-pointer" />
+                                 </a>
+                                 <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                   <Instagram className="w-5 h-5 cursor-pointer" />
+                                 </a>
+                                 <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                   <Twitter className="w-5 h-5 cursor-pointer" />
+                                 </a>
+                               </div>
+                             </nav>
+                           </motion.div>
+                         )}
+            </motion.header>
 
         
       {/* Featured Post Hero Section */}
@@ -356,7 +499,7 @@ const [userRole, setUserRole] = useState<string | null>(null);
           animationSpeed={6}
           showBorder={false}
         >
-        Spotlight Article
+        {t('spotlight_title')}
         </GradientText>
                 </motion.h2>
 
@@ -398,20 +541,20 @@ const [userRole, setUserRole] = useState<string | null>(null);
                 >
                   <span className='mr-2 group-hover:mr-2.5 duration-300 mt-0.5' style={{
                     fontFamily: 'Poppins'
-                  }}>Read More</span>
+                  }}>{t('read_more')}</span>
                   <ChevronRight size={17} strokeWidth={3} className=" " />
                 </button>
               </Link>
             </div>
           </motion.div>
           <motion.div
-            className="order-first lg:order-last flex justify-center relative z-10"
+            className="order-first lg:order-last flex justify-center relative"
             variants={fadeIn}
           >
             <img
               src={Lyra}
               alt="Featured post"
-              className="w-full pointer-events-none max-w-xl h-[180px] md:h-[300px] lg:h-[320px] object-cover rounded-xl shadow-md"
+              className="w-full pointer-events-none max-w-xl h-[180px] md:h-[300px] lg:h-[320px] object-cover rounded-xl shadow-md z-10"
             />
           </motion.div>
         </motion.div>
@@ -429,7 +572,7 @@ const [userRole, setUserRole] = useState<string | null>(null);
           variants={fadeIn}
           transition={{ duration: 0.5 }}
         >
-          Other Articles
+          {t('other_articles')}
         </motion.h2>
         <motion.div
           className="grid gap-12"
@@ -461,7 +604,7 @@ const [userRole, setUserRole] = useState<string | null>(null);
                 <p className="text-gray-600 text-sm">{post.excerpt}</p>
                 <Link to={post.link} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <button className="flex cursor-custom-pointer group items-center text-black text-sm hover:underline transition-all duration-300 w-fit">
-                  Read More
+                  {t('read_more')}
                   <ChevronRight className="ml-2 w-4 h-4 transition-all duration-300 group-hover:ml-3" />
                 </button>
 

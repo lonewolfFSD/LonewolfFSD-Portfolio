@@ -2,9 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Helmet from 'react-helmet';
+import { useTranslation } from 'react-i18next';
+import '../../i18n'; // Import i18n configuration
 
 const AnimatedButton: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     // Initialize audio
@@ -54,7 +57,7 @@ const AnimatedButton: React.FC = () => {
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
       >
-        <span>Let's Talk</span>
+        <span>{t('collab_button')}</span>
         <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
       </motion.button>
       </a>

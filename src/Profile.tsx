@@ -360,120 +360,63 @@ const videoEffectRef = useRef<(HTMLVideoElement | null)[]>([]);
   }, [user, uid, loading, navigate]);
 
   const flags = {
-    en: (
-      <svg
-        className="w-7 h-[0.875rem] shrink-0"
-        viewBox="0 0 60 30"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="60" height="30" fill="#00247d" />
-        <path d="M0 0L60 30M60 0L0 30" stroke="#fff" strokeWidth="6" />
-        <path d="M0 0L60 30M60 0L0 30" stroke="#cf142b" strokeWidth="4" />
-        <path d="M30 0V30M0 15H60" stroke="#fff" strokeWidth="10" />
-        <path d="M30 0V30M0 15H60" stroke="#cf142b" strokeWidth="6" />
-      </svg>
-    ),
-    es: (
-      <svg
-        className="w-7 h-[0.875rem] shrink-0"
-        viewBox="0 0 60 30"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="60" height="7.5" fill="#c60b1e" />
-        <rect y="7.5" width="60" height="15" fill="#ffc107" />
-        <rect y="22.5" width="60" height="7.5" fill="#c60b1e" />
-      </svg>
-    ),
-    fr: (
-      <svg
-        className="w-7 h-[0.875rem] shrink-0"
-        viewBox="0 0 60 30"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="20" height="30" fill="#0055a4" />
-        <rect x="20" width="20" height="30" fill="#fff" />
-        <rect x="40" width="20" height="30" fill="#ef4135" />
-      </svg>
-    ),
-    it: (
-      <svg
-        className="w-7 h-[0.875rem] shrink-0"
-        viewBox="0 0 60 30"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="20" height="30" fill="#009246" />
-        <rect x="20" width="20" height="30" fill="#fff" />
-        <rect x="40" width="20" height="30" fill="#ce2b37" />
-      </svg>
-    ),
-    pt: (
-      <svg
-        className="w-7 h-[0.875rem] shrink-0"
-        viewBox="0 0 60 30"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="24" height="30" fill="#006600" />
-        <rect x="24" width="36" height="30" fill="#ff0000" />
-      </svg>
-    ),
-    ja: (
-      <svg
-        className="w-7 h-[0.875rem] shrink-0"
-        viewBox="0 0 60 30"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="60" height="30" fill="#fff" />
-        <circle cx="30" cy="15" r="10" fill="#bc002d" />
-      </svg>
-    ),
-    zh: (
-      <svg
-        className="w-7 h-[0.875rem] shrink-0"
-        viewBox="0 0 60 30"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="60" height="30" fill="#de2910" />
-        <path
-          d="M15 7.5L16.5 10.5L19.5 12L16.5 13.5L15 16.5L13.5 13.5L10.5 12L13.5 10.5L15 7.5Z"
-          fill="#ffde00"
-        />
-        <path d="M22.5 6L24 9L27 9L24 10.5L25.5 12L24 13.5L22.5 12L21 13.5L19.5 12L21 10.5L19.5 9L21 9L22.5 6Z" fill="#ffde00" />
-        <path d="M25.5 15L27 18L30 18L27 19.5L28.5 21L27 22.5L25.5 21L24 22.5L22.5 21L24 19.5L22.5 18L24 18L25.5 15Z" fill="#ffde00" />
-        <path d="M19.5 15L21 18L24 18L21 19.5L22.5 21L21 22.5L19.5 21L18 22.5L16.5 21L18 19.5L16.5 18L18 18L19.5 15Z" fill="#ffde00" />
-      </svg>
-    ),
-    ko: (
-      <svg
-        className="w-7 h-[0.875rem] shrink-0"
-        viewBox="0 0 60 30"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="60" height="30" fill="#fff" />
-        <circle cx="30" cy="15" r="7.5" fill="#cd2e3a" />
-        <circle cx="30" cy="15" r="7.5" transform="rotate(180 30 15)" fill="#0047a0" />
-        <path d="M20 7H22V9H20V7Z M20 11H22V13H20V11Z M20 15H22V17H20V15Z" fill="#000" />
-        <path d="M38 7H40V9H38V7Z M38 11H40V13H38V11Z M38 15H40V17H38V15Z" fill="#000" />
-        <path d="M24 19H26V21H24V19Z M24 23H26V25H24V23Z" fill="#000" />
-        <path d="M34 19H36V21H34V19Z M34 23H36V25H34V23Z" fill="#000" />
-      </svg>
-    ),
-  };
+  en: (
+    <img
+      src="https://flagcdn.com/w40/gb.png"
+      alt="English"
+      className="w-7 h-5 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  es: (
+    <img
+      src="https://flagcdn.com/w40/es.png"
+      alt="Spanish"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  fr: (
+    <img
+      src="https://flagcdn.com/w40/fr.png"
+      alt="French"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  it: (
+    <img
+      src="https://flagcdn.com/w40/it.png"
+      alt="Italian"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  pt: (
+    <img
+      src="https://flagcdn.com/w40/pt.png"
+      alt="Portuguese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  ja: (
+    <img
+      src="https://flagcdn.com/w40/jp.png"
+      alt="Japanese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  zh: (
+    <img
+      src="https://flagcdn.com/w40/cn.png"
+      alt="Chinese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  ko: (
+    <img
+      src="https://flagcdn.com/w40/kr.png"
+      alt="Korean"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+};
   
   const languages = [
     { code: 'en', label: 'English', flag: flags.en },
@@ -2436,80 +2379,80 @@ const toggleEffect = async (effect: Effect | null) => {
         </motion.div>
 
         {/* Animated Dropdown Menu */}
-                      {isMenuOpen && (
-                              <motion.div
-                                className={`absolute top-full right-6 w-64 mt-[-20px] border border-black/20 rounded-2xl shadow-lg z-10 transition-all transform origin-top-right ${
-                                  isDark ? 'bg-gray-800' : 'bg-white'
-                                }`}
-                                initial={{ opacity: 0, y: -15, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                transition={{ duration: 0.25, ease: 'easeOut' }}
-                              >
-                                <nav className="p-3">
-                                  {[
-                                    { label: t('About Me'), href: '/about-me' },
-                                    { label: t('LonewolfFSD Blogs'), href: '/blogs' },
-                                    { label: t('The RepoHub'), href: 'https://github.com/lonewolfFSD?tab=repositories' },
-                                    { label: t('FSD DevSync'), href: '/dev-sync' },
-                                    { label: t('Wanna Collaborate?'), href: '/lets-collaborate' },
-                                  ].map((item, index) => (
-                                    <Link
-                                      key={index}
-                                      to={item.href}
-                                      className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                                      onClick={() => setIsMenuOpen(false)}
-                                    >
-                                      {item.label}
-                                    </Link>
-                                  ))}
-                                  <div className="border-t border-black/10 mx-4 my-2" />
-                                  <div className="px-4 py-3 relative">
-                                    <button
-                                      className={`w-full px-3 py-2.5 text-[15px] font-semibold rounded-md border border-black/20 text-left flex items-center ${
-                                        isDark ? 'bg-gray-700 text-white' : 'bg-white text-black'
+                                   {isMenuOpen && (
+                                    <motion.div
+                                      className={`absolute top-full right-6 w-64 mt-[-20px] border border-black/20 rounded-2xl shadow-lg z-50 transition-all transform origin-top-right ${
+                                        isDark ? 'bg-gray-800' : 'bg-white'
                                       }`}
-                                      onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                                      initial={{ opacity: 0, y: -15, scale: 0.95 }}
+                                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                                      transition={{ duration: 0.25, ease: 'easeOut' }}
                                     >
-                                      <span className="border border-black mr-2">{currentLanguage.flag}</span>
-                                      {currentLanguage.label}
-                                    </button>
-                                    {isLangDropdownOpen && (
-                                      <motion.ul
-                                        className={`absolute top-full left-4 w-full border border-black/40 rounded-lg shadow-lg z-50 ${
-                                          isDark ? 'bg-gray-800' : 'bg-white'
-                                        }`}
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                      >
-                                        {languages.map((lang) => (
-                                          <li
-                                            key={lang.code}
-                                            className="px-3 py-2.5 border-b text-[15px] font-semibold cursor-pointer hover:bg-gray-100 flex items-center"
-                                            onClick={() => handleLanguageChange(lang.code)}
+                                      <nav className="p-3">
+                                        {[
+                                          { label: t('About Me'), href: '/about-me' },
+                                          { label: t('LonewolfFSD Blogs'), href: '/blogs' },
+                                          { label: t('The RepoHub'), href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                                          { label: t('FSD DevSync'), href: '/dev-sync' },
+                                          { label: t('Wanna Collaborate?'), href: '/lets-collaborate' },
+                                        ].map((item, index) => (
+                                          <Link
+                                            key={index}
+                                            to={item.href}
+                                            className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                                            onClick={() => setIsMenuOpen(false)}
                                           >
-                                            <span className='border border-black mr-2'>{lang.flag}</span>
-                                            {lang.label}
-                                          </li>
+                                            {item.label}
+                                          </Link>
                                         ))}
-                                      </motion.ul>
-                                    )}
-                                  </div>
-                                  <div className="border-t border-black/10 mx-4 my-2" />
-                                  <div className="px-4 py-3 flex gap-4">
-                                    <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                                      <Github className="w-5 h-5 cursor-pointer" />
-                                    </a>
-                                    <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                                      <Instagram className="w-5 h-5 cursor-pointer" />
-                                    </a>
-                                    <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                                      <Twitter className="w-5 h-5 cursor-pointer" />
-                                    </a>
-                                  </div>
-                                </nav>
-                              </motion.div>
-                            )}
+                                        <div className="border-t border-black/10 mx-4 my-2" />
+                                        <div className="px-4 py-3 relative">
+                                          <button
+                                            className={`w-full px-3 py-2.5 text-[15px] font-semibold rounded-md border border-black/20 text-left flex items-center ${
+                                              isDark ? 'bg-gray-700 text-white' : 'bg-white text-black'
+                                            }`}
+                                            onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                                          >
+                                            <span className="border border-gray-300 rounded-md mr-2">{currentLanguage.flag}</span>
+                                            {currentLanguage.label}
+                                          </button>
+                                          {isLangDropdownOpen && (
+                                            <motion.ul
+                                              className={`absolute top-full left-4 z-10 w-full border border-black/40 rounded-lg shadow-lg ${
+                                                isDark ? 'bg-gray-800' : 'bg-white'
+                                              }`}
+                                              initial={{ opacity: 0, y: -10 }}
+                                              animate={{ opacity: 1, y: 0 }}
+                                              transition={{ duration: 0.2 }}
+                                            >
+                                              {languages.map((lang) => (
+                                                <li
+                                                  key={lang.code}
+                                                  className="px-3 py-2.5 border-b text-[15px] font-semibold cursor-pointer hover:bg-gray-100 flex items-center"
+                                                  onClick={() => handleLanguageChange(lang.code)}
+                                                >
+                                                  <span className='border border-gray-300 rounded-md mr-2'>{lang.flag}</span>
+                                                  {lang.label}
+                                                </li>
+                                              ))}
+                                            </motion.ul>
+                                          )}
+                                        </div>
+                                        <div className="border-t border-black/10 mx-4 my-2" />
+                                        <div className="px-4 py-3 flex gap-4">
+                                          <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                            <Github className="w-5 h-5 cursor-pointer" />
+                                          </a>
+                                          <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                            <Instagram className="w-5 h-5 cursor-pointer" />
+                                          </a>
+                                          <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                            <Twitter className="w-5 h-5 cursor-pointer" />
+                                          </a>
+                                        </div>
+                                      </nav>
+                                    </motion.div>
+                                  )}
       </motion.header>
 
             <div className="absolute inset-0 z-50 pointer-events-none">

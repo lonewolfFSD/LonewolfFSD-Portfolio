@@ -6,6 +6,10 @@ import { auth } from "../../../firebase";
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
 import { useAvatar } from "../../AvatarContext";
 import Helmet from 'react-helmet';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../../firebase';
+import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';
 
 import AIJobs from './pics/ai_jobs.png';
 import TechBehind from './pics/tech_behind_ai.png';
@@ -18,6 +22,10 @@ const Blog: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
+    const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false); // Minimal state for dropdown
+        const { t, i18n } = useTranslation();
+        const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -25,33 +33,131 @@ const Blog: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  // Profile dropdown options
+      const profileOptions = [
+      { label: t('Profile'), icon: User, action: () => navigate('/profile') },
+      { label: t('Admin Panel'), icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
+      { label: t('Purchase History'), icon: Wallet, action: () => navigate("/purchase-history") },
+      { label: t("Enquiry Listing"), icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
+      { label: t('Log Out'), icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
+    ];
+  
+    const flags = {
+  en: (
+    <img
+      src="https://flagcdn.com/w40/gb.png"
+      alt="English"
+      className="w-7 h-5 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  es: (
+    <img
+      src="https://flagcdn.com/w40/es.png"
+      alt="Spanish"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  fr: (
+    <img
+      src="https://flagcdn.com/w40/fr.png"
+      alt="French"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  it: (
+    <img
+      src="https://flagcdn.com/w40/it.png"
+      alt="Italian"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  pt: (
+    <img
+      src="https://flagcdn.com/w40/pt.png"
+      alt="Portuguese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  ja: (
+    <img
+      src="https://flagcdn.com/w40/jp.png"
+      alt="Japanese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  zh: (
+    <img
+      src="https://flagcdn.com/w40/cn.png"
+      alt="Chinese"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+  ko: (
+    <img
+      src="https://flagcdn.com/w40/kr.png"
+      alt="Korean"
+      className="w-7 h-1.3 shrink-0 object-cover rounded-sm"
+    />
+  ),
+};
+  
+  const languages = [
+    { code: 'en', label: 'English', flag: flags.en },
+    { code: 'es', label: 'Español', flag: flags.es },
+    { code: 'fr', label: 'Français', flag: flags.fr },
+    { code: 'it', label: 'Italiano', flag: flags.it },
+    { code: 'pt', label: 'Português', flag: flags.pt },
+    { code: 'ja', label: '日本語', flag: flags.ja },
+    { code: 'zh', label: '中文', flag: flags.zh },
+    { code: 'ko', label: '한국어', flag: flags.ko },
+  ];
+
+// Sync language with localStorage and i18next on change
+      const handleLanguageChange = (lang) => {
+        setSelectedLanguage(lang);
+        i18n.changeLanguage(lang);
+        localStorage.setItem('i18nextLng', lang);
+        setIsLangDropdownOpen(false); // Close dropdown after selection
+        setIsMenuOpen(false); // Close menu after selection
+
+        window.location.reload();
+      };
+
+              // Ensure language is loaded from localStorage on mount
+            useEffect(() => {
+              const savedLanguage = localStorage.getItem('i18nextLng');
+              const defaultLanguage = 'en'; // Default to English
+            
+              if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
+                // Use saved language if it exists and is valid
+                if (savedLanguage !== i18n.language) {
+                  i18n.changeLanguage(savedLanguage);
+                  setSelectedLanguage(savedLanguage);
+                }
+              } else {
+                // Set default to English only if no valid language is found
+                i18n.changeLanguage(defaultLanguage);
+                setSelectedLanguage(defaultLanguage);
+                localStorage.setItem('i18nextLng', defaultLanguage);
+              }
+            }, [i18n]);
+
   useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-    setUser(currentUser);
-    if (currentUser) {
-      // Fetch user role from Firestore
-      const userDocRef = doc(db, 'users', currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        setUserRole(userDoc.data().role); // e.g., 'admin' or 'user'
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        setUser({
+          ...currentUser,
+          role: userDoc.exists() ? userDoc.data().role : 'user',
+        });
+      } else {
+        setUser(null);
       }
-    } else {
-      setUserRole(null);
-    }
-  });
-  return () => unsubscribe();
-}, []);
+    });
+    return () => unsubscribe();
+  }, []);
 
 const [userRole, setUserRole] = useState<string | null>(null);
-
-  // Profile dropdown options
-    const profileOptions = [
-    { label: 'Profile', icon: User, action: () => navigate('/profile') },
-    { label: 'Admin Panel', icon: Settings, action: () => navigate("/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29"), adminOnly: true },
-    { label: "Purchase History", icon: Wallet, action: () => navigate("/purchase-history") },
-    { label: "Enquiry Listing", icon: Inbox, action: () => navigate("/enquiries"), adminOnly: true },
-    { label: 'Log Out', icon: LogOut, action: () => signOut(auth).then(() => navigate('/')) },
-  ];
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -65,6 +171,8 @@ const [userRole, setUserRole] = useState<string | null>(null);
       },
     },
   };
+
+  const currentLanguage = languages.find((lang) => lang.code === selectedLanguage) || languages.find((lang) => lang.code === 'en');
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -88,173 +196,204 @@ const [userRole, setUserRole] = useState<string | null>(null);
 
       {/* Header */}
       <motion.header
-        className="container mx-auto px-6 py-8 flex justify-between items-center relative"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Animated Logo */}
-        <motion.div
-          className="text-xl font-medium flex"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          <a href="/">
-            <img
-              src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg"
-              className="rounded-full"
-              style={{ width: '60px', height: 'auto', marginBottom: '-5px' }}
-              alt="Logo"
-            />
-          </a>
-        </motion.div>
-
-
-
-        {/* Animated Action Buttons */}
-        <motion.div
-          className="flex items-center gap-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
-<motion.button
-  onClick={() => {
-    if (user) {
-      setIsProfileDropdownOpen(!isProfileDropdownOpen); // Toggle dropdown for logged-in users
-    } else {
-      navigate("/auth"); // Navigate to auth for guests
-    }
-  }}
-  className={`${
-    avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
-  } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
-    isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
-  } transition-colors`}
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.6, duration: 0.5 }}
->
-  {avatarURL || auth.currentUser?.photoURL ? (
-    <img
-      src={avatarURL || auth.currentUser?.photoURL}
-      alt="Profile"
-      className="w-9 h-9 rounded-full object-cover cursor-custom-pointer"
-    />
-  ) : (
-    <User className="w-5 h-5 cursor-custom-pointer" />
-  )}
-</motion.button>
-                    {/* Dropdown for logged-in users */}
-                                      {user && isProfileDropdownOpen && (
-                                                  <motion.div
-                                                    className={`absolute top-full right-20 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-50 overflow-hidden ${
-                                                      isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-                                                    }`}
-                                                    initial={{ opacity: 0, y: -10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    transition={{ duration: 0.3 }}
-                                                  >
-                                                    <div className="p-4">
-                                                      <div className="ml-1 flex">
-                                                        {avatarURL || auth.currentUser?.photoURL ? (
-                                                          <img
-                                                            src={avatarURL || auth.currentUser?.photoURL}
-                                                            alt="Profile"
-                                                            className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
-                                                          />
-                                                        ) : (
-                                                          <User className="w-5 h-5" />
-                                                        )}
-                                                        <div className="flex flex-col mb-3.5">
-                                                          <p className="text-sm font-semibold ml-2">{user.displayName}</p>
-                                                          <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
-                                                        </div>
-                                                      </div>
-                                                      {profileOptions
-  .filter((option) => !option.adminOnly || (option.adminOnly && userRole === 'admin'))
-  .map((option, index) => (
-    <button
-      key={index}
-      onClick={() => {
-        option.action();
-        setIsProfileDropdownOpen(false);
-      }}
-      className={`w-full text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${
-        isDark ? "hover:bg-gray-750" : "hover:bg-gray-100"
-      }`}
-    >
-      <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
-      {option.label}
-    </button>
-))}
-                                                    </div>
-                                                  </motion.div>
-                                                )}
-                                                          <Link to="/contact">
-                    <motion.button
-                      className={`px-6 hidden md:block hover:px-8 transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
+                    className="container mx-auto px-6 py-8 flex justify-between items-center relative"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {/* Animated Logo */}
+                    <motion.div
+                      className="text-xl font-medium flex"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.8, duration: 0.5 }}
+                      transition={{ delay: 0.2, duration: 0.5 }}
                     >
-                      Let's Connect
-                    </motion.button>
-                    </Link>
-          <motion.button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`p-2 rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-50`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.5 }}
-          >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </motion.button>
-        </motion.div>
-
-        {/* Animated Dropdown Menu */}
-        {isMenuOpen && (
-                <motion.div
-                  className={`absolute top-full -mt-5 right-6 w-64  rounded-2xl shadow-lg z-50 border border-gray-300 overflow-hidden transition-all transform origin-top-right ${isDark ? 'bg-gray-800' : 'bg-white'}`}
-                  initial={{ opacity: 0, y: -15, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                >
-                  <nav className="p-3">
-                    {[
-                      { label: 'About Me', href: '/about-me' },
-                      { label: 'LonewolfFSD Blogs', href: '/blogs' },
-                      { label: 'The RepoHub', href: 'https://github.com/lonewolfFSD?tab=repositories' },
-                      { label: 'FSD DevSync', href: '/dev-sync' },
-                      { label: 'Wanna Collaborate?', href: '/lets-collaborate' },
-                    ].map((item, index) => (
-                      <Link
-                        key={index}
-                        to={item.href}
-                        className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                    <div className="border-t border-black/10 mx-4 my-2" />
-                    <div className="px-4 py-3 flex gap-4">
-                      <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Github className="w-5 h-5 cursor-pointer" />
-                      </a>
-                      <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Instagram className="w-5 h-5 cursor-pointer" />
-                      </a>
-                      <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
-                        <Twitter className="w-5 h-5 cursor-pointer" />
-                      </a>
-                    </div>
-                  </nav>
-                </motion.div>
+                      <a href=""><img alt="logo" src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg" className='cursor-custom-pointer rounded-full' style={{
+                        width: '60px', height: 'auto', marginBottom: '-5px'
+                      }}/></a>
+                    </motion.div>
+            
+                    {/* Animated Action Buttons */}
+                    <motion.div
+                      className="flex items-center gap-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4, duration: 0.5 }}
+                    >
+            
+            <motion.button
+              onClick={() => {
+                if (user) {
+                  setIsProfileDropdownOpen(!isProfileDropdownOpen); // Toggle dropdown for logged-in users
+                } else {
+                  navigate("/auth"); // Navigate to auth for guests
+                }
+              }}
+              aria-label="profile"
+              className={`${
+                avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
+              } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
+                isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
+              } transition-colors`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
+              {avatarURL || auth.currentUser?.photoURL ? (
+                <img
+                  src={avatarURL || auth.currentUser?.photoURL}
+                  alt="Profile"
+                  className="w-9 h-9 rounded-full object-cover cursor-custom-pointer"
+                />
+              ) : (
+                <User className="w-5 h-5 cursor-custom-pointer" />
               )}
-      </motion.header>
+            </motion.button>
+            
+                              {/* Dropdown for logged-in users */}
+                              {user && isProfileDropdownOpen && (
+                                          <motion.div
+                                            className={`absolute top-full right-20 z-50 md:right-60 w-60 md:w-60 border border-black/20 mt-[-20px] rounded-2xl shadow-lg z-10 overflow-hidden ${
+                                              isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+                                            }`}
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ duration: 0.3 }}
+                                          >
+                                            <div className="p-4">
+                                              <div className="ml-1 flex">
+                                                {avatarURL || auth.currentUser?.photoURL ? (
+                                                  <img
+                                                    src={avatarURL || auth.currentUser?.photoURL}
+                                                    alt="Profile"
+                                                    className="w-10 h-10 rounded-full object-cover bg-gray-200 p-1"
+                                                  />
+                                                ) : (
+                                                  <User className="w-5 h-5" />
+                                                )}
+                                                <div className="flex flex-col mb-3.5">
+                                                  <p className="text-sm font-semibold ml-2">{user.displayName}</p>
+                                                  <p className="text-xs text-gray-500 font-semibold ml-2">{user.email}</p>
+                                                </div>
+                                              </div>
+                                              {profileOptions
+                                                .filter((option) => !option.adminOnly || (option.adminOnly && user?.role === 'admin'))
+                                                .map((option, index) => (
+                                                  <button
+                                                    key={index}
+                                                    onClick={() => {
+                                                      option.action();
+                                                      setIsProfileDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full cursor-custom-pointer text-left text-[14.3px] px-1.5 hover:px-3 group hover:font-semibold transition-all py-[7px] rounded-lg flex items-center gap-2.5 ${isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-100'}`}
+                                                  >
+                                                    <option.icon className="w-4 h-4 opacity-60 bg-white text-gray-950 [stroke-width:2] group-hover:[stroke-width:3]" />
+                                                    {option.label}
+                                                  </button>
+                                                ))}
+                                            </div>
+                                          </motion.div>
+                                        )}
+                      <a href="/contact">
+                      <motion.button
+                        aria-label="contact"
+                        className={`px-6 hover:px-8 hidden md:block cursor-custom-pointer transition-all py-2 rounded-full font-semibold ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-900'} flex items-center gap-2`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8, duration: 0.5 }}
+                      >
+                        {t("Let's Connect")}
+                      </motion.button>
+                      </a>
+                      <motion.button
+                        aria-label="Open menu"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className={`p-2 cursor-custom-pointer rounded-full border ${isDark ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition-colors relative z-10`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1, duration: 0.5 }}
+                      >
+                        {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                      </motion.button>
+                    </motion.div>
+            
+                    {/* Animated Dropdown Menu */}
+                                {isMenuOpen && (
+                                 <motion.div
+                                   className={`absolute top-full right-6 w-64 mt-[-20px] border border-black/20 rounded-2xl shadow-lg z-50 transition-all transform origin-top-right ${
+                                     isDark ? 'bg-gray-800' : 'bg-white'
+                                   }`}
+                                   initial={{ opacity: 0, y: -15, scale: 0.95 }}
+                                   animate={{ opacity: 1, y: 0, scale: 1 }}
+                                   transition={{ duration: 0.25, ease: 'easeOut' }}
+                                 >
+                                   <nav className="p-3">
+                                     {[
+                                       { label: t('About Me'), href: '/about-me' },
+                                       { label: t('LonewolfFSD Blogs'), href: '/blogs' },
+                                       { label: t('The RepoHub'), href: 'https://github.com/lonewolfFSD?tab=repositories' },
+                                       { label: t('FSD DevSync'), href: '/dev-sync' },
+                                       { label: t('Wanna Collaborate?'), href: '/lets-collaborate' },
+                                     ].map((item, index) => (
+                                       <Link
+                                         key={index}
+                                         to={item.href}
+                                         className="block cursor-pointer px-4 py-2.5 text-[15px] font-semibold rounded-lg transition-all duration-200 hover:bg-gray-100 hover:pl-5"
+                                         onClick={() => setIsMenuOpen(false)}
+                                       >
+                                         {item.label}
+                                       </Link>
+                                     ))}
+                                     <div className="border-t border-black/10 mx-4 my-2" />
+                                     <div className="px-4 py-3 relative">
+                                       <button
+                                         className={`w-full px-3 py-2.5 text-[15px] font-semibold rounded-md border border-black/20 text-left flex items-center ${
+                                           isDark ? 'bg-gray-700 text-white' : 'bg-white text-black'
+                                         }`}
+                                         onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                                       >
+                                         <span className="border border-gray-300 rounded-md mr-2">{currentLanguage.flag}</span>
+                                         {currentLanguage.label}
+                                       </button>
+                                       {isLangDropdownOpen && (
+                                         <motion.ul
+                                           className={`absolute top-full left-4 z-10 w-full border border-black/40 rounded-lg shadow-lg ${
+                                             isDark ? 'bg-gray-800' : 'bg-white'
+                                           }`}
+                                           initial={{ opacity: 0, y: -10 }}
+                                           animate={{ opacity: 1, y: 0 }}
+                                           transition={{ duration: 0.2 }}
+                                         >
+                                           {languages.map((lang) => (
+                                             <li
+                                               key={lang.code}
+                                               className="px-3 py-2.5 border-b text-[15px] font-semibold cursor-pointer hover:bg-gray-100 flex items-center"
+                                               onClick={() => handleLanguageChange(lang.code)}
+                                             >
+                                               <span className='border border-gray-300 rounded-md mr-2'>{lang.flag}</span>
+                                               {lang.label}
+                                             </li>
+                                           ))}
+                                         </motion.ul>
+                                       )}
+                                     </div>
+                                     <div className="border-t border-black/10 mx-4 my-2" />
+                                     <div className="px-4 py-3 flex gap-4">
+                                       <a href="https://github.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                         <Github className="w-5 h-5 cursor-pointer" />
+                                       </a>
+                                       <a href="https://instagram.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                         <Instagram className="w-5 h-5 cursor-pointer" />
+                                       </a>
+                                       <a href="https://x.com/lonewolffsd" target="_blank" className="opacity-60 hover:opacity-100 transition-all">
+                                         <Twitter className="w-5 h-5 cursor-pointer" />
+                                       </a>
+                                     </div>
+                                   </nav>
+                                 </motion.div>
+                               )}
+                  </motion.header>
 
       <motion.article
         className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 -mt-14 md:mt-0"
