@@ -6,6 +6,8 @@ import { Notification } from '../types/Notification';
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
 import { auth } from '../../firebase'; // Import your Firebase auth instance
 
+import { useTranslation } from 'react-i18next';
+
 interface NotificationListProps {
   notifications: Notification[];
   onNotificationClick: (notification: Notification) => void;
@@ -37,6 +39,8 @@ const NotificationList: React.FC<NotificationListProps> = ({
     return true;
   });
 
+  const { t } = useTranslation();
+
   function cleanNotificationText(text: string): string {
     // Remove Markdown
     let cleaned = removeMarkdown(text);
@@ -58,7 +62,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
           <h2 className="text-[21px] md:text-xl font-semibold text-black" style={{
             fontFamily: 'Poppins'
           }}>
-            {user?.displayName ? `${user.displayName}'s Notifications` : 'Notifications'}
+            {user?.displayName ? `${user.displayName}'s ${t('Notifications')}` : t('Notifications')}
           </h2>
           {unreadCount > 0 && (
             <span className="bg-black text-white text-xs font-medium px-2.5 py-1 rounded-full">
@@ -77,7 +81,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
         >
           <span className="flex items-center gap-1.5">
             <Bell className={`h-4 w-4 ${filter === 'all' ? 'text-white fill-white' : 'text-gray-500'}`} />
-            All
+            {t('All')}
           </span>
         </button>
 
@@ -90,7 +94,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
         >
           <span className="flex items-center gap-1.5">
             <BellRing className={`h-4 w-4 ${filter === 'unread' ? 'text-white fill-white' : 'text-gray-500'}`} />
-            Unread
+            {t('Unread')}
           </span>
         </button>
 
@@ -103,7 +107,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
         >
           <span className="flex items-center gap-1.5">
             <BellOff className={`h-4 w-4 ${filter === 'read' ? 'text-white fill-white' : 'text-gray-500'}`} />
-            Read
+            {t('Read')}
           </span>
         </button>
         </div>
@@ -133,13 +137,13 @@ const NotificationList: React.FC<NotificationListProps> = ({
               <BellOff className="h-12 w-12 mx-auto mb-3 text-gray-300" />
             )}
 
-            <p className="text-lg font-medium mb-1">No notifications</p>
+            <p className="text-lg font-medium mb-1">{t('No notifications')}</p>
             <p className="text-sm">
               {filter === 'all' 
-                ? "You don't have any notifications yet" 
+                ? t("You don't have any notifications yet") 
                 : filter === 'unread' 
-                  ? "You don't have any unread notifications" 
-                  : "You don't have any read notifications"}
+                  ? t("You don't have any unread notifications" )
+                  : t("You don't have any read notifications")}
             </p>
           </div>
         )}

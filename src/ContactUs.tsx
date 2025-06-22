@@ -7,6 +7,9 @@ import { ArrowLeft, ArrowRight, FileQuestion, TimerReset } from 'lucide-react';
 import Beams from './Beam';
 import SplashCursor from './SplashCursor';
 
+import { useTranslation } from 'react-i18next';
+import '../i18n'; // Import i18n configuration
+
 // Interface for form data
 interface FormData {
   firstName: string;
@@ -40,18 +43,20 @@ const ContactForm: React.FC = () => {
   const [isSplashCursorEnabled, setIsSplashCursorEnabled] = useState(false);
   const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
 
+  const { t } = useTranslation();
+
   const [isAccessibilityWindowOpen, setIsAccessibilityWindowOpen] = useState(false);
   const accessibilityWindowRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (accessibilityWindowRef.current && !accessibilityWindowRef.current.contains(event.target as Node)) {
-      setIsAccessibilityWindowOpen(false);
-    }
-  };
-  document.addEventListener('mousedown', handleClickOutside);
-  return () => document.removeEventListener('mousedown', handleClickOutside);
-}, []);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accessibilityWindowRef.current && !accessibilityWindowRef.current.contains(event.target as Node)) {
+        setIsAccessibilityWindowOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -60,7 +65,7 @@ const ContactForm: React.FC = () => {
     if (name === 'phone') {
       const phoneRegex = /^\+\d{1,4}\s\d{5}\s\d{5}$/;
       if (value && !phoneRegex.test(value)) {
-        setPhoneError('Please enter a valid phone number (e.g., +00 00000 00000)');
+        setPhoneError(t('Please enter a valid phone number (e.g., +00 00000 00000)'));
       } else {
         setPhoneError('');
       }
@@ -97,7 +102,21 @@ const ContactForm: React.FC = () => {
   const speak = (text: string) => {
     if (isScreenReaderEnabled && window.speechSynthesis) {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
+      // Get language from localStorage
+      const storedLang = localStorage.getItem('i18nextLng') || 'en-US';
+      // Map common i18n language codes to Web Speech API compatible codes
+      const langMap: { [key: string]: string } = {
+        'en': 'en-US',
+        'es': 'es-ES',
+        'fr': 'fr-FR',
+        'de': 'de-DE',
+        'it': 'it-IT',
+        'pt': 'pt-PT',
+        'zh': 'zh-CN',
+        // Add more mappings as needed
+      };
+      // Use mapped language or fallback to storedLang if no mapping exists
+      utterance.lang = langMap[storedLang] || storedLang;
       utterance.volume = 1;
       utterance.rate = 1;
       utterance.pitch = 1;
@@ -284,120 +303,53 @@ const ContactForm: React.FC = () => {
 
   return (
     <div className="relative h-screen bg-white">
-<div className="absolute top-4 left-4 z-20 flex flex-col gap-4">
-  {/* Splash Cursor Toggle (lg and above) */}
-  <div className="hidden lg:flex items-center gap-4">
-    <div className="flex items-center gap-2">
-      <motion.span
-        className="text-white text-lg font-mono"
-        variants={textCursorVariants}
-        animate="blink"
-        aria-hidden="true"
-      >
-        |
-      </motion.span>
-      <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
-        Splash Effect
-      </span>
-    </div>
-    <motion.div
-      className="relative inline-flex items-center cursor-pointer"
-      whileTap={{ scale: 0.95 }}
-    >
-      <input
-        type="checkbox"
-        checked={isSplashCursorEnabled}
-        onChange={toggleSplashCursor}
-        className="sr-only peer"
-        id="splashToggle"
-        aria-label="Toggle splash cursor effect"
-      />
-      <label
-        htmlFor="splashToggle"
-        className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
-      >
-        <motion.span
-          className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
-          variants={toggleSliderVariants}
-          animate={isSplashCursorEnabled ? 'on' : 'off'}
-        />
-      </label>
-    </motion.div>
-  </div>
-  {/* Screen Reader Toggle (md and above, top-left) */}
-  <div className="hidden md:block md:static fixed bottom-4 left-4 right-4 md:left-auto md:right-auto md:bottom-auto z-50">
-    <div className="items-center gap-4 justify-between bg-black/70 backdrop-blur-md p-3 rounded-xl md:bg-transparent md:p-0 md:backdrop-blur-none">
-      <p className="text-white text-sm mb-2 font-medium flex gap-1.5 mt-2" style={{ fontFamily: 'Poppins' }}>
-        <FileQuestion size={18} /> Accessibility
-      </p>
-      <hr className="mb-3 opacity-30" />
-      <div className="flex items-center gap-2">
-        <motion.span
-          className="text-white text-lg font-mono"
-          variants={textCursorVariants}
-          animate="blink"
-          aria-hidden="true"
-        >
-          |
-        </motion.span>
-        <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
-          Screen Reader
-        </span>
-        <motion.div
-          className="relative inline-flex items-center cursor-pointer"
-          whileTap={{ scale: 0.95 }}
-        >
-          <input
-            type="checkbox"
-            checked={isScreenReaderEnabled}
-            onChange={toggleScreenReader}
-            className="sr-only peer"
-            id="screenReaderToggle"
-            aria-label="Toggle screen reader"
-          />
-          <label
-            htmlFor="screenReaderToggle"
-            className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
-          >
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-4">
+        {/* Splash Cursor Toggle (lg and above) */}
+        <div className="hidden lg:flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <motion.span
-              className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
-              variants={toggleSliderVariants}
-              animate={isScreenReaderEnabled ? 'on' : 'off'}
+              className="text-white text-lg font-mono"
+              variants={textCursorVariants}
+              animate="blink"
+              aria-hidden="true"
+            >
+              |
+            </motion.span>
+            <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
+              {t('Splash Effect')}
+            </span>
+          </div>
+          <motion.div
+            className="relative inline-flex items-center cursor-pointer"
+            whileTap={{ scale: 0.95 }}
+          >
+            <input
+              type="checkbox"
+              checked={isSplashCursorEnabled}
+              onChange={toggleSplashCursor}
+              className="sr-only peer"
+              id="splashToggle"
+              aria-label="Toggle splash cursor effect"
             />
-          </label>
-        </motion.div>
-      </div>
-    </div>
-  </div>
-  {/* Accessibility Bubble and Window (small screens only) */}
-  <div className="sm:hidden fixed bottom-6 right-6 z-50">
-    <motion.button
-      className="w-14 h-14 bg-white/10 border backdrop-blur-md rounded-full flex items-center justify-center text-white"
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
-      onClick={() => setIsAccessibilityWindowOpen(prev => !prev)}
-      aria-label="Toggle accessibility options"
-      role="button"
-    >
-      <FileQuestion size={26} />
-    </motion.button>
-    <AnimatePresence>
-      {isAccessibilityWindowOpen && (
-        <motion.div
-          ref={accessibilityWindowRef}
-          className="fixed bottom-24 right-4 w-64 bg-black/70 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-lg"
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          role="dialog"
-          aria-label="Accessibility options"
-        >
-          <p className="text-white text-sm mb-2 font-medium flex gap-1.5" style={{ fontFamily: 'Poppins' }}>
-            <FileQuestion size={18} /> Accessibility
-          </p>
-          <hr className="mb-3 opacity-30" />
-          <div className="flex items-center gap-4">
+            <label
+              htmlFor="splashToggle"
+              className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
+            >
+              <motion.span
+                className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
+                variants={toggleSliderVariants}
+                animate={isSplashCursorEnabled ? 'on' : 'off'}
+              />
+            </label>
+          </motion.div>
+        </div>
+        {/* Screen Reader Toggle (md and above, top-left) */}
+        <div className="hidden md:block md:static fixed bottom-4 left-4 right-4 md:left-auto md:right-auto md:bottom-auto z-50">
+          <div className="items-center gap-4 justify-between bg-black/70 backdrop-blur-md p-3 rounded-xl md:bg-transparent md:p-0 md:backdrop-blur-none">
+            <p className="text-white text-sm mb-2 font-medium flex gap-1.5 mt-2" style={{ fontFamily: 'Poppins' }}>
+              <FileQuestion size={18} /> {t('Accessibility')}
+            </p>
+            <hr className="mb-3 opacity-30" />
             <div className="flex items-center gap-2">
               <motion.span
                 className="text-white text-lg font-mono"
@@ -408,37 +360,104 @@ const ContactForm: React.FC = () => {
                 |
               </motion.span>
               <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
-                Screen Reader
+                {t('Screen Reader')}
               </span>
-            </div>
-            <motion.div
-              className="relative inline-flex items-center cursor-pointer"
-              whileTap={{ scale: 0.95 }}
-            >
-              <input
-                type="checkbox"
-                checked={isScreenReaderEnabled}
-                onChange={toggleScreenReader}
-                className="sr-only peer"
-                id="screenReaderToggleMobile"
-                aria-label="Toggle screen reader"
-              />
-              <label
-                htmlFor="screenReaderToggleMobile"
-                className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
+              <motion.div
+                className="relative inline-flex items-center cursor-pointer"
+                whileTap={{ scale: 0.95 }}
               >
-                <motion.span
-                  className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
-                  variants={toggleSliderVariants}
-                  animate={isScreenReaderEnabled ? 'on' : 'off'}
+                <input
+                  type="checkbox"
+                  checked={isScreenReaderEnabled}
+                  onChange={toggleScreenReader}
+                  className="sr-only peer"
+                  id="screenReaderToggle"
+                  aria-label="Toggle screen reader"
                 />
-              </label>
-            </motion.div>
+                <label
+                  htmlFor="screenReaderToggle"
+                  className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
+                >
+                  <motion.span
+                    className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
+                    variants={toggleSliderVariants}
+                    animate={isScreenReaderEnabled ? 'on' : 'off'}
+                  />
+                </label>
+              </motion.div>
+            </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </div>
+        </div>
+        {/* Accessibility Bubble and Window (small screens only) */}
+        <div className="sm:hidden fixed bottom-6 right-6 z-50">
+          <motion.button
+            className="w-14 h-14 bg-white/10 border backdrop-blur-md rounded-full flex items-center justify-center text-white"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsAccessibilityWindowOpen(prev => !prev)}
+            aria-label="Toggle accessibility options"
+            role="button"
+          >
+            <FileQuestion size={26} />
+          </motion.button>
+          <AnimatePresence>
+            {isAccessibilityWindowOpen && (
+              <motion.div
+                ref={accessibilityWindowRef}
+                className="fixed bottom-24 right-4 w-64 bg-black/70 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-lg"
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                role="dialog"
+                aria-label="Accessibility options"
+              >
+                <p className="text-white text-sm mb-2 font-medium flex gap-1.5" style={{ fontFamily: 'Poppins' }}>
+                  <FileQuestion size={18} /> Accessibility
+                </p>
+                <hr className="mb-3 opacity-30" />
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <motion.span
+                      className="text-white text-lg font-mono"
+                      variants={textCursorVariants}
+                      animate="blink"
+                      aria-hidden="true"
+                    >
+                      |
+                    </motion.span>
+                    <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins' }}>
+                      Screen Reader
+                    </span>
+                  </div>
+                  <motion.div
+                    className="relative inline-flex items-center cursor-pointer"
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isScreenReaderEnabled}
+                      onChange={toggleScreenReader}
+                      className="sr-only peer"
+                      id="screenReaderToggleMobile"
+                      aria-label="Toggle screen reader"
+                    />
+                    <label
+                      htmlFor="screenReaderToggleMobile"
+                      className="relative w-12 h-6 bg-gray-600/20 rounded-full outline-none peer-checked:bg-gray-600/20 transition-all duration-300"
+                    >
+                      <motion.span
+                        className="absolute top-1 left-1 w-4 h-4 rounded-full shadow-[0_0_8px_rgba(0,255,204,0.5)]"
+                        variants={toggleSliderVariants}
+                        animate={isScreenReaderEnabled ? 'on' : 'off'}
+                      />
+                    </label>
+                  </motion.div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
       <span className='hidden lg:block'>
         {isSplashCursorEnabled && <SplashCursor />}
@@ -524,10 +543,10 @@ const ContactForm: React.FC = () => {
                   variants={itemVariants}
                   style={{ fontFamily: 'Poppins' }}
                 >
-                  Let's Connect
+                  {t("Let's Connect")}
                 </motion.h2>
                 <p className="text-white text-center text-sm md:text-sm mb-8 md:px-6 mx-auto opacity-90" style={{ fontFamily: 'Poppins' }}>
-                  Whether you're ready to build your next project or just exploring ideas, I'm here to collaborate and bring your vision to life. Reach out and let's make something remarkable together.
+                  {t("Whether you're ready to build your next project or just exploring ideas, I'm here to collaborate and bring your vision to life. Reach out and let's make something remarkable together.")}
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -535,7 +554,7 @@ const ContactForm: React.FC = () => {
                     <motion.div key="step1" variants={itemVariants} initial="hidden" animate="visible">
                       <div>
                         <label htmlFor="firstName" className="block text-sm font-medium text-white/80 mb-2">
-                          First Name <span className='text-red-600'>*</span>
+                          {t('First Name')} <span className='text-red-600'>*</span>
                         </label>
                         <input
                           type="text"
@@ -546,13 +565,13 @@ const ContactForm: React.FC = () => {
                           onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
-                          placeholder="First Name"
+                          placeholder={t('First Name')}
                           aria-required="true"
                         />
                       </div>
                       <div className="mt-4">
                         <label htmlFor="lastName" className="block text-sm font-medium text-white/80 mb-2">
-                          Last Name <span className='text-red-600'>*</span>
+                          {t('Last Name')} <span className='text-red-600'>*</span>
                         </label>
                         <input
                           type="text"
@@ -563,13 +582,13 @@ const ContactForm: React.FC = () => {
                           onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
-                          placeholder="Last Name"
+                          placeholder={t('Last Name')}
                           aria-required="true"
                         />
                       </div>
                       <div className="mt-4">
                         <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
-                          Email Address
+                          {t('Email Address')}
                         </label>
                         <input
                           type="email"
@@ -579,7 +598,7 @@ const ContactForm: React.FC = () => {
                           onChange={handleChange}
                           onFocus={handleInputFocus}
                           className="w-full px-4 py-4 bg-black border border-white/40 rounded-xl text-white outline-none focus:border-white/50 transition-all duration-300"
-                          placeholder="example@example.com"
+                          placeholder={t('example@example.com')}
                         />
                       </div>
                     </motion.div>
@@ -589,7 +608,7 @@ const ContactForm: React.FC = () => {
                     <motion.div key="step2" variants={itemVariants} initial="hidden" animate="visible">
                       <div>
                         <label htmlFor="phone" className="block text-sm font-medium text-white/80 mb-2">
-                          Phone Number <span className='text-red-600'>*</span>
+                          {t('Phone Number')} <span className='text-red-600'>*</span>
                         </label>
                         <input
                           type="tel"
@@ -612,7 +631,7 @@ const ContactForm: React.FC = () => {
                       </div>
                       <div className="mt-4">
                         <label htmlFor="company" className="block text-sm font-medium text-white/80 mb-2">
-                          Company Name <span className='text-red-600'>*</span>
+                          {t('Company Name ')}<span className='text-red-600'>*</span>
                         </label>
                         <input
                           type="text"
@@ -623,13 +642,13 @@ const ContactForm: React.FC = () => {
                           onFocus={handleInputFocus}
                           required
                           className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
-                          placeholder="Company Name"
+                          placeholder={t("Company Name")}
                           aria-required="true"
                         />
                       </div>
                       <div className="mt-4">
                         <label htmlFor="workType" className="block text-sm font-medium text-white/80 mb-2">
-                          Type of Work Required <span className='text-red-600'>*</span>
+                          {t('Type of Work Required ')} <span className='text-red-600'>*</span>
                         </label>
                         <select
                           id="workType"
@@ -641,12 +660,15 @@ const ContactForm: React.FC = () => {
                           className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
                           aria-required="true"
                         >
-                          <option value="">Select Work Type</option>
-                          <option value="Web Development">Web Development</option>
-                          <option value="Mobile Development">Mobile Development</option>
-                          <option value="UI/UX Design">UI/UX Design</option>
-                          <option value="Backend Development">Backend Development</option>
-                          <option value="Other">Other</option>
+                          <option value="">{t('Select Work Type')}</option>
+                          <option value="Web Development">{t('Web Development')}</option>
+                          <option value="Web Hosting">{t('Web Hosting')}</option>    
+                          <option value="Domain Hosting">{t('Domain Hosting')}</option>    
+                          <option value="E-Commerce Store SetUp">{t('E-Commerce Store SetUp')}</option>  
+                          <option value="API Integration & Automation">{t('API Integration & Automation')}</option>                  
+                          <option value="UI/UX Design">{t('UI/UX Design')}</option>
+                          <option value="Backend Development">{t('Backend Development')}</option>
+                          <option value="Other">{t('Other')}</option>
                         </select>
                       </div>
                     </motion.div>
@@ -656,7 +678,7 @@ const ContactForm: React.FC = () => {
                     <motion.div key="step3" variants={itemVariants} initial="hidden" animate="visible">
                       <div>
                         <label htmlFor="contactMethod" className="block text-sm font-medium text-white/80 mb-2">
-                          Preferred Contact Method <span className='text-red-600'>*</span>
+                          {t('Preferred Contact Method ')} <span className='text-red-600'>*</span>
                         </label>
                         <select
                           id="contactMethod"
@@ -668,15 +690,15 @@ const ContactForm: React.FC = () => {
                           className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
                           aria-required="true"
                         >
-                          <option value="">Select Contact Method</option>
-                          <option value="Email">Email</option>
-                          <option value="Phone">Phone</option>
-                          <option value="Video Call">Video Call</option>
+                          <option value="">{t('Select Contact Method')}</option>
+                          <option value="Email">{t('Email')}</option>
+                          <option value="WhatsApp">{t('WhatsApp')}</option>
+                          <option value="Phone">{t('Phone Number')}</option>
                         </select>
                       </div>
                       <div className="mt-4">
                         <label htmlFor="contactTime" className="block text-sm font-medium text-white/80 mb-2">
-                          Best Time to Contact <span className='text-red-600'>*</span>
+                          {t('Best Time to Contact ')} <span className='text-red-600'>*</span>
                         </label>
                         <select
                           id="contactTime"
@@ -688,16 +710,16 @@ const ContactForm: React.FC = () => {
                           className="w-full px-4 py-4 bg-black border border-white/20 rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300"
                           aria-required="true"
                         >
-                          <option value="">Select Time</option>
-                          <option value="Morning">Morning</option>
-                          <option value="Afternoon">Afternoon</option>
-                          <option value="Evening">Evening</option>
-                          <option value="Anytime">Anytime</option>
+                          <option value="">{t('Select Time')}</option>
+                          <option value="Morning">{t('Morning')}</option>
+                          <option value="Afternoon">{t('Afternoon')}</option>
+                          <option value="Evening">{t('Evening')}</option>
+                          <option value="Anytime">{t('Anytime')}</option>
                         </select>
                       </div>
                       <div className="mt-4">
                         <label htmlFor="remarks" className="block text-sm font-medium text-white/80 mb-2">
-                          Remarks <span className='text-xs font-medium opacity-70'>(optional)</span>
+                          {t('Remarks ')} <span className='text-xs font-medium opacity-70'>(optional)</span>
                         </label>
                         <div className="relative w-full">
                           <textarea
@@ -709,7 +731,7 @@ const ContactForm: React.FC = () => {
                             className={`w-full text-sm px-4 py-4 bg-black border ${
                               remarksError ? 'border-red-500' : 'border-white/20'
                             } rounded-lg text-white outline-none focus:border-white/50 transition-all duration-300 resize-none`}
-                            placeholder="Any additional information that may help"
+                            placeholder={t("Any additional information that may help")}
                             rows={6}
                             aria-describedby={remarksError ? 'remarksError' : undefined}
                           />
@@ -737,7 +759,7 @@ const ContactForm: React.FC = () => {
                         className="py-4 px-10 flex gap-2 bg-white/5 text-white font-semibold rounded-lg hover:bg-black/20 transition-all duration-300"
                         aria-label="Go to previous step"
                       >
-                        <ArrowLeft size={18} strokeWidth={3} className='mt-0.5' /> Previous
+                        <ArrowLeft size={18} strokeWidth={3} className='mt-0.5' /> {t('Previous')}
                       </motion.button>
                     )}
                     {currentStep < 3 ? (
@@ -750,7 +772,7 @@ const ContactForm: React.FC = () => {
                         className="py-4 px-10 flex gap-2 bg-white text-black font-semibold rounded-lg hover:bg-white/90 transition-all duration-300 md:ml-auto"
                         aria-label="Go to next step"
                       >
-                        Next Step <ArrowRight size={18} strokeWidth={3} className='mt-1' />
+                        {t('Next Step')} <ArrowRight size={18} strokeWidth={3} className='mt-1' />
                       </motion.button>
                     ) : (
                       <motion.button
@@ -768,10 +790,10 @@ const ContactForm: React.FC = () => {
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                             </svg>
-                            Submitting...
+                            {t('Submitting...')}
                           </span>
                         ) : (
-                          'Submit Enquiry'
+                          t('Submit Enquiry')
                         )}
                       </motion.button>
                     )}
@@ -792,17 +814,16 @@ const ContactForm: React.FC = () => {
                   <TimerReset className="w-14 h-14 text-yellow-100" />
                 </div>
                 <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'Poppins' }}>
-                  Enquiry Submitted!
+                  {t('Enquiry Submitted!')}
                 </h2>
                 <p className="text-sm text-white/80">
-                  Your enquiry has been successfully added to the queue.
+                  {t('Your enquiry has been successfully added to the queue.')}
                 </p>
                 <p className="text-sm text-white/80 mt-1">
-                  LonewolfFSD typically reviews submissions within 24 hours, but in rare cases,
-                  it may take 2–3 business days.
+                  {t("LonewolfFSD typically reviews submissions within 24 hours, but in rare cases, it may take 2–3 business days.")}
                 </p>
                 <p className="text-sm text-white/60 mt-8">
-                  LonewolfFSD will contact you soon for further information.
+                  {t('LonewolfFSD will contact you soon for further information.')}
                 </p>
               </motion.div>
             )}
