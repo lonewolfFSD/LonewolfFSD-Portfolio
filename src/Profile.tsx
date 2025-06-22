@@ -535,13 +535,23 @@ if (publicMode) {
 
 
   // Ensure language is loaded from localStorage on mount
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('i18nextLng');
-    if (savedLanguage && savedLanguage !== i18n.language) {
+useEffect(() => {
+  const savedLanguage = localStorage.getItem('i18nextLng');
+  const defaultLanguage = 'en'; // Default to English
+
+  if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
+    // Use saved language if it exists and is valid
+    if (savedLanguage !== i18n.language) {
       i18n.changeLanguage(savedLanguage);
       setSelectedLanguage(savedLanguage);
     }
-  }, [i18n]);
+  } else {
+    // Set default to English only if no valid language is found
+    i18n.changeLanguage(defaultLanguage);
+    setSelectedLanguage(defaultLanguage);
+    localStorage.setItem('i18nextLng', defaultLanguage);
+  }
+}, [i18n]);
 
 // Function to load Razorpay script dynamically
 const loadRazorpayScript = () => {
@@ -602,7 +612,7 @@ useEffect(() => {
   }
 }, [purchaseDetails]);
 
-
+const currentLanguage = languages.find((lang) => lang.code === selectedLanguage) || languages.find((lang) => lang.code === 'en');
 
 
 // Updated handlePayment function
@@ -2460,8 +2470,8 @@ const toggleEffect = async (effect: Effect | null) => {
                                       }`}
                                       onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
                                     >
-                                      <span className='border border-black mr-2'>{languages.find((lang) => lang.code === selectedLanguage)?.flag}</span>
-                                      {languages.find((lang) => lang.code === selectedLanguage)?.label}
+                                      <span className="border border-black mr-2">{currentLanguage.flag}</span>
+                                      {currentLanguage.label}
                                     </button>
                                     {isLangDropdownOpen && (
                                       <motion.ul

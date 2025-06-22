@@ -96,13 +96,23 @@ function App() {
 
 
   // Ensure language is loaded from localStorage on mount
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('i18nextLng');
-    if (savedLanguage && savedLanguage !== i18n.language) {
+useEffect(() => {
+  const savedLanguage = localStorage.getItem('i18nextLng');
+  const defaultLanguage = 'en'; // Default to English
+
+  if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
+    // Use saved language if it exists and is valid
+    if (savedLanguage !== i18n.language) {
       i18n.changeLanguage(savedLanguage);
       setSelectedLanguage(savedLanguage);
     }
-  }, [i18n]);
+  } else {
+    // Set default to English only if no valid language is found
+    i18n.changeLanguage(defaultLanguage);
+    setSelectedLanguage(defaultLanguage);
+    localStorage.setItem('i18nextLng', defaultLanguage);
+  }
+}, [i18n]);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2000); // fake 2 sec load
@@ -577,6 +587,8 @@ const skills = [
     },
   };
 
+  
+
   const filteredSkills = selectedCategory === 'all'
     ? skills
     : skills.filter(skill => skill.category === selectedCategory);
@@ -616,6 +628,7 @@ const skills = [
   }, []);
 
   const randomRotate = Math.floor(Math.random() * 5) - 2; // random from -2 to 2
+  const currentLanguage = languages.find((lang) => lang.code === selectedLanguage) || languages.find((lang) => lang.code === 'en');
   
 
   return (
@@ -859,8 +872,8 @@ const skills = [
                 }`}
                 onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
               >
-                <span className='border border-black mr-2'>{languages.find((lang) => lang.code === selectedLanguage)?.flag}</span>
-                {languages.find((lang) => lang.code === selectedLanguage)?.label}
+                <span className="border border-black mr-2">{currentLanguage.flag}</span>
+                {currentLanguage.label}
               </button>
               {isLangDropdownOpen && (
                 <motion.ul
