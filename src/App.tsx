@@ -59,6 +59,7 @@ import Callback from './Callback';
 import PurchaseHistory from './PurchaseHistory';
 import Enquiries from './Enquiries';
 import Testimonials from './Testimonials';
+import ClientReview from './ClientReview';
 
 const override: CSSProperties = {
   display: "block",
@@ -602,6 +603,7 @@ const skills = [
       <Route path="/purchase-history" element={<PurchaseHistory />} />
       <Route path="/gmpXRP05issfL14jWssIcxKOREJUNYwMwaS7mbQv69DAZ78N29" element={<AdminPanel isDark={isDark} user={user} />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/client-review" element={<ClientReview />} />
         <Route
           path="/"
           

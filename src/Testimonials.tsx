@@ -18,7 +18,7 @@ const testimonials: Testimonial[] = [
     role: "Startup Founder",
     handle: "@aaravsh",
     testimonial:
-      "LonewolfFSD helped launch our MVP fast. Clean code, great support, and hassle-free hosting!",
+      "LonewolfFSD helped launch our MVP with speed and precision. Their team was incredibly responsive and the backend was airtight.",
     rating: 5,
     avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Aarav",
   },
@@ -28,42 +28,41 @@ const testimonials: Testimonial[] = [
     role: "UI/UX Designer",
     handle: "@meeradesigns",
     testimonial:
-      "Smooth domain setup and backend delivery. LonewolfFSD made it effortless.",
+      "From domain setup to deployment, everything was smooth. The UI delivery was pixel-perfect and mobile-friendly.",
     rating: 4,
     avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Meera",
   },
   {
     id: 3,
-    name: "Ravi Khanna",
-    role: "Digital Marketer",
-    handle: "@ravik",
+    name: "James Walker",
+    role: "Product Manager",
+    handle: "@jwpm",
     testimonial:
-      "Zero downtime, regular updates, and reliable support. Highly dependable service.",
+      "Clear communication, fast turnarounds, and secure infrastructure. LonewolfFSD is a partner I trust for full-stack delivery.",
     rating: 5,
-    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Ravi",
+    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=James",
   },
   {
     id: 4,
-    name: "Nisha Iyer",
-    role: "Content Strategist",
-    handle: "@nishaiyer",
+    name: "高橋 美咲 (Misaki Takahashi)",
+    role: "Webディレクター",
+    handle: "@misaki_web",
     testimonial:
-      "They managed our domain, email, and server fixes with total ease. Very professional.",
-    rating: 4,
-    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Nisha",
+      "迅速な対応と丁寧な開発、信頼できるサービスでした。LonewolfFSDのおかげで安心してプロジェクトを進められました。",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Misaki",
   },
   {
     id: 5,
-    name: "Devansh Rao",
-    role: "Founder, CodeNest",
-    handle: "@devrao",
+    name: "Miguel Santos",
+    role: "Freelance Developer",
+    handle: "@migscode",
     testimonial:
-      "LonewolfFSD nailed our platform build. Fast dev cycles, clean results.",
+      "LonewolfFSD helped me scale my client work. The backend delivery was modular and easy to extend. Will definitely collab again.",
     rating: 5,
-    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Devansh",
+    avatar: "https://api.dicebear.com/9.x/glass/svg?seed=Miguel",
   },
 ];
-
 
 
 const Testimonials: React.FC = () => {
