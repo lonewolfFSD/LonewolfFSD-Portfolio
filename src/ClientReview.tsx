@@ -9,6 +9,7 @@ import DOMPurify from 'dompurify'; // For input sanitization
 import { Dialog, Transition } from '@headlessui/react'; // For modals
 import { Fragment } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
+import Helmet from 'react-helmet';
 
 interface Review {
   id: string;
@@ -362,6 +363,9 @@ const ClientReview: React.FC = () => {
   return (
     <div className="min-h-screen bg-white text-black font-sans">
       <Toaster position="top-right" />
+      <Helmet>
+         <title>LonewolfFSD Client Review Portal</title>
+      </Helmet>
 
       <main className="max-w-6xl mx-auto p-4 sm:p-6">
         <motion.h1
