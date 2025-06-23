@@ -2246,8 +2246,8 @@ const toggleEffect = async (effect: Effect | null) => {
         >
           <a href="/">
             <img
-              src="https://pbs.twimg.com/profile_images/1905319445851246592/KKJ22pIP_400x400.jpg"
-              className="rounded-full"
+              src={logo}
+              className={`rounded-full ${selectedVideo ? 'invert' : ''}`}
               style={{ width: '60px', height: 'auto', marginBottom: '-5px' }}
               alt="Logo"
             />
@@ -2293,7 +2293,7 @@ const toggleEffect = async (effect: Effect | null) => {
   }}
   className={`${
     avatarURL || auth.currentUser?.photoURL ? "p-1.5" : "p-2"
-  } md:p-2 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
+  } md:p-1.5 rounded-full -mr-4 md:mr-0 cursor-custom-pointer ${
     isDark ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600"
   } transition-colors`}
   initial={{ opacity: 0 }}
@@ -2374,7 +2374,7 @@ const toggleEffect = async (effect: Effect | null) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
           >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMenuOpen ? <X className={`w-5 h-5 ${selectedVideo ? 'invert' : ''}`} /> : <Menu className={`w-5 h-5 ${selectedVideo ? 'invert' : ''}`} />}
           </motion.button>
         </motion.div>
 
