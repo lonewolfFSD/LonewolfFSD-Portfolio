@@ -63,6 +63,9 @@ Key Information You Should Know:
 - FSD Credits Refunds require special conditions:
 - The user must still have the exact amount of credits in their account that were originally used during the purchase.
 - If any portion of the FSD Credits has been spent, the refund request will be automatically cancelled.
+- NEW UPDATE: Localization have been added to the site with eight different languages (English, Spanish, French, Italian, Portuguese, Japanese, Chinese (Simplified), and Korean).
+- Users can change language by clicking the three dashed hamburger menu on the top right corner and then clicking the current language with the flag (eg: default language is England Flag with text English).
+- Once language changed the whole site language changes alone with the screen reader and Lyra Mini itself. 
 
 Avoid:
 - Going off-topic or answering questions unrelated to LonewolfFSD or his portfolio
