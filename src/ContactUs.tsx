@@ -6,6 +6,7 @@ import { toast, Toaster } from 'react-hot-toast';
 import { ArrowLeft, ArrowRight, FileQuestion, TimerReset } from 'lucide-react';
 import Beams from './Beam';
 import SplashCursor from './SplashCursor';
+import emailjs from '@emailjs/browser';
 
 import { useTranslation } from 'react-i18next';
 import '../i18n'; // Import i18n configuration
@@ -47,6 +48,10 @@ const ContactForm: React.FC = () => {
 
   const [isAccessibilityWindowOpen, setIsAccessibilityWindowOpen] = useState(false);
   const accessibilityWindowRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+  emailjs.init('MAB06EUxm-KZMo3CC'); // Replace with your EmailJS public key
+}, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -160,58 +165,84 @@ const ContactForm: React.FC = () => {
 
   // Handle form submission
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (phoneError || remarksError) {
-      speak('Cannot submit. Please correct errors in the form.');
-      return;
-    }
-    setIsSubmitting(true);
+  e.preventDefault();
+  if (phoneError || remarksError) {
+    speak('Cannot submit. Please correct errors in the form.');
+    return;
+  }
+  setIsSubmitting(true);
 
-    try {
-      await addDoc(collection(db, 'enquiries'), {
-        ...formData,
-        createdAt: serverTimestamp()
-      });
+  try {
+    // Save enquiry to Firebase
+    await addDoc(collection(db, 'enquiries'), {
+      ...formData,
+      createdAt: serverTimestamp()
+    });
 
-      setIsSubmitted(true);
-      toast.success('Details saved successfully! LonewolfFSD will contact you soon.', {
-        style: {
-          background: '#ffffff',
-          color: '#000000',
-          border: '1px solid #000000',
-        }
-      });
-      speak('Form submitted successfully. You will be contacted soon.');
+    // Send confirmation email to user
+    if (formData.email) {
+      const emailParams = {
+        to_email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        company: formData.company || 'N/A',
+        workType: formData.workType,
+        contactMethod: formData.contactMethod,
+        contactTime: formData.contactTime,
+        remarks: formData.remarks || 'None',
+        responseTime: '2-3 business days'
+      };
 
-      setTimeout(() => {
-        setIsSubmitted(false);
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          phone: '',
-          company: '',
-          remarks: '',
-          workType: '',
-          contactMethod: '',
-          contactTime: ''
+      await emailjs.send('service_ya6ta8x', 'template_cbrpfg2', emailParams)
+        .then((response) => {
+          console.log('Email sent successfully:', response.status, response.text);
+        })
+        .catch((error) => {
+          console.error('EmailJS Error:', error);
+          throw new Error('Failed to send confirmation email');
         });
-        setCurrentStep(1);
-      }, 3000);
-    } catch (error) {
-      console.error('Error saving enquiry:', error);
-      toast.error('Failed to save details. Please try again.', {
-        style: {
-          background: '#ffffff',
-          color: '#000000',
-          border: '1px solid #000000',
-        }
-      });
-      speak('Failed to submit the form. Please try again.');
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+
+    setIsSubmitted(true);
+    toast.success('Details saved successfully! A confirmation email has been sent.', {
+      style: {
+        background: '#ffffff',
+        color: '#000000',
+        border: '1px solid #000000',
+      }
+    });
+    speak('Form submitted successfully. A confirmation email has been sent.');
+
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        company: '',
+        remarks: '',
+        workType: '',
+        contactMethod: '',
+        contactTime: ''
+      });
+      setCurrentStep(1);
+    }, 3000);
+  } catch (error) {
+    console.error('Error saving enquiry or sending email:', error);
+    toast.error('Failed to save details or send email. Please try again.', {
+      style: {
+        background: '#ffffff',
+        color: '#000000',
+        border: '1px solid #000000',
+      }
+    });
+    speak('Failed to submit the form or send email. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // Move to next or previous step
   const nextStep = () => {

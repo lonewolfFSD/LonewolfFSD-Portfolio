@@ -704,6 +704,9 @@ const ClientReview: React.FC = () => {
                       <button
                         type="submit"
                         className="px-4 py-2 bg-black text-white rounded-md"
+                        onClick={() => {
+                          handleEditReview
+                        }}
                         disabled={submitting}
                       >
                         {submitting ? 'Updating...' : 'Update Review'}
@@ -747,7 +750,7 @@ const ClientReview: React.FC = () => {
                 <Dialog.Panel
                   as="div" className="bg-white rounded-md p-6 max-w-sm w-full"
                 >
-                  <Dialog.Title as="text-lg font-semibold mb-4">
+                  <Dialog.Title>
                     Delete Review
                   </Dialog.Title>
                   <p className="text-sm text-gray-600 mb-6">
@@ -826,7 +829,7 @@ const ClientReview: React.FC = () => {
                     >
                       <div className="md:col-span-3">
                         <div className="flex justify-between mb-2 items-center">
-                          <h3 className="text-lg sm:text-xl font-semibold">{review.name}</h3>
+                          <h3 className="text-lg sm:text-xl font-semibold">{review.project}</h3>
                           <span className="text-sm text-gray-500">
                             {review.timestamp.toLocaleDateString()}
                           </span>
@@ -835,23 +838,15 @@ const ClientReview: React.FC = () => {
                           <span className="text-yellow-400 text-xl">{'★'.repeat(review.rating)}</span>
                         </p>
                         <hr className="divider" />
-                        <p className="text-sm font-semibold text-gray-600 underline mb-2 mt-4">{review.project}</p>
+                        <p className="text-sm font-semibold text-gray-600 underline mb-2 mt-4">Issuer: {review.name}</p>
                         <p className="text-sm text-gray-600 italic mt-4">{review.feedback}</p>
                         <br />
                         {review.showOnHomepage && (
                           <StatusIndicator status={review.status} />
                         )}
+                        <hr className='mb-4 mt-4 ' />
                                               {review.status === 'pending' && (
                         <div className="flex flex-row space-x-2 md:space-x-2 justify-end">
-                          <button
-                            type="button"
-                            className="px-4 py-2 bg-gray-500 text-white sm:hover:bg-blue-600 rounded-md text-sm flex gap-2"
-                            onClick={() => openEditModal(review)}
-                            aria-label={`Edit review for ${review.project}`}
-                          >
-                            <Pencil size={17} className='mt-0.5' />
-                            Edit Review
-                          </button>
                           <button
                             type="submit"
                             className="px-4 py-2 sm:bg-red- bg-red-600 text-sm text-white rounded-md flex gap-2"
@@ -861,7 +856,7 @@ const ClientReview: React.FC = () => {
                             }}
                             aria-label="Delete review for {review.project}"
                           >
-                            <Trash2 size={17} /> Delete
+                            <Trash2 size={17} /> Delete Review
                           </button>
                         </div>
                       )}
