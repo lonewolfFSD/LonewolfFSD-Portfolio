@@ -45,6 +45,7 @@ import AIBlog from './Blogs/pages/AIBlog';
 import Lang from './Blogs/pages/Lang';
 import HeroSection from './Components/HeroSection';
 import AdminPanel from './AdminPanel';
+import MaintainancePricing from './MaintainacePricing';
 
 import { ToastContainer } from 'react-toastify';
 import { showOfflineToast, dismissOfflineToast } from './toast';
@@ -581,6 +582,7 @@ const skills = [
   return (
       <Routes>
       <Route path="/blogs" element={<BlogPage />} />
+      <Route path="/maintainance-pricing" element={<MaintainancePricing />} />
       <Route path="/auth" element={<AuthPage isDark={isDark} />} />
       <Route path="/check-email" element={<CheckYourEmail isDark={isDark} />} />
       <Route path="/forgot-password" element={<ForgotPassword isDark={isDark} />} /> {/* New route */}
