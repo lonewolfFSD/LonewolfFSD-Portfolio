@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     const client = await auth.getClient();
-    const spreadsheetId = '1Ru0jsZcd7482hwyl_KofhCy5wI8ap9Pi4OrCFXPFxso'; // Your Google Sheet ID
+    const spreadsheetId = '1FouAChacathAvCV2JoNZKSxZdYFd90FQ4CKmhOkeeF4'; // Your Google Sheet ID
     const data = req.body; // Express parses JSON body
 
     await sheets.spreadsheets.values.append({

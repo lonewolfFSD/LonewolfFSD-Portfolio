@@ -4,6 +4,7 @@ import Helmet from 'react-helmet';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '../firebase'; // Your Firestore instance from firebase.tsx
+import logo from './mockups/logo.png';
 
 interface PricingCardProps {
   title: string;
@@ -171,7 +172,7 @@ const PricingPage: React.FC = () => {
       currency: 'INR',
       name: 'LonewolfFSD',
       description: `${selectedPlan!.title} Maintenance Plan`,
-      image: 'https://lonewolffsd.in/logo.png',
+      image: logo,
       handler: async (response: any) => {
         try {
           // Save to Firestore
