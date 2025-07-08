@@ -8,9 +8,12 @@ interface PricingCardProps {
   period: string;
   features: string[];
   isRecommended?: boolean;
+  onChoose: (plan: { title: string; price: number; period: string }) => void;
 }
 
-const PricingCard: React.FC<PricingCardProps> = ({ title, price, period, features, isRecommended = false }) => {
+
+
+const PricingCard: React.FC<PricingCardProps> = ({ title, price, period, features, isRecommended = false, onChoose }) => {
   const GST_RATE = 0.18;
   const basePrice = price / (1 + GST_RATE);
   const gstAmount = price * GST_RATE;
@@ -50,7 +53,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ title, price, period, feature
       <motion.button
         className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition-colors"
         whileTap={{ scale: 0.95 }}
-        onClick={() => window.location.href = '/contact'}
+        onClick={() => onChoose({ title, price, period })}
       >
         Choose Plan
       </motion.button>
@@ -59,6 +62,16 @@ const PricingCard: React.FC<PricingCardProps> = ({ title, price, period, feature
 };
 
 const PricingPage: React.FC = () => {
+  const [selectedPlan, setSelectedPlan] = React.useState<null | {
+    title: string;
+    price: number;
+    period: string;
+  }>(null);
+
+  const handleChoosePlan = (plan: { title: string; price: number; period: string }) => {
+  setSelectedPlan(plan);
+};
+
   return (
     <div className="min-h-screen bg-white text-black font-poppins flex flex-col items-center justify-center p-6">
       <motion.div
@@ -78,6 +91,7 @@ const PricingPage: React.FC = () => {
           price={2500}
           period="month"
           features={['Unlimited access', 'Basic support', '1 user account', 'Monthly updates']}
+          onChoose={handleChoosePlan}
         />
         <PricingCard
           title="Quarterly"
@@ -85,10 +99,11 @@ const PricingPage: React.FC = () => {
           period="3 months"
           features={['Unlimited access', 'Priority support', '3 user accounts', 'Monthly updates', 'Exclusive features']}
           isRecommended={true}
+          onChoose={handleChoosePlan}
         />
         <PricingCard
           title="Yearly"
-          price={20000}
+          price={18000}
           period="year"
           features={[
             'Unlimited access',
@@ -98,11 +113,66 @@ const PricingPage: React.FC = () => {
             'Exclusive features',
             'Annual insights report',
           ]}
+          onChoose={handleChoosePlan}
         />
         <span className="lg:hidden">
           <br />
         </span>
       </div>
+
+      {selectedPlan && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 px-4">
+          <div className="bg-white text-black rounded-xl p-8 w-full max-w-md shadow-lg relative">
+            <button
+              className="absolute top-3 right-4 text-xl"
+              onClick={() => setSelectedPlan(null)}
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-bold mb-4">Confirm Your Plan</h2>
+            <p className="mb-2"><strong>Plan:</strong> {selectedPlan.title}</p>
+            <p className="mb-2"><strong>Billing Cycle:</strong> {selectedPlan.period}</p>
+            <p className="mb-4"><strong>Total (incl. GST):</strong> ₹{selectedPlan.price.toLocaleString()}</p>
+            
+            <button
+              onClick={async () => {
+                // You'd normally fetch the subscription from your Vercel API route
+                const res = await fetch('https://lonewolffsd.in/api/create-subscription', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ plan: selectedPlan.title })
+                });
+
+                if (!res.ok) {
+                  alert('Failed to create subscription. Please try again.');
+                  return;
+                }
+
+                const { subscription_id, key } = await res.json();
+
+                const razorpay = new window.Razorpay({
+                  key,
+                  subscription_id,
+                  name: 'LonewolfFSD',
+                  description: `${selectedPlan.title} Maintenance Plan`,
+                  handler: (response) => {
+                    alert('Payment successful!');
+                    console.log(response);
+                  },
+                  theme: {
+                    color: '#000000'
+                  }
+                });
+
+                razorpay.open();
+              }}
+              className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900"
+            >
+              Proceed to Pay
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
