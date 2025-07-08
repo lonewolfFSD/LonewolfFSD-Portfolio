@@ -56,7 +56,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ title, price, period, feature
       </div>
       <ul className="text-left mb-8 space-y-3 min-h-[300px]">
         {features.map((feature, index) => (
-          <li key={index} className="flex items-center text-sm">
+          <li key={index} className="flex items-center text-base md:text-sm">
             <span className="mr-3">✔</span> {feature}
           </li>
         ))}
