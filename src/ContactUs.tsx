@@ -508,7 +508,7 @@ const ContactForm: React.FC = () => {
       <div className="relative z-10 flex items-center justify-center min-h-screen">
         <Toaster position="top-right" />
         <motion.div
-          className="w-full h-screen sm:h-auto sm:max-w-xl bg-black/40 backdrop-blur-md border border-white/60 sm:rounded-2xl px-8 py-14 shadow-lg"
+          className="w-full h-screen sm:h-auto sm:max-w-xl bg-black/40 backdrop-blur-md border-r border-l border-white/60 3xl:rounded-2xl px-8 py-14 shadow-lg"
           variants={containerVariants}
           initial="hidden"
           animate="visible"

@@ -111,7 +111,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ isDark }) => {
       </div>
 
       <motion.div
-        className="w-full max-w-[480px] -mt-28 md:mt-0 p-6 md:p-14 md:rounded-3xl md:border md:border-black bg-white relative"
+        className="w-full max-w-[480px] -mt-28 md:mt-0 p-6 md:p-14 md:rounded-3xl bg-white relative"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}

@@ -281,7 +281,7 @@ const About: React.FC = () => {
           </motion.div>
         </motion.header>
 
-        <div className="px-6 md:px-20 py-14 lg:py-24 flex items-center justify-center">
+        <div className="px-6 md:px-20 py-14 lg:py-20 flex items-center justify-center">
           <div className="max-w-5xl w-full flex flex-col items-start space-y-6">
             <motion.h1
               initial={{ opacity: 0, y: 10 }}

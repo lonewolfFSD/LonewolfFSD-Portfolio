@@ -865,7 +865,7 @@ const skills = [
       </motion.header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 mt-6 lg:mt-16 z-50">
+      <main className="container mx-auto px-6 mt-6 lg:mt-10 3xl:mt-16 z-50">
         <Spline scene="https://prod.spline.design/pb7UhbKVN30j962d/scene.splinecode" className="hidden lg:block" />
         <div className="max-w-4xl lg:mt-[-45%] xl:mt-[-49%]">
           {/* Animated Paragraph */}
@@ -880,7 +880,7 @@ const skills = [
 
           {/* Animated Heading */}
           <motion.h1
-            className="text-5xl md:text-7xl lg:text-8xl font-extrabold lg:font-bold leading-tight mb-8 pointer-events-none"
+            className="text-5xl md:text-7xl lg:text-[88px] 3xl:text-8xl font-extrabold lg:font-bold leading-tight mb-8 pointer-events-none"
             style={{ fontFamily: 'Poppins' }} // default (mobile)
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1038,7 +1038,7 @@ const skills = [
 
           <Projects />
 
-          <section className='mt-12 md:mt-32'>
+          <section className='mt-12 md:mt-32 hidden md:block'>
             <h2 className="text-3xl font-semibold mb-12" style={{
               fontFamily: 'Poppins'
             }}>{t ("Here's What Others Say")}</h2>
