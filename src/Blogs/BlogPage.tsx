@@ -33,6 +33,13 @@ const featuredPost = {
 };
 
 const blogPosts = [
+    {
+    title: t('article_3_title'),
+    excerpt: t('article_3_desc'),
+    date: t('article_3_date'),
+    readTime: t('article_3_time'),
+    link: "/blogs/meauli"
+  },
   {
     title: t('spotlight_heading'),
     excerpt: t('spotlight_description'),
@@ -54,13 +61,6 @@ const blogPosts = [
     readTime: t('article_2_time'),
     link: "/blogs/will-ai-take-our-jobs"
   },
-  {
-    title: t('article_3_title'),
-    excerpt: t('article_3_desc'),
-    date: t('article_3_date'),
-    readTime: t('article_3_time'),
-    link: "/blogs/meauli"
-  }
 ];
 
 // Animation variants for reusability

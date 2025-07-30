@@ -37,7 +37,7 @@ const projects: Project[] = [
     title: 'Meauli: Pet Accessories ',
     description: 'project.lonewolffsd.description',
     image: 'https://i.ibb.co/B57dMgSR/Pics-Art-07-30-07-00-12.jpg',
-    link: 'https://meauli.vercel.app',
+    link: '/blogs/meauli',
     readTime: 'BLOG',
     github: '',
   },
