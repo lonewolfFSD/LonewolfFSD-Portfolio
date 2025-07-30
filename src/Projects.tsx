@@ -21,9 +21,9 @@ const projects: Project[] = [
     title: 'Lyra: Virtual AI Companion',
     description: 'project.lyra.description', // Added for potential future use
     image: Lyra,
-    link: '/blogs/lyralabs/lyra-ai',
-    readTime: 'BLOG',
-    github: 'https://github.com/lyra-ai',
+    link: 'https://lyralabs.lonewolffsd.in',
+    readTime: 'WEBSITE',
+    github: 'https://github.com/lonewolfFSD/LyraLabs-AI',
   },
   {
     title: 'LonewolfFSD Portfolio',
@@ -32,6 +32,22 @@ const projects: Project[] = [
     link: '#',
     readTime: 'WEBSITE',
     github: 'https://github.com/lonewolffsd',
+  },
+  {
+    title: 'Meauli: Pet Accessories ',
+    description: 'project.lonewolffsd.description',
+    image: LonewolfFSD,
+    link: 'https://meauli.vercel.app',
+    readTime: 'BLOG',
+    github: '',
+  },
+    {
+    title: 'Meauli: Pet Accessories ',
+    description: 'project.lonewolffsd.description',
+    image: LonewolfFSD,
+    link: 'https://meauli.vercel.app',
+    readTime: 'BLOG',
+    github: '',
   },
 ];
 
@@ -47,7 +63,6 @@ const ProjectCard: React.FC<{ project: Project; isNewsletter?: boolean }> = ({ p
       setIsNewsletterOpen(true);
     }
   };
-
 
   // Conditionally render as div for newsletter or a for projects
   const CardWrapper = isNewsletter ? 'div' : 'a';
@@ -169,7 +184,8 @@ const ProjectShowcase: React.FC = () => {
         <ProjectCard project={projects[0]} />
         <ProjectCard project={projects[1]} />
       </div>
-      <div className="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-neutral-300 border-x border-b border-neutral-300 md:grid-cols-1 md:divide-x md:divide-y-0">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-2 divide-y divide-neutral-300 border-x border-b border-neutral-300 md:divide-x md:divide-y-0">
+        <ProjectCard project={projects[2]} />
         <a
           href="#"
           className="group relative flex h-56 cursor-custom-pointer flex-col justify-end p-6 transition-colors hover:bg-neutral-100 md:h-80 md:p-9"
