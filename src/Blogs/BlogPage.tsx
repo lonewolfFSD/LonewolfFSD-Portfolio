@@ -25,11 +25,11 @@ import { t } from 'i18next';
 
 // Mock data for blog posts
 const featuredPost = {
-  title: t('spotlight_heading'),
-  excerpt: t('spotlight_description'),
-  date: t('spotlight_date'),
-  readTime: t('spotlight_read_time'),
-  image: {Lyra}
+  title: t('article_3_title'),
+  excerpt: t('article_3_desc'),
+  date: t('article_3_date'),
+  readTime: t('article_3_time'),
+  image: 'https://i.ibb.co/B57dMgSR/Pics-Art-07-30-07-00-12.jpg'
 };
 
 const blogPosts = [
@@ -53,6 +53,13 @@ const blogPosts = [
     date: t('article_2_date'),
     readTime: t('article_2_time'),
     link: "/blogs/will-ai-take-our-jobs"
+  },
+  {
+    title: t('article_3_title'),
+    excerpt: t('article_3_desc'),
+    date: t('article_3_date'),
+    readTime: t('article_3_time'),
+    link: "/blogs/meauli"
   }
 ];
 
@@ -535,7 +542,7 @@ const [userRole, setUserRole] = useState<string | null>(null);
                   <span className="text-xs">{featuredPost.readTime}</span>
                 </div>
               </div>
-              <Link to="lyralabs/lyra-ai">
+              <Link to="/blogs/meauli">
                 <button
                   className="mt-6 cursor-custom-pointer group flex items-center justify-center w-full md:w-auto font-semibold text-black border-2 border-black px-14 py-3 rounded-lg hover:bg-black hover:text-white transition-all"
                 >
@@ -552,9 +559,12 @@ const [userRole, setUserRole] = useState<string | null>(null);
             variants={fadeIn}
           >
             <img
-              src={Lyra}
+              src={featuredPost.image}
               alt="Featured post"
-              className="w-full pointer-events-none max-w-xl h-[180px] md:h-[300px] lg:h-[320px] object-cover rounded-xl shadow-md z-10"
+              style={{
+                filter: 'brightness(1.05) contrast(1.1)'
+              }}
+              className="w-full pointer-events-none max-w-xl border border-black h-[180px] md:h-[300px] lg:h-[320px] object-cover rounded-2xl z-10"
             />
           </motion.div>
         </motion.div>

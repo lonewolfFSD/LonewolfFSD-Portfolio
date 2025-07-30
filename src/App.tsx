@@ -32,6 +32,7 @@ import { DotPatternWithGlowEffectDemo } from './DotPattern';
 import { ScaleLoader } from "react-spinners";
 
 import LyraBlog from './Blogs/pages/LyraBlog';
+import Meauli from './Blogs/pages/Meauli';
 import { useTranslation } from 'react-i18next';
 import '../i18n'; // Import i18n configuration
 
@@ -590,6 +591,7 @@ const skills = [
       <Route path="/client-portal" element={<UserDataPage />} />
       <Route path="/blogs/will-ai-take-our-jobs" element={<AIBlog />} /> {/* New route */}
       <Route path="/blogs/best-lang-to-learn-in-2025" element={<Lang />} /> {/* New route */}
+      <Route path="/blogs/meauli" element={<Meauli />} /> {/* New route */}
       <Route path="/lets-collaborate" element={<HeroSection />} /> {/* New route */}
       <Route path="/about-me" element={<About />} /> {/* New route */}
       <Route path="/profile" element={<Profile isDark={isDark} />} />

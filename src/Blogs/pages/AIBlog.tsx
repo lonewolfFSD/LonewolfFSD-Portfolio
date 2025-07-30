@@ -396,7 +396,7 @@ const [userRole, setUserRole] = useState<string | null>(null);
                   </motion.header>
 
       <motion.article
-        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 -mt-14 md:mt-0"
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 md:pb-16 md:pt-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
