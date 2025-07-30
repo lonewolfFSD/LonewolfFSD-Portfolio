@@ -36,19 +36,12 @@ const projects: Project[] = [
   {
     title: 'Meauli: Pet Accessories ',
     description: 'project.lonewolffsd.description',
-    image: LonewolfFSD,
+    image: 'https://i.ibb.co/jkdY2xg1/Pics-Art-07-30-06-53-07.jpg',
     link: 'https://meauli.vercel.app',
     readTime: 'BLOG',
     github: '',
   },
-    {
-    title: 'Meauli: Pet Accessories ',
-    description: 'project.lonewolffsd.description',
-    image: LonewolfFSD,
-    link: 'https://meauli.vercel.app',
-    readTime: 'BLOG',
-    github: '',
-  },
+    
 ];
 
 // Project Card Component
