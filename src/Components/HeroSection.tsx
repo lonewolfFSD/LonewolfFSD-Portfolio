@@ -447,7 +447,7 @@ const languages = [
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
-        <div className='mt-16 relative flex flex-col items-center justify-center px-4 md:px-8 py-16'>
+        <div className='3xl:mt-16 relative flex flex-col items-center justify-center px-4 md:px-8 py-16'>
         <AnimatedHeading />
         
         <div className="mt-12 mb-8">

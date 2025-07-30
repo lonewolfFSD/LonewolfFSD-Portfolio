@@ -33,7 +33,7 @@ const paragraph = t('collab_body');
   
   return (
     <motion.p 
-      className="text-md md:text-xl -mt-6 md:mt-0 text-black leading-relaxed md:max-w-[900px] md:mx-auto"
+      className="text-md lg:text-lg 3xl:text-xl -mt-6 3xl:mt-0 text-black leading-relaxed md:max-w-[900px] md:mx-auto"
       variants={container}
       initial="hidden"
       animate="visible"
