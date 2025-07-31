@@ -7,6 +7,10 @@ export default {
         custom: "url('https://i.ibb.co/gZ0njmd7/arrowhead-rounded-outline.png'), auto",
         'custom-pointer': 'url("https://i.ibb.co/8nVVv1rv/hand-pointer.png"), pointer',
       },
+      screens: {
+        '3xl': '1920px', // You can set this to whatever your PC resolution starts at
+        '4xl': '2560px', // Optional, for ultra-wides or 4K
+      },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },

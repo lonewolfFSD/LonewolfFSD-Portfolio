@@ -882,7 +882,7 @@ const skills = [
 
           {/* Animated Heading */}
           <motion.h1
-            className="text-5xl md:text-7xl lg:text-[88px] font-extrabold lg:font-bold leading-tight mb-8 pointer-events-none"
+            className="text-5xl md:text-7xl lg:text-[88px] 3xl:text-8xl font-extrabold lg:font-bold leading-tight mb-8 pointer-events-none"
             style={{ fontFamily: 'Poppins' }} // default (mobile)
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
