@@ -31,7 +31,7 @@ const LyraModal: React.FC = () => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 backdrop-blur-sm flex flex-col items-center justify-end bg-gradient-to-br from-rose-500/20 via-purple-600/20 to-rose-500/20 z-50 p-4"
+          className="fixed inset-0 pointer-events-none backdrop-blur-sm flex flex-col items-center sm:justify-end bg-gradient-to-br from-rose-500/20 via-purple-600/20 to-rose-500/20 z-50 p-4"
           style={{
             boxShadow: '0 0 20px rgba(255, 105, 180, 0.5), 0 0 40px rgba(147, 51, 234, 0.3)',
           }}
@@ -58,30 +58,29 @@ const LyraModal: React.FC = () => {
           <div className="absolute bottom-0 left-0 right-0 z-10 h-1/3 bg-gradient-to-t from-[rgba(255,116,185,0.8)] to-transparent pointer-events-none" />
 
           {/* Falling Petal Effect */}
-{/* Falling Petal Effect */}
-<div className="absolute inset-0 pointer-events-none z-5">
-  {[...Array(15)].map((_, i) => (
-    <div
-      key={i}
-      className="absolute bg-pink-400/70 rounded-full"
-      style={{
-        width: `${Math.random() * 16 + 12}px`, // Was 8 + 4 → now 16 + 12
-        height: `${Math.random() * 10 + 8}px`, // Was 4 + 2 → now 10 + 8
-        left: `${Math.random() * 100}%`,
-        top: `${-Math.random() * 20}%`,
-        animation: `fall-petal ${Math.random() * 6 + 4}s linear infinite`,
-        animationDelay: `${Math.random() * 5}s`,
-        opacity: Math.random() * 0.4 + 0.4,
-        transform: `rotate(${Math.random() * 360}deg)`,
-      }}
-    />
-  ))}
-</div>
+          <div className="absolute inset-0 pointer-events-none z-5">
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute bg-pink-400/70 rounded-full"
+                style={{
+                  width: `${Math.random() * 16 + 12}px`,
+                  height: `${Math.random() * 10 + 8}px`,
+                  left: `${Math.random() * 100}%`,
+                  top: `${-Math.random() * 20}%`,
+                  animation: `fall-petal ${Math.random() * 6 + 4}s linear infinite`,
+                  animationDelay: `${Math.random() * 5}s`,
+                  opacity: Math.random() * 0.4 + 0.4,
+                  transform: `rotate(${Math.random() * 360}deg)`,
+                }}
+              />
+            ))}
+          </div>
 
           {/* Close Button */}
           <motion.button
             onClick={handleClose}
-            className="absolute top-4 right-4 bg-black/10 border-white text-white border-2 rounded-full p-3 transition-all duration-100 z-20 group"
+            className="absolute top-4 right-4 bg-black/10 border-white text-white border-2 rounded-full p-3 transition-all duration-100 z-20 group pointer-events-auto"
             aria-label="Close modal"
             whileHover={{ scale: 1.03, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
@@ -91,7 +90,7 @@ const LyraModal: React.FC = () => {
 
           {/* Content */}
           <motion.div
-            className="relative z-10 text-center mb-10"
+            className="relative z-10 text-center mt-10 sm:mb-10 pointer-events-auto"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
@@ -144,17 +143,17 @@ const LyraModal: React.FC = () => {
 
           {/* Big Lyra Logo */}
           <motion.div
-            className="absolute bottom-10 text-center"
+            className="absolute bottom-10 text-center pointer-events-none"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.6 }}
           >
-            <img className="w-[620px] -mb-10" src={Lyra} alt="Lyra Logo" />
+            <img className="w-full max-w-2xl sm:max-w-xl md:max-w-[600px] -mb-10" src={Lyra} alt="Lyra Logo" />
           </motion.div>
 
           {/* Decorative Elements */}
-          <div className="absolute top-10 left-10 w-24 h-24 bg-rose-300/10 rounded-full blur-xl animate-float" />
-          <div className="absolute bottom-10 right-10 w-20 h-20 bg-purple-600/10 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-10 left-10 w-24 h-24 bg-rose-300/10 rounded-full blur-xl animate-float pointer-events-none" />
+          <div className="absolute bottom-10 right-10 w-20 h-20 bg-purple-600/10 rounded-full blur-xl animate-float pointer-events-none" style={{ animationDelay: '1s' }} />
         </motion.div>
       )}
     </AnimatePresence>
