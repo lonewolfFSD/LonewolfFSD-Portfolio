@@ -96,26 +96,21 @@ const LyraModal: React.FC = () => {
             transition={{ delay: 0.2, duration: 0.6 }}
           >
             {/* Heading */}
-            <h1
-              className="text-5xl md:text-6xl font-bold text-white mb-4"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
-            >
-              Lyra is Live
-            </h1>
+            <img className='w-[400px] md:w-[450px] mr-6 mx-auto -mb-2' src='https://i.postimg.cc/t4NK0V9N/Pics-Art-07-31-09-54-26.png' />
 
             {/* Description */}
-            <motion.p
-              className="text-white/90 text-lg leading-relaxed max-w-2xl mx-auto mb-8"
+            {/* <motion.p
+              className="text-white/90 text-base leading-relaxed max-w-2xl mx-auto mb-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
             >
               Experience the next generation of AI interaction. Explore Lyra's capabilities or dive into the source code.
-            </motion.p>
+            </motion.p> */}
 
             {/* Buttons */}
             <motion.div
-              className="flex flex-row gap-2.5 justify-center"
+              className="flex flex-row gap-2.5 justify-center -mb-2"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
@@ -148,7 +143,7 @@ const LyraModal: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.6 }}
           >
-            <img className="w-full max-w-2xl sm:max-w-xl md:max-w-[600px] -mb-10" src={Lyra} alt="Lyra Logo" />
+            <img className="w-full max-w-2xl sm:max-w-xl md:max-w-[650px] -mb-10" src={Lyra} alt="Lyra Logo" />
           </motion.div>
 
           {/* Decorative Elements */}
