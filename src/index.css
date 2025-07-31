@@ -380,4 +380,26 @@
     }
 
 
+@keyframes fall-petal {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(100vh) translateX(10vw) rotate(360deg);
+    opacity: 1;
+  }
+}
 
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}

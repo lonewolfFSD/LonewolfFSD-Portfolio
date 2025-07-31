@@ -62,6 +62,7 @@ import PurchaseHistory from './PurchaseHistory';
 import Enquiries from './Enquiries';
 import Testimonials from './Testimonials';
 import ClientReview from './ClientReview';
+import LyraModal from './popup/LyraModal';
 
 const override: CSSProperties = {
   display: "block",
@@ -632,6 +633,8 @@ const skills = [
       <MaintenanceOverlay />
 
       <CookieConsent />
+
+      <LyraModal />
 
       {/* Particles Background */}
       <div className="absolute inset-0 z-50 pointer-events-none">
