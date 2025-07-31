@@ -867,7 +867,7 @@ const skills = [
       </motion.header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 mt-6 lg:mt-10 2xl:mt-16 z-50">
+      <main className="container mx-auto px-6 mt-6 lg:mt-10 3xl:mt-16 z-50">
         <Spline scene="https://prod.spline.design/pb7UhbKVN30j962d/scene.splinecode" className="hidden lg:block" />
         <div className="max-w-4xl lg:mt-[-45%] xl:mt-[-49%]">
           {/* Animated Paragraph */}
