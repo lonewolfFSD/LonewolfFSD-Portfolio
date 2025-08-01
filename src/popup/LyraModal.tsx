@@ -143,7 +143,7 @@ const LyraModal: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.6 }}
           >
-            <img className="w-full max-w-2xl sm:max-w-xl md:max-w-[650px] -mb-10" src={Lyra} alt="Lyra Logo" />
+            <img className="w-full max-w-2xl sm:max-w-xl md:max-w-[650px] 3xl:max-w-[800px] -mb-10" src={Lyra} alt="Lyra Logo" />
           </motion.div>
 
           {/* Decorative Elements */}
